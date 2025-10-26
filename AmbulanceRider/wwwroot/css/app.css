@@ -97,7 +97,9 @@ html {
 .btn-primary:active {
     transform: translateY(1px);
 }
-
+.create-btn {
+    width: 20%;
+}
 /* Responsive Adjustments */
 @media (max-width: 576px) {
     .login-box {

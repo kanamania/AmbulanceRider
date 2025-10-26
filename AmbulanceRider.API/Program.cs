@@ -3,15 +3,35 @@ using AmbulanceRider.API.Data;
 using AmbulanceRider.API.Repositories;
 using AmbulanceRider.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure file upload settings
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    // Increase the request size limit to 30MB (default is 30MB, but we'll set it explicitly)
+    serverOptions.Limits.MaxRequestBodySize = 30 * 1024 * 1024;
+});
+
+// Add Data Protection
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "DataProtection-Keys")))
+    .SetApplicationName("AmbulanceRider");
+
 // Add Database Context
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add Repositories
+builder.Services.AddScoped<ILocationRepository, LocationRepository>();
+
+// Add Services
+builder.Services.AddScoped<ILocationService, LocationService>();
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -55,12 +75,14 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IRouteRepository, RouteRepository>();
+builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 
 // Register Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IRouteService, RouteService>();
+builder.Services.AddScoped<ILocationService, LocationService>();
 
 // Add Controllers
 builder.Services.AddControllers();
@@ -128,6 +150,24 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+// Enable static files
+var uploadsPath = Path.Combine(app.Environment.WebRootPath, "uploads");
+if (!Directory.Exists(uploadsPath))
+{
+    Directory.CreateDirectory(uploadsPath);
+}
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsPath),
+    RequestPath = "/uploads"
+});
+
+app.UseStaticFiles();
+
+// Configure CORS
+app.UseCors("AllowAll");
+
 // Apply migrations and seed data
 using (var scope = app.Services.CreateScope())
 {
@@ -135,12 +175,29 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        
+        // Apply any pending migrations
+        logger.LogInformation("Applying database migrations...");
         context.Database.Migrate();
+        
+        // Seed initial data if needed (only if no roles exist)
+        if (!context.Roles.Any())
+        {
+            logger.LogInformation("Seeding initial data...");
+            await DataSeeder.SeedData(context);
+            logger.LogInformation("Database seeded successfully.");
+        }
+        else
+        {
+            logger.LogInformation("Database already contains data. Skipping seeding.");
+        }
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while migrating the database.");
+        logger.LogError(ex, "An error occurred while migrating or seeding the database.");
+        throw; // Re-throw to prevent the app from starting with a broken database
     }
 }
 

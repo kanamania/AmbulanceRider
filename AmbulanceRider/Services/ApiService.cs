@@ -6,107 +6,109 @@ namespace AmbulanceRider.Services;
 public class ApiService
 {
     private readonly HttpClient _httpClient;
-    private readonly string BaseUrl;
 
     public ApiService(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
-        // In Docker, the API service is available at http://api:8080
-        // In development, it's at http://localhost:5000
-        BaseUrl = configuration["ApiBaseUrl"] ?? "http://localhost:5000/api";
-        _httpClient.BaseAddress = new Uri(BaseUrl);
+        // Don't set BaseAddress here - it's already set in Program.cs
+        // Just use the configured client
     }
 
     // Users
     public async Task<List<UserDto>> GetUsersAsync()
     {
-        return await _httpClient.GetFromJsonAsync<List<UserDto>>("users") ?? new List<UserDto>();
+        return await _httpClient.GetFromJsonAsync<List<UserDto>>("/api/users") ?? new List<UserDto>();
     }
 
     public async Task<UserDto?> GetUserByIdAsync(int id)
     {
-        return await _httpClient.GetFromJsonAsync<UserDto>($"users/{id}");
+        return await _httpClient.GetFromJsonAsync<UserDto>($"/api/users/{id}");
     }
 
     public async Task<UserDto> CreateUserAsync(CreateUserDto user)
     {
-        var response = await _httpClient.PostAsJsonAsync("users", user);
+        var response = await _httpClient.PostAsJsonAsync("/api/users", user);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<UserDto>() ?? throw new Exception("Failed to create user");
     }
 
     public async Task<UserDto> UpdateUserAsync(int id, UpdateUserDto user)
     {
-        var response = await _httpClient.PutAsJsonAsync($"users/{id}", user);
+        var response = await _httpClient.PutAsJsonAsync($"/api/users/{id}", user);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<UserDto>() ?? throw new Exception("Failed to update user");
     }
 
     public async Task DeleteUserAsync(int id)
     {
-        var response = await _httpClient.DeleteAsync($"users/{id}");
+        var response = await _httpClient.DeleteAsync($"/api/users/{id}");
         response.EnsureSuccessStatusCode();
     }
 
     // Vehicles
     public async Task<List<VehicleDto>> GetVehiclesAsync()
     {
-        return await _httpClient.GetFromJsonAsync<List<VehicleDto>>("vehicles") ?? new List<VehicleDto>();
+        return await _httpClient.GetFromJsonAsync<List<VehicleDto>>("/api/vehicles") ?? new List<VehicleDto>();
+    }
+
+    public async Task<List<VehicleTypeDto>> GetVehicleTypesAsync()
+    {
+        return await _httpClient.GetFromJsonAsync<List<VehicleTypeDto>>("/api/vehicles/types") ?? new List<VehicleTypeDto>();
     }
 
     public async Task<VehicleDto?> GetVehicleByIdAsync(int id)
     {
-        return await _httpClient.GetFromJsonAsync<VehicleDto>($"vehicles/{id}");
+        return await _httpClient.GetFromJsonAsync<VehicleDto>($"/api/vehicles/{id}");
     }
 
     public async Task<VehicleDto> CreateVehicleAsync(CreateVehicleDto vehicle)
     {
-        var response = await _httpClient.PostAsJsonAsync("vehicles", vehicle);
+        var response = await _httpClient.PostAsJsonAsync("/api/vehicles", vehicle);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<VehicleDto>() ?? throw new Exception("Failed to create vehicle");
     }
 
     public async Task<VehicleDto> UpdateVehicleAsync(int id, UpdateVehicleDto vehicle)
     {
-        var response = await _httpClient.PutAsJsonAsync($"vehicles/{id}", vehicle);
+        var response = await _httpClient.PutAsJsonAsync($"/api/vehicles/{id}", vehicle);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<VehicleDto>() ?? throw new Exception("Failed to update vehicle");
     }
 
     public async Task DeleteVehicleAsync(int id)
     {
-        var response = await _httpClient.DeleteAsync($"vehicles/{id}");
+        var response = await _httpClient.DeleteAsync($"/api/vehicles/{id}");
         response.EnsureSuccessStatusCode();
     }
 
     // Routes
     public async Task<List<RouteDto>> GetRoutesAsync()
     {
-        return await _httpClient.GetFromJsonAsync<List<RouteDto>>("routes") ?? new List<RouteDto>();
+        return await _httpClient.GetFromJsonAsync<List<RouteDto>>("/api/routes") ?? new List<RouteDto>();
     }
 
     public async Task<RouteDto?> GetRouteByIdAsync(int id)
     {
-        return await _httpClient.GetFromJsonAsync<RouteDto>($"routes/{id}");
+        return await _httpClient.GetFromJsonAsync<RouteDto>($"/api/routes/{id}");
     }
 
     public async Task<RouteDto> CreateRouteAsync(CreateRouteDto route)
     {
-        var response = await _httpClient.PostAsJsonAsync("routes", route);
+        var response = await _httpClient.PostAsJsonAsync("/api/routes", route);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<RouteDto>() ?? throw new Exception("Failed to create route");
     }
 
     public async Task<RouteDto> UpdateRouteAsync(int id, UpdateRouteDto route)
     {
-        var response = await _httpClient.PutAsJsonAsync($"routes/{id}", route);
+        var response = await _httpClient.PutAsJsonAsync($"/api/routes/{id}", route);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<RouteDto>() ?? throw new Exception("Failed to update route");
     }
 
     public async Task DeleteRouteAsync(int id)
     {
-        var response = await _httpClient.DeleteAsync($"routes/{id}");
+        var response = await _httpClient.DeleteAsync($"/api/routes/{id}");
         response.EnsureSuccessStatusCode();
     }
 }

@@ -12,9 +12,12 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // Configure HTTP client with error handling
-var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? builder.HostEnvironment.BaseAddress;
-builder.Services.AddScoped<HttpClient>(_ => 
-    new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
+var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? "/api/";
+builder.Services.AddScoped(sp => 
+{
+    var client = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };
+    return client;
+});
 
 // Add configuration
 var configuration = builder.Configuration;

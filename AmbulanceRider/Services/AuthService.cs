@@ -10,11 +10,11 @@ public class AuthService(HttpClient httpClient, AuthenticationStateProvider auth
 {
     private const string TokenKey = "authToken";
 
-    public async Task<bool> LoginAsync(string username, string password)
+    public async Task<bool> LoginAsync(string email, string password)
     {
         try
         {
-            var response = await httpClient.PostAsJsonAsync("api/auth/login", new { username, password });
+            var response = await httpClient.PostAsJsonAsync("api/auth/login", new { email, password });
             
             if (response.IsSuccessStatusCode)
             {

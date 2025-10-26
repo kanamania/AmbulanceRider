@@ -33,7 +33,7 @@ public class VehicleService : IVehicleService
         var vehicle = new Vehicle
         {
             Name = createVehicleDto.Name,
-            Image = createVehicleDto.Image,
+            Image = createVehicleDto.ImagePath,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -65,7 +65,7 @@ public class VehicleService : IVehicleService
             vehicle.Name = updateVehicleDto.Name;
         
         if (updateVehicleDto.Image != null)
-            vehicle.Image = updateVehicleDto.Image;
+            vehicle.Image = updateVehicleDto.ImagePath;
 
         vehicle.UpdatedAt = DateTime.UtcNow;
 
@@ -112,7 +112,7 @@ public class VehicleService : IVehicleService
         {
             Id = vehicle.Id,
             Name = vehicle.Name,
-            Image = vehicle.Image,
+            ImagePath = vehicle.Image,
             Types = vehicle.VehicleTypes.Select(vt => vt.Name).ToList(),
             CreatedAt = vehicle.CreatedAt
         };

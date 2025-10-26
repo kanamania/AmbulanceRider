@@ -6,8 +6,9 @@ services:
       POSTGRES_DB: ambulance_rider
       POSTGRES_USER: ambulance_rider
       POSTGRES_PASSWORD: c906ca683541d864d013ee28c8b3958be6c1cfd2bc07329d6e99f6c6dab74bf5
+
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:

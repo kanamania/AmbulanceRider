@@ -36,22 +36,26 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Vehicle Types</label>
-                            <div class="input-group mb-2">
-                                <input type="text" @bind="newType" class="form-control" placeholder="e.g., Emergency, ICU" @onkeypress="HandleKeyPress" />
-                                <button type="button" class="btn btn-outline-secondary" @onclick="AddType">
-                                    <i class="bi bi-plus-circle"></i> Add
-                                </button>
-                            </div>
-                            <div>
-                                @foreach (var type in model.Types)
+                            <label class="form-label">Vehicle Type *</label>
+                            <select @bind="selectedVehicleTypeId" class="form-select">
+                                <option value="0">-- Select Vehicle Type --</option>
+                                @foreach (var type in vehicleTypes)
                                 {
-                                    <span class="badge bg-success me-1 mb-1">
-                                        @type
-                                        <i class="bi bi-x-circle ms-1" style="cursor: pointer;" @onclick="() => RemoveType(type)"></i>
-                                    </span>
+                                    <option value="@type.Id">@type.Name</option>
                                 }
-                            </div>
+                            </select>
+                            @if (selectedVehicleTypeId == 0 && model.Types.Count == 0)
+                            {
+                                <div class="text-danger small mt-1">Please select a vehicle type</div>
+                            }
+                            @if (selectedVehicleTypeId > 0)
+                            {
+                                <div class="mt-2">
+                                    <span class="badge bg-success">
+                                        @vehicleTypes.FirstOrDefault(t => t.Id == selectedVehicleTypeId)?.Name
+                                    </span>
+                                </div>
+                            }
                         </div>
 
                         <div class="d-flex justify-content-between">
@@ -75,29 +79,20 @@
 
 @code {
     private CreateVehicleDto model = new();
-    private string newType = string.Empty;
+    private List<VehicleTypeDto> vehicleTypes = new();
+    private int selectedVehicleTypeId = 0;
     private bool isSubmitting = false;
     private string? errorMessage;
 
-    private void AddType()
+    protected override async Task OnInitializedAsync()
     {
-        if (!string.IsNullOrWhiteSpace(newType) && !model.Types.Contains(newType))
+        try
         {
-            model.Types.Add(newType.Trim());
-            newType = string.Empty;
+            vehicleTypes = await ApiService.GetVehicleTypesAsync();
         }
-    }
-
-    private void RemoveType(string type)
-    {
-        model.Types.Remove(type);
-    }
-
-    private void HandleKeyPress(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter")
+        catch (Exception ex)
         {
-            AddType();
+            errorMessage = $"Error loading vehicle types: {ex.Message}";
         }
     }
 
@@ -105,8 +100,22 @@
     {
         try
         {
+            if (selectedVehicleTypeId == 0)
+            {
+                errorMessage = "Please select a vehicle type";
+                return;
+            }
+
             isSubmitting = true;
             errorMessage = null;
+            
+            // Set the vehicle type name based on selection
+            var selectedType = vehicleTypes.FirstOrDefault(t => t.Id == selectedVehicleTypeId);
+            if (selectedType != null)
+            {
+                model.Types = new List<string> { selectedType.Name };
+            }
+            
             await ApiService.CreateVehicleAsync(model);
             Navigation.NavigateTo("/vehicles");
         }

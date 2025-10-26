@@ -7,21 +7,14 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace AmbulanceRider.API.Services;
 
-public class AuthService : IAuthService
+public class AuthService(IUserRepository userRepository, IConfiguration configuration)
+    : IAuthService
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IConfiguration _configuration;
-
-    public AuthService(IUserRepository userRepository, IConfiguration configuration)
-    {
-        _userRepository = userRepository;
-        _configuration = configuration;
-    }
-
     public async Task<LoginResponseDto> LoginAsync(LoginDto loginDto)
     {
-        var user = await _userRepository.GetByEmailAsync(loginDto.Email);
-        
+        var user = await userRepository.GetByEmailAsync(loginDto.Email);
+        // log loginDto
+        Console.WriteLine($"LoginDto: {loginDto.Email} {loginDto.Password}");
         if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
         {
             throw new UnauthorizedAccessException("Invalid email or password");
@@ -49,7 +42,7 @@ public class AuthService : IAuthService
 
     public string GenerateJwtToken(UserDto user)
     {
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
         var claims = new List<Claim>
@@ -65,8 +58,8 @@ public class AuthService : IAuthService
         }
 
         var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"],
-            audience: _configuration["Jwt:Audience"],
+            issuer: configuration["Jwt:Issuer"],
+            audience: configuration["Jwt:Audience"],
             claims: claims,
             expires: DateTime.UtcNow.AddHours(24),
             signingCredentials: credentials

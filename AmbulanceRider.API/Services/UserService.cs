@@ -2,6 +2,7 @@ using AmbulanceRider.API.Data;
 using AmbulanceRider.API.DTOs;
 using AmbulanceRider.API.Models;
 using AmbulanceRider.API.Repositories;
+using System.IO;
 
 namespace AmbulanceRider.API.Services;
 
@@ -46,6 +47,13 @@ public class UserService : IUserService
             CreatedAt = DateTime.UtcNow
         };
 
+        // Handle image properties if provided
+        if (createUserDto.Image != null)
+        {
+            user.ImagePath = createUserDto.ImagePath;
+            user.ImageUrl = createUserDto.ImageUrl;
+        }
+
         await _userRepository.AddAsync(user);
 
         // Add roles
@@ -58,6 +66,7 @@ public class UserService : IUserService
             };
             _context.UserRoles.Add(userRole);
         }
+
         await _context.SaveChangesAsync();
 
         return (await GetUserByIdAsync(user.Id))!;
@@ -67,63 +76,72 @@ public class UserService : IUserService
     {
         var user = await _userRepository.GetByIdWithRolesAsync(id);
         if (user == null)
-        {
             throw new KeyNotFoundException("User not found");
-        }
 
         if (!string.IsNullOrEmpty(updateUserDto.FirstName))
             user.FirstName = updateUserDto.FirstName;
-        
         if (!string.IsNullOrEmpty(updateUserDto.LastName))
             user.LastName = updateUserDto.LastName;
-        
-        if (!string.IsNullOrEmpty(updateUserDto.Email))
+        if (!string.IsNullOrEmpty(updateUserDto.Email) && user.Email != updateUserDto.Email)
+        {
+            var existingUser = await _userRepository.GetByEmailAsync(updateUserDto.Email);
+            if (existingUser != null && existingUser.Id != id)
+            {
+                throw new InvalidOperationException("Email is already in use by another user");
+            }
+
             user.Email = updateUserDto.Email;
-        
+        }
+
         if (!string.IsNullOrEmpty(updateUserDto.PhoneNumber))
             user.PhoneNumber = updateUserDto.PhoneNumber;
-        
         if (!string.IsNullOrEmpty(updateUserDto.Password))
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(updateUserDto.Password);
 
+        // Handle image path/url updates
+        if (updateUserDto.ImagePath != null)
+            user.ImagePath = updateUserDto.ImagePath;
+        if (updateUserDto.ImageUrl != null)
+            user.ImageUrl = updateUserDto.ImageUrl;
+
         user.UpdatedAt = DateTime.UtcNow;
 
-        await _userRepository.UpdateAsync(user);
-
         // Update roles if provided
-        if (updateUserDto.RoleIds != null)
+        if (updateUserDto.RoleIds != null && updateUserDto.RoleIds.Any())
         {
-            var existingRoles = user.UserRoles.ToList();
-            foreach (var role in existingRoles)
-            {
-                _context.UserRoles.Remove(role);
-            }
+            // Remove existing roles
+            var existingRoles = _context.UserRoles.Where(ur => ur.UserId == user.Id);
+            _context.UserRoles.RemoveRange(existingRoles);
 
+            // Add new roles
             foreach (var roleId in updateUserDto.RoleIds)
             {
-                var userRole = new UserRole
-                {
-                    UserId = user.Id,
-                    RoleId = roleId
-                };
-                _context.UserRoles.Add(userRole);
+                _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = roleId });
             }
-            await _context.SaveChangesAsync();
         }
 
-        return (await GetUserByIdAsync(id))!;
+        await _context.SaveChangesAsync();
+
+        return (await GetUserByIdAsync(user.Id))!;
     }
 
     public async Task DeleteUserAsync(int id)
     {
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null)
-        {
             throw new KeyNotFoundException("User not found");
+
+        // Delete the image file if it exists
+        if (!string.IsNullOrEmpty(user.ImagePath))
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", user.ImagePath);
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
         }
 
-        user.DeletedAt = DateTime.UtcNow;
-        await _userRepository.UpdateAsync(user);
+        await _userRepository.DeleteAsync(user.Id);
     }
 
     private static UserDto MapToDto(User user)
@@ -135,7 +153,10 @@ public class UserService : IUserService
             LastName = user.LastName,
             Email = user.Email,
             PhoneNumber = user.PhoneNumber,
-            Roles = user.UserRoles.Select(ur => ur.Role.Name).ToList(),
+            ImagePath = user.ImagePath,
+            ImageUrl = user.ImageUrl,
+            Roles = user.UserRoles?.Select(ur => ur.Role?.Name ?? string.Empty)
+                .Where(name => !string.IsNullOrEmpty(name)).ToList() ?? new List<string>(),
             CreatedAt = user.CreatedAt
         };
     }

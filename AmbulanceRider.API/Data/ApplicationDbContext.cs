@@ -16,6 +16,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<VehicleType> VehicleTypes { get; set; }
     public DbSet<VehicleDriver> VehicleDrivers { get; set; }
+    public DbSet<Location> Locations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -91,36 +92,48 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(50);
         });
-
         // VehicleDriver configuration
         modelBuilder.Entity<VehicleDriver>(entity =>
         {
             entity.ToTable("vehicle_drivers");
             entity.HasKey(e => e.Id);
-            entity.HasIndex(e => new { e.UserId, e.VehicleId }).IsUnique();
-
-            entity.HasOne(e => e.User)
-                .WithMany(u => u.VehicleDrivers)
-                .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            entity.HasOne(e => e.Vehicle)
-                .WithMany(v => v.VehicleDrivers)
-                .HasForeignKey(e => e.VehicleId)
-                .OnDelete(DeleteBehavior.Cascade);
-
+            entity.HasOne(e => e.Vehicle).WithMany(v => v.VehicleDrivers).HasForeignKey(e => e.VehicleId);
+            entity.HasOne(e => e.User).WithMany(u => u.VehicleDrivers).HasForeignKey(e => e.UserId);
             entity.HasQueryFilter(e => !e.IsDeleted);
         });
 
         // Route configuration
-        modelBuilder.Entity<Models.Route>(entity =>
+        modelBuilder.Entity<Route>(entity =>
         {
             entity.ToTable("routes");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
-            entity.Property(e => e.StartLocation).IsRequired().HasMaxLength(500);
-            entity.Property(e => e.EndLocation).IsRequired().HasMaxLength(500);
             entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.Distance).IsRequired();
+            entity.Property(e => e.EstimatedDuration).IsRequired();
+            
+            // Relationships
+            entity.HasOne(r => r.FromLocation)
+                .WithMany(l => l.RoutesFrom)
+                .HasForeignKey(r => r.FromLocationId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(r => r.ToLocation)
+                .WithMany(l => l.RoutesTo)
+                .HasForeignKey(r => r.ToLocationId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            entity.HasQueryFilter(e => !e.IsDeleted);
+        });
+        
+        // Location configuration
+        modelBuilder.Entity<Location>(entity =>
+        {
+            entity.ToTable("locations");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.ImagePath).HasMaxLength(255);
+            entity.Property(e => e.ImageUrl).HasMaxLength(512);
             
             entity.HasQueryFilter(e => !e.IsDeleted);
         });

@@ -1,14 +1,18 @@
+using AmbulanceRider.API.Data;
 using AmbulanceRider.API.DTOs;
 using AmbulanceRider.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Http;
 
 namespace AmbulanceRider.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class VehiclesController(IVehicleService vehicleService) : ControllerBase
+public class VehiclesController(IVehicleService vehicleService, ApplicationDbContext context, IConfiguration configuration) : ControllerBase
 {
     /// <summary>
     /// Get all vehicles
@@ -19,6 +23,19 @@ public class VehiclesController(IVehicleService vehicleService) : ControllerBase
     {
         var vehicles = await vehicleService.GetAllVehiclesAsync();
         return Ok(vehicles);
+    }
+
+    /// <summary>
+    /// Get all vehicle types
+    /// </summary>
+    [HttpGet("types")]
+    [ProducesResponseType(typeof(IEnumerable<VehicleTypeDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<VehicleTypeDto>>> GetVehicleTypes()
+    {
+        var types = await context.VehicleTypes
+            .Select(vt => new VehicleTypeDto { Id = vt.Id, Name = vt.Name })
+            .ToListAsync();
+        return Ok(types);
     }
 
     /// <summary>
@@ -42,8 +59,28 @@ public class VehiclesController(IVehicleService vehicleService) : ControllerBase
     [HttpPost]
     [Authorize(Roles = "Admin,Dispatcher")]
     [ProducesResponseType(typeof(VehicleDto), StatusCodes.Status201Created)]
-    public async Task<ActionResult<VehicleDto>> Create([FromBody] CreateVehicleDto createVehicleDto)
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<VehicleDto>> Create([FromForm] CreateVehicleDto createVehicleDto)
     {
+        if (createVehicleDto.Image != null)
+        {
+            var baseUrl = configuration["BaseUrl"] ?? $"{Request.Scheme}://{Request.Host}";
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "vehicles");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(createVehicleDto.Image.FileName)}";
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await createVehicleDto.Image.CopyToAsync(stream);
+            }
+
+            createVehicleDto.ImagePath = $"uploads/vehicles/{uniqueFileName}";
+            createVehicleDto.ImageUrl = $"{baseUrl}/uploads/vehicles/{uniqueFileName}";
+        }
+
         var vehicle = await vehicleService.CreateVehicleAsync(createVehicleDto);
         return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, vehicle);
     }
@@ -55,10 +92,58 @@ public class VehiclesController(IVehicleService vehicleService) : ControllerBase
     [Authorize(Roles = "Admin,Dispatcher")]
     [ProducesResponseType(typeof(VehicleDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<VehicleDto>> Update(int id, [FromBody] UpdateVehicleDto updateVehicleDto)
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<VehicleDto>> Update(int id, [FromForm] UpdateVehicleDto updateVehicleDto)
     {
         try
         {
+            var existingVehicle = await vehicleService.GetVehicleByIdAsync(id);
+            if (existingVehicle == null)
+                return NotFound();
+
+            var baseUrl = configuration["BaseUrl"] ?? $"{Request.Scheme}://{Request.Host}";
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "vehicles");
+            
+            // Handle image upload if a new image is provided
+            if (updateVehicleDto.Image != null)
+            {
+                // Delete old image if it exists
+                if (!string.IsNullOrEmpty(existingVehicle.ImagePath))
+                {
+                    var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", existingVehicle.ImagePath);
+                    if (System.IO.File.Exists(oldFilePath))
+                    {
+                        System.IO.File.Delete(oldFilePath);
+                    }
+                }
+
+                // Save new image
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(updateVehicleDto.Image.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await updateVehicleDto.Image.CopyToAsync(stream);
+                }
+
+                updateVehicleDto.ImagePath = $"uploads/vehicles/{uniqueFileName}";
+                updateVehicleDto.ImageUrl = $"{baseUrl}/uploads/vehicles/{uniqueFileName}";
+            }
+            // Handle image removal if requested
+            else if (updateVehicleDto.RemoveImage && !string.IsNullOrEmpty(existingVehicle.ImagePath))
+            {
+                var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", existingVehicle.ImagePath);
+                if (System.IO.File.Exists(oldFilePath))
+                {
+                    System.IO.File.Delete(oldFilePath);
+                }
+                updateVehicleDto.ImagePath = null;
+                updateVehicleDto.ImageUrl = null;
+            }
+
             var vehicle = await vehicleService.UpdateVehicleAsync(id, updateVehicleDto);
             return Ok(vehicle);
         }
