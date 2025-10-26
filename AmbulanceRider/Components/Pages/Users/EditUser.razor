@@ -1,0 +1,151 @@
+@page "/users/edit/{id:int}"
+@using AmbulanceRider.Models
+@using AmbulanceRider.Services
+@inject ApiService ApiService
+@inject NavigationManager Navigation
+
+<PageTitle>Edit User</PageTitle>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="bi bi-pencil me-2"></i>Edit User</h3>
+                </div>
+                <div class="card-body">
+                    @if (isLoading)
+                    {
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary"></div>
+                        </div>
+                    }
+                    else if (errorMessage != null)
+                    {
+                        <div class="alert alert-danger">@errorMessage</div>
+                    }
+                    else if (model != null)
+                    {
+                        <EditForm Model="@model" OnValidSubmit="HandleSubmit">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">First Name</label>
+                                    <InputText @bind-Value="model.FirstName" class="form-control" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Last Name</label>
+                                    <InputText @bind-Value="model.LastName" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <InputText @bind-Value="model.Email" class="form-control" type="email" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Phone Number</label>
+                                <InputText @bind-Value="model.PhoneNumber" class="form-control" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">New Password (leave blank to keep current)</label>
+                                <InputText @bind-Value="model.Password" class="form-control" type="password" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Roles</label>
+                                <div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" @bind="isAdmin" id="roleAdmin">
+                                        <label class="form-check-label" for="roleAdmin">Admin</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" @bind="isDriver" id="roleDriver">
+                                        <label class="form-check-label" for="roleDriver">Driver</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" @bind="isDispatcher" id="roleDispatcher">
+                                        <label class="form-check-label" for="roleDispatcher">Dispatcher</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" @bind="isUser" id="roleUser">
+                                        <label class="form-check-label" for="roleUser">User</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+                                <button type="submit" class="btn btn-primary" disabled="@isSubmitting">Update</button>
+                            </div>
+                        </EditForm>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private UpdateUserDto? model;
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+    private string? errorMessage;
+    private bool isAdmin, isDriver, isDispatcher, isUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var user = await ApiService.GetUserByIdAsync(Id);
+            if (user != null)
+            {
+                model = new UpdateUserDto
+                {
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
+                    RoleIds = new List<int>()
+                };
+                isAdmin = user.Roles.Contains("Admin");
+                isDriver = user.Roles.Contains("Driver");
+                isDispatcher = user.Roles.Contains("Dispatcher");
+                isUser = user.Roles.Contains("User");
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (model == null) return;
+        
+        model.RoleIds = new List<int>();
+        if (isAdmin) model.RoleIds.Add(1);
+        if (isDriver) model.RoleIds.Add(2);
+        if (isDispatcher) model.RoleIds.Add(3);
+        if (isUser) model.RoleIds.Add(4);
+
+        try
+        {
+            isSubmitting = true;
+            await ApiService.UpdateUserAsync(Id, model);
+            Navigation.NavigateTo("/users");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void Cancel() => Navigation.NavigateTo("/users");
+}

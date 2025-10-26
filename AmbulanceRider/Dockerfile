@@ -1,23 +1,39 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
-USER $APP_UID
-WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
-
+# Build stage
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+
+# Copy solution and project files
 COPY ["AmbulanceRider/AmbulanceRider.csproj", "AmbulanceRider/"]
 RUN dotnet restore "AmbulanceRider/AmbulanceRider.csproj"
+
+# Copy everything else and build
 COPY . .
 WORKDIR "/src/AmbulanceRider"
-RUN dotnet build "./AmbulanceRider.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./AmbulanceRider.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+# Build and publish the Blazor WebAssembly app
+RUN dotnet publish "AmbulanceRider.csproj" -c Release -o /app/publish \
+    /p:DeployOnBuild=true \
+    /p:WebAssemblyEnableCompression=false \
+    /p:UseAppHost=false
 
-FROM base AS final
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+
+# Install required runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set environment variables
+ENV ASPNETCORE_URLS=http://+:80
+ENV ASPNETCORE_ENVIRONMENT=Development
+
+# Expose port 80
+EXPOSE 80
+
+# Copy the published app
+COPY --from=build /app/publish .
+
+# Set the entry point
 ENTRYPOINT ["dotnet", "AmbulanceRider.dll"]

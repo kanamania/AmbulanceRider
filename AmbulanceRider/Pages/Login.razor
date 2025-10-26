@@ -1,0 +1,94 @@
+@page "/login"
+@using AmbulanceRider.Services
+@using AmbulanceRider.Models.Auth
+@using Microsoft.JSInterop
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Web
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
+
+<PageTitle>Login</PageTitle>
+
+<div class="login-container">
+    <div class="login-box">
+        <h2>Login</h2>
+        
+        <EditForm Model="@_loginRequest" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <InputText id="email" @bind-Value="_loginRequest.Email" class="form-control" />
+                <ValidationMessage For="@(() => _loginRequest.Email)" />
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <InputText id="password" type="password" @bind-Value="_loginRequest.Password" class="form-control" />
+                <ValidationMessage For="@(() => _loginRequest.Password)" />
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary" disabled="@_isLoading">
+                    @(_isLoading ? "Logging in..." : "Login")
+                </button>
+            </div>
+            
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <div class="alert alert-danger">@_errorMessage</div>
+            }
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    private readonly LoginRequest _loginRequest = new();
+    private string _errorMessage = string.Empty;
+    private bool _isLoading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if already authenticated
+        var token = await JsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+        if (!string.IsNullOrEmpty(token))
+        {
+            NavigationManager.NavigateTo(ReturnUrl ?? "/", true);
+        }
+    }
+
+    private async Task HandleLogin()
+    {
+        try
+        {
+            _isLoading = true;
+            _errorMessage = string.Empty;
+            
+            var result = await AuthService.LoginAsync(_loginRequest.Email, _loginRequest.Password);
+            
+            if (result)
+            {
+                NavigationManager.NavigateTo(ReturnUrl ?? "/", true);
+            }
+            else
+            {
+                _errorMessage = "Invalid username or password";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = "An error occurred while logging in. Please try again later.";
+            Console.Error.WriteLine(ex);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

@@ -1,0 +1,127 @@
+@page "/vehicles/create"
+@using AmbulanceRider.Models
+@using AmbulanceRider.Services
+@inject ApiService ApiService
+@inject NavigationManager Navigation
+
+<PageTitle>Create Vehicle</PageTitle>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="bi bi-truck me-2"></i>Create New Vehicle</h3>
+                </div>
+                <div class="card-body">
+                    @if (errorMessage != null)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
+                        </div>
+                    }
+
+                    <EditForm Model="@model" OnValidSubmit="HandleSubmit">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Vehicle Name *</label>
+                            <InputText @bind-Value="model.Name" class="form-control" placeholder="e.g., Ambulance Unit 1" />
+                            <ValidationMessage For="@(() => model.Name)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Image URL</label>
+                            <InputText @bind-Value="model.Image" class="form-control" placeholder="https://example.com/image.jpg" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Vehicle Types</label>
+                            <div class="input-group mb-2">
+                                <input type="text" @bind="newType" class="form-control" placeholder="e.g., Emergency, ICU" @onkeypress="HandleKeyPress" />
+                                <button type="button" class="btn btn-outline-secondary" @onclick="AddType">
+                                    <i class="bi bi-plus-circle"></i> Add
+                                </button>
+                            </div>
+                            <div>
+                                @foreach (var type in model.Types)
+                                {
+                                    <span class="badge bg-success me-1 mb-1">
+                                        @type
+                                        <i class="bi bi-x-circle ms-1" style="cursor: pointer;" @onclick="() => RemoveType(type)"></i>
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" @onclick="Cancel">
+                                <i class="bi bi-x-circle me-1"></i> Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                                @if (isSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1"></span>
+                                }
+                                <i class="bi bi-check-circle me-1"></i> Create Vehicle
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private CreateVehicleDto model = new();
+    private string newType = string.Empty;
+    private bool isSubmitting = false;
+    private string? errorMessage;
+
+    private void AddType()
+    {
+        if (!string.IsNullOrWhiteSpace(newType) && !model.Types.Contains(newType))
+        {
+            model.Types.Add(newType.Trim());
+            newType = string.Empty;
+        }
+    }
+
+    private void RemoveType(string type)
+    {
+        model.Types.Remove(type);
+    }
+
+    private void HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            AddType();
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+            await ApiService.CreateVehicleAsync(model);
+            Navigation.NavigateTo("/vehicles");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error creating vehicle: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/vehicles");
+    }
+}

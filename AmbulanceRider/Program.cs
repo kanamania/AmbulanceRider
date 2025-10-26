@@ -1,28 +1,58 @@
-using AmbulanceRider.Components;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.AspNetCore.Components.Authorization;
+using AmbulanceRider;
+using AmbulanceRider.Services;
+using Microsoft.JSInterop;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-// Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+// Configure the root components
+builder.RootComponents.Add<App>("#app");
+builder.RootComponents.Add<HeadOutlet>("head::after");
 
-var app = builder.Build();
+// Configure HTTP client with error handling
+var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? builder.HostEnvironment.BaseAddress;
+builder.Services.AddScoped<HttpClient>(_ => 
+    new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+// Add configuration
+var configuration = builder.Configuration;
+
+// Add logging
+builder.Logging.SetMinimumLevel(LogLevel.Debug);
+
+builder.Services.AddOptions();
+builder.Services.AddAuthorizationCore();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>(sp => 
+    new CustomAuthStateProvider(
+        sp.GetRequiredService<IJSRuntime>(),
+        sp.GetRequiredService<HttpClient>()
+    )
+);
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<ApiService>(sp => 
+    new ApiService(
+        sp.GetRequiredService<HttpClient>(),
+        configuration
+    )
+);
+
+try
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    // Build and run the application
+    var app = builder.Build();
+    
+    // Log environment information
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("Application starting in {Environment} environment", 
+        builder.HostEnvironment.Environment);
+    
+    await app.RunAsync();
 }
-
-app.UseHttpsRedirection();
-
-
-app.UseAntiforgery();
-
-app.MapStaticAssets();
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
-
-app.Run();
+catch (Exception ex)
+{
+    // This will be displayed in the browser's console
+    Console.Error.WriteLine($"Error starting application: {ex}");
+    throw;
+}

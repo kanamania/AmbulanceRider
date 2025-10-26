@@ -1,0 +1,183 @@
+@page "/vehicles/edit/{id:int}"
+@using AmbulanceRider.Models
+@using AmbulanceRider.Services
+@inject ApiService ApiService
+@inject NavigationManager Navigation
+
+<PageTitle>Edit Vehicle</PageTitle>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="bi bi-pencil me-2"></i>Edit Vehicle</h3>
+                </div>
+                <div class="card-body">
+                    @if (isLoading)
+                    {
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                    else if (errorMessage != null)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
+                        </div>
+                    }
+                    else if (model != null)
+                    {
+                        <EditForm Model="@model" OnValidSubmit="HandleSubmit">
+                            <DataAnnotationsValidator />
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Vehicle Name *</label>
+                                <InputText @bind-Value="model.Name" class="form-control" />
+                                <ValidationMessage For="@(() => model.Name)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Image URL</label>
+                                <InputText @bind-Value="model.Image" class="form-control" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Vehicle Types</label>
+                                <div class="input-group mb-2">
+                                    <input type="text" @bind="newType" class="form-control" placeholder="Add new type" @onkeypress="HandleKeyPress" />
+                                    <button type="button" class="btn btn-outline-secondary" @onclick="AddType">
+                                        <i class="bi bi-plus-circle"></i> Add
+                                    </button>
+                                </div>
+                                <div>
+                                    @if (model.Types != null)
+                                    {
+                                        @foreach (var type in model.Types)
+                                        {
+                                            <span class="badge bg-success me-1 mb-1">
+                                                @type
+                                                <i class="bi bi-x-circle ms-1" style="cursor: pointer;" @onclick="() => RemoveType(type)"></i>
+                                            </span>
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" @onclick="Cancel">
+                                    <i class="bi bi-x-circle me-1"></i> Cancel
+                                </button>
+                                <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                                    @if (isSubmitting)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-1"></span>
+                                    }
+                                    <i class="bi bi-check-circle me-1"></i> Update Vehicle
+                                </button>
+                            </div>
+                        </EditForm>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private UpdateVehicleDto? model;
+    private string newType = string.Empty;
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadVehicle();
+    }
+
+    private async Task LoadVehicle()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            var vehicle = await ApiService.GetVehicleByIdAsync(Id);
+            
+            if (vehicle != null)
+            {
+                model = new UpdateVehicleDto
+                {
+                    Name = vehicle.Name,
+                    Image = vehicle.Image,
+                    Types = vehicle.Types.ToList()
+                };
+            }
+            else
+            {
+                errorMessage = "Vehicle not found";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading vehicle: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void AddType()
+    {
+        if (!string.IsNullOrWhiteSpace(newType) && model?.Types != null && !model.Types.Contains(newType))
+        {
+            model.Types.Add(newType.Trim());
+            newType = string.Empty;
+        }
+    }
+
+    private void RemoveType(string type)
+    {
+        model?.Types?.Remove(type);
+    }
+
+    private void HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            AddType();
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (model == null) return;
+
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+            await ApiService.UpdateVehicleAsync(Id, model);
+            Navigation.NavigateTo("/vehicles");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error updating vehicle: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/vehicles");
+    }
+}

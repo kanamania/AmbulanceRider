@@ -1,0 +1,6 @@
+@AmbulanceRider.API_HostAddress = http://localhost:5044
+
+GET {{AmbulanceRider.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

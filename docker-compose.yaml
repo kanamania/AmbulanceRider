@@ -1,1 +1,59 @@
- 
+services:
+  db:
+    container_name: db
+    image: postgres:17.6
+    environment:
+      POSTGRES_DB: ambulance_rider
+      POSTGRES_USER: ambulance_rider
+      POSTGRES_PASSWORD: c906ca683541d864d013ee28c8b3958be6c1cfd2bc07329d6e99f6c6dab74bf5
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ambulance-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ambulance_rider -d ambulance_rider"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    container_name: api
+    build:
+      context: ./AmbulanceRider.API
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=ambulance_rider;Username=ambulance_rider;Password=c906ca683541d864d013ee28c8b3958be6c1cfd2bc07329d6e99f6c6dab74bf5
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - ambulance-network
+    restart: unless-stopped
+
+  web:
+    container_name: web
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - api
+      - db
+    networks:
+      - ambulance-network
+    restart: unless-stopped
+
+networks:
+  ambulance-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
