@@ -69,17 +69,6 @@ public class TripsController : ControllerBase
     }
 
     /// <summary>
-    /// Get trips by route
-    /// </summary>
-    [HttpGet("route/{routeId}")]
-    [ProducesResponseType(typeof(IEnumerable<TripDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<TripDto>>> GetByRoute(int routeId)
-    {
-        var trips = await _tripService.GetTripsByRouteAsync(routeId);
-        return Ok(trips);
-    }
-
-    /// <summary>
     /// Get trips by driver
     /// </summary>
     [HttpGet("driver/{driverId}")]

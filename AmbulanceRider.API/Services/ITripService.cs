@@ -9,7 +9,6 @@ public interface ITripService
     Task<TripDto?> GetTripByIdAsync(int id);
     Task<IEnumerable<TripDto>> GetTripsByStatusAsync(TripStatus status);
     Task<IEnumerable<TripDto>> GetPendingTripsAsync();
-    Task<IEnumerable<TripDto>> GetTripsByRouteAsync(int routeId);
     Task<IEnumerable<TripDto>> GetTripsByDriverAsync(Guid driverId);
     Task<TripDto> CreateTripAsync(CreateTripDto createTripDto);
     Task<TripDto> UpdateTripAsync(int id, UpdateTripDto updateTripDto);

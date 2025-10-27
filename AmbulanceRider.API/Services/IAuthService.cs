@@ -12,10 +12,10 @@ public interface IAuthService
     Task<TokenResponseDto> RefreshTokenAsync(string refreshToken);
     Task RevokeRefreshTokenAsync(string userId);
     
-    // User management
+    // User
     Task<UserDto> GetUserByIdAsync(string userId);
     
-    // Password management
+    // Password
     Task SendPasswordResetEmailAsync(string email);
     Task<IdentityResult> ResetPasswordAsync(ResetPasswordDto resetPasswordDto);
     

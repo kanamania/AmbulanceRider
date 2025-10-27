@@ -7,18 +7,15 @@ namespace AmbulanceRider.API.Services;
 public class TripService : ITripService
 {
     private readonly ITripRepository _tripRepository;
-    private readonly IRouteRepository _routeRepository;
     private readonly IVehicleRepository _vehicleRepository;
     private readonly IUserRepository _userRepository;
 
     public TripService(
         ITripRepository tripRepository,
-        IRouteRepository routeRepository,
         IVehicleRepository vehicleRepository,
         IUserRepository userRepository)
     {
         _tripRepository = tripRepository;
-        _routeRepository = routeRepository;
         _vehicleRepository = vehicleRepository;
         _userRepository = userRepository;
     }
@@ -47,12 +44,6 @@ public class TripService : ITripService
         return trips.Select(MapToDto);
     }
 
-    public async Task<IEnumerable<TripDto>> GetTripsByRouteAsync(int routeId)
-    {
-        var trips = await _tripRepository.GetTripsByRouteAsync(routeId);
-        return trips.Select(MapToDto);
-    }
-
     public async Task<IEnumerable<TripDto>> GetTripsByDriverAsync(Guid driverId)
     {
         var trips = await _tripRepository.GetTripsByDriverAsync(driverId);
@@ -61,13 +52,6 @@ public class TripService : ITripService
 
     public async Task<TripDto> CreateTripAsync(CreateTripDto createTripDto)
     {
-        // Validate route exists
-        var route = await _routeRepository.GetByIdAsync(createTripDto.RouteId);
-        if (route == null)
-        {
-            throw new KeyNotFoundException("Route not found");
-        }
-
         // Validate vehicle if provided
         if (createTripDto.VehicleId.HasValue)
         {
@@ -93,7 +77,12 @@ public class TripService : ITripService
             Name = createTripDto.Name,
             Description = createTripDto.Description,
             ScheduledStartTime = createTripDto.ScheduledStartTime,
-            RouteId = createTripDto.RouteId,
+            FromLatitude = createTripDto.FromLatitude,
+            FromLongitude = createTripDto.FromLongitude,
+            ToLatitude = createTripDto.ToLatitude,
+            ToLongitude = createTripDto.ToLongitude,
+            FromLocationName = createTripDto.FromLocationName,
+            ToLocationName = createTripDto.ToLocationName,
             VehicleId = createTripDto.VehicleId,
             DriverId = createTripDto.DriverId,
             Status = TripStatus.Pending,
@@ -130,15 +119,24 @@ public class TripService : ITripService
         if (updateTripDto.ScheduledStartTime.HasValue)
             trip.ScheduledStartTime = updateTripDto.ScheduledStartTime.Value;
 
-        if (updateTripDto.RouteId.HasValue && updateTripDto.RouteId.Value != 0)
-        {
-            var route = await _routeRepository.GetByIdAsync(updateTripDto.RouteId.Value);
-            if (route == null)
-            {
-                throw new KeyNotFoundException("Route not found");
-            }
-            trip.RouteId = updateTripDto.RouteId.Value;
-        }
+        // Update coordinates if provided
+        if (updateTripDto.FromLatitude.HasValue)
+            trip.FromLatitude = updateTripDto.FromLatitude.Value;
+        
+        if (updateTripDto.FromLongitude.HasValue)
+            trip.FromLongitude = updateTripDto.FromLongitude.Value;
+        
+        if (updateTripDto.ToLatitude.HasValue)
+            trip.ToLatitude = updateTripDto.ToLatitude.Value;
+        
+        if (updateTripDto.ToLongitude.HasValue)
+            trip.ToLongitude = updateTripDto.ToLongitude.Value;
+        
+        if (updateTripDto.FromLocationName != null)
+            trip.FromLocationName = updateTripDto.FromLocationName;
+        
+        if (updateTripDto.ToLocationName != null)
+            trip.ToLocationName = updateTripDto.ToLocationName;
 
         if (updateTripDto.VehicleId.HasValue)
         {
@@ -309,20 +307,12 @@ public class TripService : ITripService
             ActualEndTime = trip.ActualEndTime,
             Status = trip.Status.ToString(),
             RejectionReason = trip.RejectionReason,
-            RouteId = trip.RouteId,
-            Route = trip.Route != null ? new RouteDto
-            {
-                Id = trip.Route.Id,
-                Name = trip.Route.Name,
-                Distance = trip.Route.Distance,
-                EstimatedDuration = trip.Route.EstimatedDuration,
-                Description = trip.Route.Description,
-                FromLocation = trip.Route.FromLocation,
-                ToLocation = trip.Route.ToLocation,
-                FromLocationId = trip.Route.FromLocationId,
-                ToLocationId = trip.Route.ToLocationId,
-                CreatedAt = trip.Route.CreatedAt
-            } : null,
+            FromLatitude = trip.FromLatitude,
+            FromLongitude = trip.FromLongitude,
+            ToLatitude = trip.ToLatitude,
+            ToLongitude = trip.ToLongitude,
+            FromLocationName = trip.FromLocationName,
+            ToLocationName = trip.ToLocationName,
             VehicleId = trip.VehicleId,
             Vehicle = trip.Vehicle != null ? new VehicleDto
             {

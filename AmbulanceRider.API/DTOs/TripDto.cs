@@ -12,8 +12,15 @@ public class TripDto
     public DateTime? ActualEndTime { get; set; }
     public string Status { get; set; } = string.Empty;
     public string? RejectionReason { get; set; }
-    public int RouteId { get; set; }
-    public RouteDto? Route { get; set; }
+    
+    // Location coordinates
+    public double FromLatitude { get; set; }
+    public double FromLongitude { get; set; }
+    public double ToLatitude { get; set; }
+    public double ToLongitude { get; set; }
+    public string? FromLocationName { get; set; }
+    public string? ToLocationName { get; set; }
+    
     public int? VehicleId { get; set; }
     public VehicleDto? Vehicle { get; set; }
     public Guid? DriverId { get; set; }
@@ -29,7 +36,17 @@ public class CreateTripDto
     public required string Name { get; set; }
     public string? Description { get; set; }
     public required DateTime ScheduledStartTime { get; set; }
-    public required int RouteId { get; set; }
+    
+    // Coordinates are required
+    public required double FromLatitude { get; set; }
+    public required double FromLongitude { get; set; }
+    public required double ToLatitude { get; set; }
+    public required double ToLongitude { get; set; }
+    
+    // Optional location names
+    public string? FromLocationName { get; set; }
+    public string? ToLocationName { get; set; }
+    
     public int? VehicleId { get; set; }
     public Guid? DriverId { get; set; }
 }
@@ -39,7 +56,15 @@ public class UpdateTripDto
     public string? Name { get; set; }
     public string? Description { get; set; }
     public DateTime? ScheduledStartTime { get; set; }
-    public int? RouteId { get; set; }
+    
+    // Optional coordinate updates
+    public double? FromLatitude { get; set; }
+    public double? FromLongitude { get; set; }
+    public double? ToLatitude { get; set; }
+    public double? ToLongitude { get; set; }
+    public string? FromLocationName { get; set; }
+    public string? ToLocationName { get; set; }
+    
     public int? VehicleId { get; set; }
     public Guid? DriverId { get; set; }
     public DateTime? ActualStartTime { get; set; }

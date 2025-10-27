@@ -3,6 +3,7 @@ using System;
 using AmbulanceRider.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AmbulanceRider.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251027162114_UpdateTripToUseCoordinates")]
+    partial class UpdateTripToUseCoordinates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -240,6 +243,9 @@ namespace AmbulanceRider.API.Migrations
                     b.Property<double>("FromLatitude")
                         .HasColumnType("double precision");
 
+                    b.Property<int?>("FromLocationId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("FromLocationName")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -265,6 +271,9 @@ namespace AmbulanceRider.API.Migrations
                     b.Property<double>("ToLatitude")
                         .HasColumnType("double precision");
 
+                    b.Property<int?>("ToLocationId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("ToLocationName")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -286,6 +295,10 @@ namespace AmbulanceRider.API.Migrations
                     b.HasIndex("ApprovedBy");
 
                     b.HasIndex("DriverId");
+
+                    b.HasIndex("FromLocationId");
+
+                    b.HasIndex("ToLocationId");
 
                     b.HasIndex("VehicleId");
 
@@ -645,6 +658,16 @@ namespace AmbulanceRider.API.Migrations
                         .HasForeignKey("DriverId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("AmbulanceRider.API.Models.Location", "FromLocation")
+                        .WithMany()
+                        .HasForeignKey("FromLocationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AmbulanceRider.API.Models.Location", "ToLocation")
+                        .WithMany()
+                        .HasForeignKey("ToLocationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("AmbulanceRider.API.Models.Vehicle", "Vehicle")
                         .WithMany()
                         .HasForeignKey("VehicleId")
@@ -653,6 +676,10 @@ namespace AmbulanceRider.API.Migrations
                     b.Navigation("Approver");
 
                     b.Navigation("Driver");
+
+                    b.Navigation("FromLocation");
+
+                    b.Navigation("ToLocation");
 
                     b.Navigation("Vehicle");
                 });

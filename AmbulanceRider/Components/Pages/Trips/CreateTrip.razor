@@ -1,6 +1,7 @@
 @page "/trips/create"
 @using AmbulanceRider.Models
 @using AmbulanceRider.Services
+@using AmbulanceRider.Components.Shared
 @inject ApiService ApiService
 @inject NavigationManager Navigation
 
@@ -54,19 +55,26 @@
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">
-                                <i class="bi bi-map me-1"></i>Route *
+                                <i class="bi bi-geo-alt me-1"></i>From Location *
                             </label>
-                            <select class="form-select" @bind="model.RouteId">
-                                <option value="0">-- Select Route --</option>
-                                @foreach (var route in routes)
-                                {
-                                    <option value="@route.Id">@route.Name (@route.StartLocation → @route.EndLocation)</option>
-                                }
-                            </select>
-                            @if (model.RouteId == 0)
-                            {
-                                <div class="text-danger">Route is required</div>
-                            }
+                            <input type="text" class="form-control mb-2" @bind="model.FromLocationName" placeholder="Enter starting location name (e.g., Downtown Clinic)" />
+                            <MapPicker MapId="fromMap" 
+                                      Latitude="@model.FromLatitude" 
+                                      Longitude="@model.FromLongitude"
+                                      Height="300px"
+                                      OnLocationChanged="@OnFromLocationChanged" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-geo-alt-fill me-1"></i>To Location *
+                            </label>
+                            <input type="text" class="form-control mb-2" @bind="model.ToLocationName" placeholder="Enter destination name (e.g., City Hospital)" />
+                            <MapPicker MapId="toMap" 
+                                      Latitude="@model.ToLatitude" 
+                                      Longitude="@model.ToLongitude"
+                                      Height="300px"
+                                      OnLocationChanged="@OnToLocationChanged" />
                         </div>
 
                         <div class="mb-3">
@@ -132,8 +140,14 @@
                         <p class="text-muted mb-0">@model.ScheduledStartTime.ToString("MMM dd, yyyy HH:mm")</p>
                     </div>
                     <div class="mb-3">
-                        <strong>Route:</strong>
-                        <p class="text-muted mb-0">@(model.RouteId == 0 ? "Not selected" : routes.FirstOrDefault(r => r.Id == model.RouteId)?.Name ?? "Not selected")</p>
+                        <strong>From:</strong>
+                        <p class="text-muted mb-0">@(string.IsNullOrEmpty(model.FromLocationName) ? "Not set" : model.FromLocationName)</p>
+                        <small class="text-muted">@model.FromLatitude.ToString("F6"), @model.FromLongitude.ToString("F6")</small>
+                    </div>
+                    <div class="mb-3">
+                        <strong>To:</strong>
+                        <p class="text-muted mb-0">@(string.IsNullOrEmpty(model.ToLocationName) ? "Not set" : model.ToLocationName)</p>
+                        <small class="text-muted">@model.ToLatitude.ToString("F6"), @model.ToLongitude.ToString("F6")</small>
                     </div>
                     <hr />
                     <div class="alert alert-info mb-0">
@@ -150,30 +164,22 @@
 
 @code {
     private CreateTripDto model = new();
-    private List<RouteDto> routes = new();
     private List<VehicleDto> vehicles = new();
     private List<UserDto> drivers = new();
     private bool isSubmitting = false;
     private string? errorMessage;
     private string? selectedDriverId;
 
-    private void OnDriverChanged()
-    {
-        if (!string.IsNullOrEmpty(selectedDriverId) && Guid.TryParse(selectedDriverId, out var driverId))
-        {
-            model.DriverId = driverId;
-        }
-        else
-        {
-            model.DriverId = null;
-        }
-    }
-
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            routes = await ApiService.GetRoutesAsync();
+            // Set default coordinates (Nairobi, Kenya)
+            model.FromLatitude = -1.286389;
+            model.FromLongitude = 36.817223;
+            model.ToLatitude = -1.292066;
+            model.ToLongitude = 36.821946;
+            
             vehicles = await ApiService.GetVehiclesAsync();
             var allUsers = await ApiService.GetUsersAsync();
             drivers = allUsers.Where(u => u.Roles.Contains("Driver")).ToList();
@@ -184,6 +190,18 @@
         }
     }
 
+    private void OnFromLocationChanged((double Latitude, double Longitude) coords)
+    {
+        model.FromLatitude = coords.Latitude;
+        model.FromLongitude = coords.Longitude;
+    }
+
+    private void OnToLocationChanged((double Latitude, double Longitude) coords)
+    {
+        model.ToLatitude = coords.Latitude;
+        model.ToLongitude = coords.Longitude;
+    }
+
     private async Task HandleSubmit()
     {
         try
@@ -191,9 +209,16 @@
             isSubmitting = true;
             errorMessage = null;
 
-            if (model.RouteId == 0)
+            // Validate coordinates
+            if (model.FromLatitude == 0 && model.FromLongitude == 0)
             {
-                errorMessage = "Please select a route";
+                errorMessage = "Please select a starting location on the map";
+                return;
+            }
+
+            if (model.ToLatitude == 0 && model.ToLongitude == 0)
+            {
+                errorMessage = "Please select a destination on the map";
                 return;
             }
 

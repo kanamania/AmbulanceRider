@@ -1,6 +1,7 @@
 @page "/trips/edit/{id:int}"
 @using AmbulanceRider.Models
 @using AmbulanceRider.Services
+@using AmbulanceRider.Components.Shared
 @inject ApiService ApiService
 @inject NavigationManager Navigation
 
@@ -67,15 +68,26 @@
 
                             <div class="mb-3">
                                 <label class="form-label fw-bold">
-                                    <i class="bi bi-map me-1"></i>Route
+                                    <i class="bi bi-geo-alt me-1"></i>From Location
                                 </label>
-                                <select class="form-select" @bind="model.RouteId">
-                                    <option value="">-- Keep Current --</option>
-                                    @foreach (var route in routes)
-                                    {
-                                        <option value="@route.Id">@route.Name (@route.StartLocation → @route.EndLocation)</option>
-                                    }
-                                </select>
+                                <input type="text" class="form-control mb-2" @bind="model.FromLocationName" placeholder="Enter starting location name" />
+                                <MapPicker MapId="editFromMap" 
+                                          Latitude="@(model.FromLatitude ?? trip.FromLatitude)" 
+                                          Longitude="@(model.FromLongitude ?? trip.FromLongitude)"
+                                          Height="250px"
+                                          OnLocationChanged="@OnFromLocationChanged" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-geo-alt-fill me-1"></i>To Location
+                                </label>
+                                <input type="text" class="form-control mb-2" @bind="model.ToLocationName" placeholder="Enter destination name" />
+                                <MapPicker MapId="editToMap" 
+                                          Latitude="@(model.ToLatitude ?? trip.ToLatitude)" 
+                                          Longitude="@(model.ToLongitude ?? trip.ToLongitude)"
+                                          Height="250px"
+                                          OnLocationChanged="@OnToLocationChanged" />
                             </div>
 
                             <div class="mb-3">
@@ -182,7 +194,6 @@
 
     private TripDto? trip;
     private UpdateTripDto model = new();
-    private List<RouteDto> routes = new();
     private List<VehicleDto> vehicles = new();
     private List<UserDto> drivers = new();
     private bool isLoading = true;
@@ -203,7 +214,6 @@
             errorMessage = null;
 
             trip = await ApiService.GetTripByIdAsync(Id);
-            routes = await ApiService.GetRoutesAsync();
             vehicles = await ApiService.GetVehiclesAsync();
             var allUsers = await ApiService.GetUsersAsync();
             drivers = allUsers.Where(u => u.Roles.Contains("Driver")).ToList();
@@ -213,6 +223,8 @@
                 model.Name = trip.Name;
                 model.Description = trip.Description;
                 model.ScheduledStartTime = trip.ScheduledStartTime;
+                model.FromLocationName = trip.FromLocationName;
+                model.ToLocationName = trip.ToLocationName;
                 selectedDriverId = trip.DriverId?.ToString();
             }
         }
@@ -224,6 +236,18 @@
         {
             isLoading = false;
         }
+    }
+
+    private void OnFromLocationChanged((double Latitude, double Longitude) coords)
+    {
+        model.FromLatitude = coords.Latitude;
+        model.FromLongitude = coords.Longitude;
+    }
+
+    private void OnToLocationChanged((double Latitude, double Longitude) coords)
+    {
+        model.ToLatitude = coords.Latitude;
+        model.ToLongitude = coords.Longitude;
     }
 
     private async Task HandleSubmit()

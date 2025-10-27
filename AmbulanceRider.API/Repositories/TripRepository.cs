@@ -13,27 +13,20 @@ public class TripRepository : Repository<Trip>, ITripRepository
     public override async Task<Trip?> GetByIdAsync(int id)
     {
         return await _dbSet
-            .Include(t => t.Route)
-                .ThenInclude(r => r!.FromLocation)
-            .Include(t => t.Route)
-                .ThenInclude(r => r!.ToLocation)
             .Include(t => t.Vehicle)
             .Include(t => t.Driver)
             .Include(t => t.Approver)
+            .Where(t => t.DeletedAt == null)
             .FirstOrDefaultAsync(t => t.Id == id);
     }
 
     public override async Task<IEnumerable<Trip>> GetAllAsync()
     {
         return await _dbSet
-            .Include(t => t.Route)
-                .ThenInclude(r => r!.FromLocation)
-            .Include(t => t.Route)
-                .ThenInclude(r => r!.ToLocation)
             .Include(t => t.Vehicle)
             .Include(t => t.Driver)
             .Include(t => t.Approver)
-            .Where(t => !t.IsDeleted)
+            .Where(t => t.DeletedAt == null)
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync();
     }
@@ -41,14 +34,10 @@ public class TripRepository : Repository<Trip>, ITripRepository
     public async Task<IEnumerable<Trip>> GetTripsByStatusAsync(TripStatus status)
     {
         return await _dbSet
-            .Include(t => t.Route)
-                .ThenInclude(r => r!.FromLocation)
-            .Include(t => t.Route)
-                .ThenInclude(r => r!.ToLocation)
             .Include(t => t.Vehicle)
             .Include(t => t.Driver)
             .Include(t => t.Approver)
-            .Where(t => !t.IsDeleted && t.Status == status)
+            .Where(t => t.DeletedAt == null && t.Status == status)
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync();
     }
@@ -58,32 +47,13 @@ public class TripRepository : Repository<Trip>, ITripRepository
         return await GetTripsByStatusAsync(TripStatus.Pending);
     }
 
-    public async Task<IEnumerable<Trip>> GetTripsByRouteAsync(int routeId)
-    {
-        return await _dbSet
-            .Include(t => t.Route)
-                .ThenInclude(r => r!.FromLocation)
-            .Include(t => t.Route)
-                .ThenInclude(r => r!.ToLocation)
-            .Include(t => t.Vehicle)
-            .Include(t => t.Driver)
-            .Include(t => t.Approver)
-            .Where(t => !t.IsDeleted && t.RouteId == routeId)
-            .OrderByDescending(t => t.ScheduledStartTime)
-            .ToListAsync();
-    }
-
     public async Task<IEnumerable<Trip>> GetTripsByDriverAsync(Guid driverId)
     {
         return await _dbSet
-            .Include(t => t.Route)
-                .ThenInclude(r => r!.FromLocation)
-            .Include(t => t.Route)
-                .ThenInclude(r => r!.ToLocation)
             .Include(t => t.Vehicle)
             .Include(t => t.Driver)
             .Include(t => t.Approver)
-            .Where(t => !t.IsDeleted && t.DriverId == driverId)
+            .Where(t => t.DeletedAt == null && t.DriverId == driverId)
             .OrderByDescending(t => t.ScheduledStartTime)
             .ToListAsync();
     }

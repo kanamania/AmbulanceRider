@@ -9,9 +9,9 @@
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="bi bi-calendar-check me-2"></i>Trips Management</h1>
+        <h1><i class="bi bi-calendar-check me-2"></i>Trips</h1>
         <button class="btn btn-primary create-btn" @onclick="NavigateToCreate">
-            <i class="bi bi-plus-circle me-1"></i> Schedule New Trip
+            <i class="bi bi-plus-circle me-1"></i> New Trip
         </button>
     </div>
 
@@ -36,91 +36,100 @@
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Route</th>
-                                <th>Vehicle</th>
-                                <th>Driver</th>
-                                <th>Scheduled</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>From → To</th>
+                            <th>Vehicle</th>
+                            <th>Driver</th>
+                            <th>Scheduled</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            @foreach (var trip in trips)
-                            {
-                                <tr>
-                                    <td>@trip.Id</td>
-                                    <td><strong>@trip.Name</strong></td>
-                                    <td>
-                                        @if (trip.Route != null)
-                                        {
-                                            <span>@trip.Route.Name</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">-</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        @if (trip.Vehicle != null)
-                                        {
-                                            <span>@trip.Vehicle.Name</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">Not assigned</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        @if (trip.Driver != null)
-                                        {
-                                            <span>@trip.Driver.FirstName @trip.Driver.LastName</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">Not assigned</span>
-                                        }
-                                    </td>
-                                    <td>@trip.ScheduledStartTime.ToString("MMM dd, yyyy HH:mm")</td>
-                                    <td>
+                        @foreach (var trip in trips)
+                        {
+                            <tr>
+                                <td>@trip.Id</td>
+                                <td><strong>@trip.Name</strong></td>
+                                <td>
+                                    <div class="small">
+                                        <div><i class="bi bi-geo-alt text-success me-1"></i>@(string.IsNullOrEmpty(trip.FromLocationName) ? $"{trip.FromLatitude:F4}, {trip.FromLongitude:F4}" : trip.FromLocationName)</div>
+                                        <div class="text-muted">↓</div>
+                                        <div><i class="bi bi-geo-alt-fill text-danger me-1"></i>@(string.IsNullOrEmpty(trip.ToLocationName) ? $"{trip.ToLatitude:F4}, {trip.ToLongitude:F4}" : trip.ToLocationName)</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (trip.Vehicle != null)
+                                    {
+                                        <span>@trip.Vehicle.Name</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not assigned</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (trip.Driver != null)
+                                    {
+                                        <span>@trip.Driver.FirstName @trip.Driver.LastName</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not assigned</span>
+                                    }
+                                </td>
+                                <td>@trip.ScheduledStartTime.ToString("MMM dd, yyyy HH:mm")</td>
+                                <td>
                                         <span class="badge @GetStatusBadgeClass(trip.Status)">
                                             @trip.Status
                                         </span>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            @if (trip.Status == "Pending")
-                                            {
-                                                <button class="btn btn-success" @onclick="() => ApproveTrip(trip.Id)" title="Approve">
-                                                    <i class="bi bi-check-circle"></i>
-                                                </button>
-                                                <button class="btn btn-danger" @onclick="() => RejectTrip(trip.Id)" title="Reject">
-                                                    <i class="bi bi-x-circle"></i>
-                                                </button>
-                                            }
-                                            @if (trip.Status == "Approved")
-                                            {
-                                                <button class="btn btn-info" @onclick="() => StartTrip(trip.Id)" title="Start">
-                                                    <i class="bi bi-play-circle"></i>
-                                                </button>
-                                            }
-                                            @if (trip.Status == "InProgress")
-                                            {
-                                                <button class="btn btn-warning" @onclick="() => CompleteTrip(trip.Id)" title="Complete">
-                                                    <i class="bi bi-check2-circle"></i>
-                                                </button>
-                                            }
-                                            <button class="btn btn-outline-primary" @onclick="() => NavigateToEdit(trip.Id)" title="Edit">
-                                                <i class="bi bi-pencil"></i>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-small" role="group">
+                                        @if (trip.Status == "Pending")
+                                        {
+                                            <button type="button" class="btn btn-primary"
+                                                    @onclick="() => ApproveTrip(trip.Id)"
+                                                    title="Approve">
+                                                <i class="bi bi-check-circle"></i>
                                             </button>
-                                            <button class="btn btn-outline-danger" @onclick="() => DeleteTrip(trip.Id)" title="Delete">
-                                                <i class="bi bi-trash"></i>
+                                            <button type="button" class="btn btn-warning"
+                                                    @onclick="() => RejectTrip(trip.Id)"
+                                                    title="Reject">
+                                                <i class="bi bi-x-circle"></i>
                                             </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
+                                        }
+                                        @if (trip.Status == "Approved")
+                                        {
+                                            <button type="button" class="btn btn-info"
+                                                    @onclick="() => StartTrip(trip.Id)" title="Start">
+                                                <i class="bi bi-play-circle"></i>
+                                            </button>
+                                        }
+                                        @if (trip.Status == "InProgress")
+                                        {
+                                            <button type="button" class="btn btn-success"
+                                                    @onclick="() => CompleteTrip(trip.Id)"
+                                                    title="Complete">
+                                                <i class="bi bi-check2-circle"></i>
+                                            </button>
+                                        }
+                                        <button type="button" class="btn btn-outline-primary"
+                                                @onclick="() => NavigateToEdit(trip.Id)"
+                                                title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger"
+                                                @onclick="() => DeleteTrip(trip.Id)"
+                                                title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
                         </tbody>
                     </table>
                 </div>
@@ -265,4 +274,5 @@
             _ => "bg-secondary"
         };
     }
+
 }

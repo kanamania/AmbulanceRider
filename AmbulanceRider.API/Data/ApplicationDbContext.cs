@@ -165,12 +165,15 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.Status).IsRequired();
             entity.Property(e => e.ScheduledStartTime).IsRequired();
             
+            // Coordinate properties
+            entity.Property(e => e.FromLatitude).IsRequired();
+            entity.Property(e => e.FromLongitude).IsRequired();
+            entity.Property(e => e.ToLatitude).IsRequired();
+            entity.Property(e => e.ToLongitude).IsRequired();
+            entity.Property(e => e.FromLocationName).HasMaxLength(200);
+            entity.Property(e => e.ToLocationName).HasMaxLength(200);
+            
             // Relationships
-            entity.HasOne(t => t.Route)
-                .WithMany()
-                .HasForeignKey(t => t.RouteId)
-                .OnDelete(DeleteBehavior.Restrict);
-                
             entity.HasOne(t => t.Vehicle)
                 .WithMany()
                 .HasForeignKey(t => t.VehicleId)

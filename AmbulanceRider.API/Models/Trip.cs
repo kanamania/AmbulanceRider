@@ -20,15 +20,32 @@ public class Trip : BaseModel
     [StringLength(500)]
     public string? RejectionReason { get; set; }
     
+    // Location coordinates
+    [Required]
+    public double FromLatitude { get; set; }
+    
+    [Required]
+    public double FromLongitude { get; set; }
+    
+    [Required]
+    public double ToLatitude { get; set; }
+    
+    [Required]
+    public double ToLongitude { get; set; }
+    
+    [StringLength(200)]
+    public string? FromLocationName { get; set; }
+    
+    [StringLength(200)]
+    public string? ToLocationName { get; set; }
+    
     // Foreign keys
-    public int RouteId { get; set; }
     public int? VehicleId { get; set; }
     public Guid? DriverId { get; set; }
     public Guid? ApprovedBy { get; set; }
     public DateTime? ApprovedAt { get; set; }
     
     // Navigation properties
-    public virtual Route? Route { get; set; }
     public virtual Vehicle? Vehicle { get; set; }
     public virtual User? Driver { get; set; }
     public virtual User? Approver { get; set; }
