@@ -142,7 +142,7 @@ namespace AmbulanceRider.API.Migrations
                     b.ToTable("roles", (string)null);
                 });
 
-            modelBuilder.Entity("AmbulanceRider.API.Models.Route", b =>
+            modelBuilder.Entity("AmbulanceRider.API.Models.Telemetry", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -150,52 +150,128 @@ namespace AmbulanceRider.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AccountType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<double?>("Accuracy")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("Altitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("AppVersion")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("AppleAccount")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<double?>("BatteryLevel")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Browser")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("BrowserVersion")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ConnectionType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("CreatedBy")
-                        .HasColumnType("uuid");
+                    b.Property<string>("DeviceModel")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
-                    b.Property<DateTime?>("DeletedAt")
+                    b.Property<string>("DeviceType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("EventDetails")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTime?>("EventTimestamp")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uuid");
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                    b.Property<string>("GoogleAccount")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
-                    b.Property<double>("Distance")
+                    b.Property<double?>("Heading")
                         .HasColumnType("double precision");
 
-                    b.Property<int>("EstimatedDuration")
+                    b.Property<string>("InstalledApps")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<int?>("InstalledAppsCount")
                         .HasColumnType("integer");
 
-                    b.Property<int>("FromLocationId")
-                        .HasColumnType("integer");
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                    b.Property<bool?>("IsCharging")
+                        .HasColumnType("boolean");
 
-                    b.Property<int>("ToLocationId")
-                        .HasColumnType("integer");
+                    b.Property<bool?>("IsOnline")
+                        .HasColumnType("boolean");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime?>("LocationTimestamp")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("UpdatedBy")
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("OperatingSystem")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Orientation")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("OsVersion")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int?>("ScreenHeight")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ScreenWidth")
+                        .HasColumnType("integer");
+
+                    b.Property<double?>("Speed")
+                        .HasColumnType("double precision");
+
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FromLocationId");
+                    b.HasIndex("CreatedAt");
 
-                    b.HasIndex("ToLocationId");
+                    b.HasIndex("EventType");
 
-                    b.ToTable("routes", (string)null);
+                    b.HasIndex("UserId");
+
+                    b.ToTable("telemetries", (string)null);
                 });
 
             modelBuilder.Entity("AmbulanceRider.API.Models.Trip", b =>
@@ -272,6 +348,9 @@ namespace AmbulanceRider.API.Migrations
                     b.Property<double>("ToLongitude")
                         .HasColumnType("double precision");
 
+                    b.Property<int?>("TripTypeId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -287,9 +366,56 @@ namespace AmbulanceRider.API.Migrations
 
                     b.HasIndex("DriverId");
 
+                    b.HasIndex("TripTypeId");
+
                     b.HasIndex("VehicleId");
 
                     b.ToTable("trips", (string)null);
+                });
+
+            modelBuilder.Entity("AmbulanceRider.API.Models.TripAttributeValue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("TripId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TripTypeAttributeId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Value")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TripId");
+
+                    b.HasIndex("TripTypeAttributeId");
+
+                    b.ToTable("trip_attribute_values", (string)null);
                 });
 
             modelBuilder.Entity("AmbulanceRider.API.Models.TripStatusLog", b =>
@@ -361,6 +487,140 @@ namespace AmbulanceRider.API.Migrations
                     b.HasIndex("TripId");
 
                     b.ToTable("trip_status_logs", (string)null);
+                });
+
+            modelBuilder.Entity("AmbulanceRider.API.Models.TripType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Color")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Icon")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("trip_types", (string)null);
+                });
+
+            modelBuilder.Entity("AmbulanceRider.API.Models.TripTypeAttribute", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DataType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("DefaultValue")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Options")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Placeholder")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("TripTypeId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ValidationRules")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TripTypeId");
+
+                    b.ToTable("trip_type_attributes", (string)null);
                 });
 
             modelBuilder.Entity("AmbulanceRider.API.Models.User", b =>
@@ -685,23 +945,14 @@ namespace AmbulanceRider.API.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("AmbulanceRider.API.Models.Route", b =>
+            modelBuilder.Entity("AmbulanceRider.API.Models.Telemetry", b =>
                 {
-                    b.HasOne("AmbulanceRider.API.Models.Location", "FromLocation")
-                        .WithMany("RoutesFrom")
-                        .HasForeignKey("FromLocationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.HasOne("AmbulanceRider.API.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("AmbulanceRider.API.Models.Location", "ToLocation")
-                        .WithMany("RoutesTo")
-                        .HasForeignKey("ToLocationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("FromLocation");
-
-                    b.Navigation("ToLocation");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("AmbulanceRider.API.Models.Trip", b =>
@@ -716,6 +967,11 @@ namespace AmbulanceRider.API.Migrations
                         .HasForeignKey("DriverId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("AmbulanceRider.API.Models.TripType", "TripType")
+                        .WithMany("Trips")
+                        .HasForeignKey("TripTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("AmbulanceRider.API.Models.Vehicle", "Vehicle")
                         .WithMany()
                         .HasForeignKey("VehicleId")
@@ -725,7 +981,28 @@ namespace AmbulanceRider.API.Migrations
 
                     b.Navigation("Driver");
 
+                    b.Navigation("TripType");
+
                     b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("AmbulanceRider.API.Models.TripAttributeValue", b =>
+                {
+                    b.HasOne("AmbulanceRider.API.Models.Trip", "Trip")
+                        .WithMany("AttributeValues")
+                        .HasForeignKey("TripId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AmbulanceRider.API.Models.TripTypeAttribute", "TripTypeAttribute")
+                        .WithMany("Values")
+                        .HasForeignKey("TripTypeAttributeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Trip");
+
+                    b.Navigation("TripTypeAttribute");
                 });
 
             modelBuilder.Entity("AmbulanceRider.API.Models.TripStatusLog", b =>
@@ -745,6 +1022,17 @@ namespace AmbulanceRider.API.Migrations
                     b.Navigation("Trip");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AmbulanceRider.API.Models.TripTypeAttribute", b =>
+                {
+                    b.HasOne("AmbulanceRider.API.Models.TripType", "TripType")
+                        .WithMany("Attributes")
+                        .HasForeignKey("TripTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TripType");
                 });
 
             modelBuilder.Entity("AmbulanceRider.API.Models.Vehicle", b =>
@@ -845,16 +1133,26 @@ namespace AmbulanceRider.API.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("AmbulanceRider.API.Models.Location", b =>
-                {
-                    b.Navigation("RoutesFrom");
-
-                    b.Navigation("RoutesTo");
-                });
-
             modelBuilder.Entity("AmbulanceRider.API.Models.Role", b =>
                 {
                     b.Navigation("UserRoles");
+                });
+
+            modelBuilder.Entity("AmbulanceRider.API.Models.Trip", b =>
+                {
+                    b.Navigation("AttributeValues");
+                });
+
+            modelBuilder.Entity("AmbulanceRider.API.Models.TripType", b =>
+                {
+                    b.Navigation("Attributes");
+
+                    b.Navigation("Trips");
+                });
+
+            modelBuilder.Entity("AmbulanceRider.API.Models.TripTypeAttribute", b =>
+                {
+                    b.Navigation("Values");
                 });
 
             modelBuilder.Entity("AmbulanceRider.API.Models.User", b =>

@@ -81,37 +81,6 @@ public class ApiService
         response.EnsureSuccessStatusCode();
     }
 
-    // Routes
-    public async Task<List<RouteDto>> GetRoutesAsync()
-    {
-        return await _httpClient.GetFromJsonAsync<List<RouteDto>>("/api/routes") ?? new List<RouteDto>();
-    }
-
-    public async Task<RouteDto?> GetRouteByIdAsync(int id)
-    {
-        return await _httpClient.GetFromJsonAsync<RouteDto>($"/api/routes/{id}");
-    }
-
-    public async Task<RouteDto> CreateRouteAsync(CreateRouteDto route)
-    {
-        var response = await _httpClient.PostAsJsonAsync("/api/routes", route);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<RouteDto>() ?? throw new Exception("Failed to create route");
-    }
-
-    public async Task<RouteDto> UpdateRouteAsync(int id, UpdateRouteDto route)
-    {
-        var response = await _httpClient.PutAsJsonAsync($"/api/routes/{id}", route);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<RouteDto>() ?? throw new Exception("Failed to update route");
-    }
-
-    public async Task DeleteRouteAsync(int id)
-    {
-        var response = await _httpClient.DeleteAsync($"/api/routes/{id}");
-        response.EnsureSuccessStatusCode();
-    }
-
     // Locations
     public async Task<List<LocationDto>> GetLocationsAsync()
     {
@@ -205,5 +174,62 @@ public class ApiService
     public async Task<List<TripStatusLogDto>> GetTripStatusLogsAsync(int tripId)
     {
         return await _httpClient.GetFromJsonAsync<List<TripStatusLogDto>>($"/api/trips/{tripId}/status-logs") ?? new List<TripStatusLogDto>();
+    }
+
+    // Trip Types
+    public async Task<List<TripTypeDto>> GetTripTypesAsync()
+    {
+        return await _httpClient.GetFromJsonAsync<List<TripTypeDto>>("/api/triptypes") ?? new List<TripTypeDto>();
+    }
+
+    public async Task<List<TripTypeDto>> GetActiveTripTypesAsync()
+    {
+        return await _httpClient.GetFromJsonAsync<List<TripTypeDto>>("/api/triptypes/active") ?? new List<TripTypeDto>();
+    }
+
+    public async Task<TripTypeDto?> GetTripTypeByIdAsync(int id)
+    {
+        return await _httpClient.GetFromJsonAsync<TripTypeDto>($"/api/triptypes/{id}");
+    }
+
+    public async Task<TripTypeDto> CreateTripTypeAsync(CreateTripTypeDto tripType)
+    {
+        var response = await _httpClient.PostAsJsonAsync("/api/triptypes", tripType);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<TripTypeDto>() ?? throw new Exception("Failed to create trip type");
+    }
+
+    public async Task<TripTypeDto> UpdateTripTypeAsync(int id, UpdateTripTypeDto tripType)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"/api/triptypes/{id}", tripType);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<TripTypeDto>() ?? throw new Exception("Failed to update trip type");
+    }
+
+    public async Task DeleteTripTypeAsync(int id)
+    {
+        var response = await _httpClient.DeleteAsync($"/api/triptypes/{id}");
+        response.EnsureSuccessStatusCode();
+    }
+
+    // Trip Type Attributes
+    public async Task<TripTypeAttributeDto> CreateTripTypeAttributeAsync(CreateTripTypeAttributeDto attribute)
+    {
+        var response = await _httpClient.PostAsJsonAsync("/api/triptypes/attributes", attribute);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<TripTypeAttributeDto>() ?? throw new Exception("Failed to create attribute");
+    }
+
+    public async Task<TripTypeAttributeDto> UpdateTripTypeAttributeAsync(int id, UpdateTripTypeAttributeDto attribute)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"/api/triptypes/attributes/{id}", attribute);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<TripTypeAttributeDto>() ?? throw new Exception("Failed to update attribute");
+    }
+
+    public async Task DeleteTripTypeAttributeAsync(int id)
+    {
+        var response = await _httpClient.DeleteAsync($"/api/triptypes/attributes/{id}");
+        response.EnsureSuccessStatusCode();
     }
 }

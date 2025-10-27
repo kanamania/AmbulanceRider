@@ -29,6 +29,11 @@ public class TripDto
     public UserDto? Approver { get; set; }
     public DateTime? ApprovedAt { get; set; }
     public DateTime CreatedAt { get; set; }
+    
+    // Trip Type
+    public int? TripTypeId { get; set; }
+    public TripTypeDto? TripType { get; set; }
+    public List<TripAttributeValueDto> AttributeValues { get; set; } = new();
 }
 
 public class CreateTripDto
@@ -49,6 +54,13 @@ public class CreateTripDto
     
     public int? VehicleId { get; set; }
     public Guid? DriverId { get; set; }
+    
+    // Trip Type
+    public int? TripTypeId { get; set; }
+    public List<CreateTripAttributeValueDto>? AttributeValues { get; set; }
+    
+    // Telemetry
+    public TelemetryDto? Telemetry { get; set; }
 }
 
 public class UpdateTripDto
@@ -69,20 +81,36 @@ public class UpdateTripDto
     public Guid? DriverId { get; set; }
     public DateTime? ActualStartTime { get; set; }
     public DateTime? ActualEndTime { get; set; }
+    
+    // Trip Type
+    public int? TripTypeId { get; set; }
+    public List<UpdateTripAttributeValueDto>? AttributeValues { get; set; }
+    
+    // Telemetry
+    public TelemetryDto? Telemetry { get; set; }
 }
 
 public class ApproveTripDto
 {
     public required bool Approve { get; set; }
     public string? RejectionReason { get; set; }
+    
+    // Telemetry
+    public TelemetryDto? Telemetry { get; set; }
 }
 
 public class StartTripDto
 {
     public required DateTime ActualStartTime { get; set; }
+    
+    // Telemetry
+    public TelemetryDto? Telemetry { get; set; }
 }
 
 public class CompleteTripDto
 {
     public required DateTime ActualEndTime { get; set; }
+    
+    // Telemetry
+    public TelemetryDto? Telemetry { get; set; }
 }

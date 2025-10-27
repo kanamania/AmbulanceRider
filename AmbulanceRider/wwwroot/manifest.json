@@ -1,6 +1,7 @@
 {
   "name": "AmbulanceRider",
   "short_name": "AmbulanceRider",
+  "version": "1.0.0",
   "description": "Emergency Medical Dispatch System",
   "start_url": "/",
   "display": "standalone",

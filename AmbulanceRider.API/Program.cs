@@ -147,19 +147,23 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
-builder.Services.AddScoped<IRouteRepository, RouteRepository>();
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 builder.Services.AddScoped<ITripRepository, TripRepository>();
 builder.Services.AddScoped<ITripStatusLogRepository, TripStatusLogRepository>();
+builder.Services.AddScoped<ITripTypeRepository, TripTypeRepository>();
+builder.Services.AddScoped<ITripTypeAttributeRepository, TripTypeAttributeRepository>();
+builder.Services.AddScoped<ITripAttributeValueRepository, TripAttributeValueRepository>();
+builder.Services.AddScoped<ITelemetryRepository, TelemetryRepository>();
 
 // Register Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
-builder.Services.AddScoped<IRouteService, RouteService>();
 builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<ITripService, TripService>();
+builder.Services.AddScoped<ITripTypeService, TripTypeService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<ITelemetryService, TelemetryService>();
 
 // Add Controllers
 builder.Services.AddControllers();
@@ -282,6 +286,11 @@ using (var scope = app.Services.CreateScope())
         {
             logger.LogInformation("Database already contains data. Skipping seeding.");
         }
+        
+        // Seed trip types if needed
+        logger.LogInformation("Checking trip types...");
+        await TripTypeSeedData.SeedTripTypesAsync(context);
+        logger.LogInformation("Trip types seeding completed.");
     }
     catch (Exception ex)
     {

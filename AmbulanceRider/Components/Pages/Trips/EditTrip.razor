@@ -4,6 +4,7 @@
 @using AmbulanceRider.Components.Shared
 @inject ApiService ApiService
 @inject NavigationManager Navigation
+@inject TelemetryService TelemetryService
 
 <PageTitle>Edit Trip</PageTitle>
 
@@ -315,6 +316,9 @@
             {
                 model.DriverId = null;
             }
+
+            // Collect telemetry
+            model.Telemetry = await TelemetryService.CollectTelemetryAsync();
 
             await ApiService.UpdateTripAsync(Id, model);
             Navigation.NavigateTo("/trips");

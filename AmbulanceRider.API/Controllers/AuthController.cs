@@ -13,10 +13,12 @@ namespace AmbulanceRider.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly ITelemetryService _telemetryService;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, ITelemetryService telemetryService)
     {
         _authService = authService;
+        _telemetryService = telemetryService;
     }
 
     /// <summary>
@@ -30,6 +32,15 @@ public class AuthController : ControllerBase
         try
         {
             var response = await _authService.RegisterAsync(registerDto);
+            
+            // Log telemetry
+            await _telemetryService.LogTelemetryAsync(
+                "Register",
+                registerDto.Telemetry,
+                Guid.Parse(response.User.Id),
+                $"User registered: {registerDto.Email}"
+            );
+            
             return CreatedAtAction(nameof(GetCurrentUser), new { id = response.User.Id }, response);
         }
         catch (ApplicationException ex)
@@ -49,10 +60,27 @@ public class AuthController : ControllerBase
         try
         {
             var response = await _authService.LoginAsync(loginDto);
+            
+            // Log telemetry
+            await _telemetryService.LogTelemetryAsync(
+                "Login",
+                loginDto.Telemetry,
+                Guid.Parse(response.User.Id),
+                $"User logged in: {loginDto.Email}"
+            );
+            
             return Ok(response);
         }
         catch (UnauthorizedAccessException ex)
         {
+            // Log failed login attempt
+            await _telemetryService.LogTelemetryAsync(
+                "LoginFailed",
+                loginDto.Telemetry,
+                null,
+                $"Failed login attempt: {loginDto.Email}"
+            );
+            
             return Unauthorized(new { message = ex.Message });
         }
     }
@@ -127,6 +155,15 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto forgotPasswordDto)
     {
         await _authService.SendPasswordResetEmailAsync(forgotPasswordDto.Email);
+        
+        // Log telemetry
+        await _telemetryService.LogTelemetryAsync(
+            "ForgotPassword",
+            forgotPasswordDto.Telemetry,
+            null,
+            $"Password reset requested: {forgotPasswordDto.Email}"
+        );
+        
         return Ok(new { message = "Password reset instructions sent to your email" });
     }
 
@@ -145,6 +182,15 @@ public class AuthController : ControllerBase
             {
                 return BadRequest(new { message = "Failed to reset password", errors = result.Errors });
             }
+            
+            // Log telemetry
+            await _telemetryService.LogTelemetryAsync(
+                "ResetPassword",
+                resetPasswordDto.Telemetry,
+                null,
+                $"Password reset completed: {resetPasswordDto.Email}"
+            );
+            
             return Ok(new { message = "Password reset successfully" });
         }
         catch (ApplicationException ex)

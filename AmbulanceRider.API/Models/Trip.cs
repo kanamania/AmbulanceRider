@@ -44,11 +44,14 @@ public class Trip : BaseModel
     public Guid? DriverId { get; set; }
     public Guid? ApprovedBy { get; set; }
     public DateTime? ApprovedAt { get; set; }
+    public int? TripTypeId { get; set; }
     
     // Navigation properties
     public virtual Vehicle? Vehicle { get; set; }
     public virtual User? Driver { get; set; }
     public virtual User? Approver { get; set; }
+    public virtual TripType? TripType { get; set; }
+    public virtual ICollection<TripAttributeValue> AttributeValues { get; set; } = new List<TripAttributeValue>();
 }
 
 public enum TripStatus

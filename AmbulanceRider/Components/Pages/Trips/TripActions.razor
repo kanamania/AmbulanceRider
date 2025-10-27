@@ -4,6 +4,7 @@
 @inject ApiService ApiService
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
+@inject TelemetryService TelemetryService
 
 @if (Trip != null)
 {
@@ -194,7 +195,8 @@
             {
                 Id = Trip!.Id,
                 Status = TripStatus.Completed,
-                Notes = Notes
+                Notes = Notes,
+                Telemetry = await TelemetryService.CollectTelemetryAsync()
             };
 
             var result = await ApiService.UpdateTripStatusAsync(Trip.Id, updateDto);
@@ -220,7 +222,8 @@
             {
                 Id = Trip!.Id,
                 Status = TripStatus.Cancelled,
-                Notes = Notes
+                Notes = Notes,
+                Telemetry = await TelemetryService.CollectTelemetryAsync()
             };
 
             var result = await ApiService.UpdateTripStatusAsync(Trip.Id, updateDto);
@@ -246,7 +249,8 @@
             {
                 Id = Trip!.Id,
                 Status = TripStatus.Approved,
-                Notes = Notes
+                Notes = Notes,
+                Telemetry = await TelemetryService.CollectTelemetryAsync()
             };
 
             var result = await ApiService.UpdateTripStatusAsync(Trip.Id, updateDto);
@@ -276,7 +280,8 @@
                 Id = Trip!.Id,
                 Status = TripStatus.Rejected,
                 Notes = Notes,
-                RejectionReason = Notes
+                RejectionReason = Notes,
+                Telemetry = await TelemetryService.CollectTelemetryAsync()
             };
 
             var result = await ApiService.UpdateTripStatusAsync(Trip.Id, updateDto);
@@ -303,7 +308,8 @@
                 Id = Trip!.Id,
                 Status = TripStatus.Completed,
                 Notes = "Trip was force completed by admin/dispatcher.",
-                ForceComplete = true
+                ForceComplete = true,
+                Telemetry = await TelemetryService.CollectTelemetryAsync()
             };
 
             var result = await ApiService.UpdateTripStatusAsync(Trip.Id, updateDto);

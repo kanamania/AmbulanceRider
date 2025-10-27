@@ -22,6 +22,9 @@ public class RegisterDto
 
     [Phone(ErrorMessage = "Invalid phone number format")]
     public string? Phone { get; set; }
+    
+    // Telemetry
+    public TelemetryDto? Telemetry { get; set; }
 }
 
 public class LoginDto
@@ -31,6 +34,9 @@ public class LoginDto
 
     [Required(ErrorMessage = "Password is required")]
     public string Password { get; set; } = string.Empty;
+    
+    // Telemetry
+    public TelemetryDto? Telemetry { get; set; }
 }
 
 public class AuthResponseDto
@@ -58,6 +64,9 @@ public class ForgotPasswordDto
     [Required(ErrorMessage = "Email is required")]
     [EmailAddress(ErrorMessage = "Invalid email format")]
     public string Email { get; set; } = string.Empty;
+    
+    // Telemetry
+    public TelemetryDto? Telemetry { get; set; }
 }
 
 public class ResetPasswordDto
@@ -75,4 +84,7 @@ public class ResetPasswordDto
 
     [Compare("NewPassword", ErrorMessage = "Passwords do not match")]
     public string ConfirmPassword { get; set; } = string.Empty;
+    
+    // Telemetry
+    public TelemetryDto? Telemetry { get; set; }
 }

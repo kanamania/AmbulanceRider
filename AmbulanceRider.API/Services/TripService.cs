@@ -10,17 +10,20 @@ public class TripService : ITripService
     private readonly IVehicleRepository _vehicleRepository;
     private readonly IUserRepository _userRepository;
     private readonly ITripStatusLogRepository _tripStatusLogRepository;
+    private readonly ITripAttributeValueRepository _tripAttributeValueRepository;
 
     public TripService(
         ITripRepository tripRepository,
         IVehicleRepository vehicleRepository,
         IUserRepository userRepository,
-        ITripStatusLogRepository tripStatusLogRepository)
+        ITripStatusLogRepository tripStatusLogRepository,
+        ITripAttributeValueRepository tripAttributeValueRepository)
     {
         _tripRepository = tripRepository;
         _vehicleRepository = vehicleRepository;
         _userRepository = userRepository;
         _tripStatusLogRepository = tripStatusLogRepository;
+        _tripAttributeValueRepository = tripAttributeValueRepository;
     }
 
     public async Task<IEnumerable<TripDto>> GetAllTripsAsync()
@@ -88,6 +91,7 @@ public class TripService : ITripService
             ToLocationName = createTripDto.ToLocationName,
             VehicleId = createTripDto.VehicleId,
             DriverId = createTripDto.DriverId,
+            TripTypeId = createTripDto.TripTypeId,
             Status = TripStatus.Pending,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = createdBy
@@ -95,9 +99,23 @@ public class TripService : ITripService
 
         await _tripRepository.AddAsync(trip);
         
+        // Add attribute values if provided
+        if (createTripDto.AttributeValues != null && createTripDto.AttributeValues.Any())
+        {
+            var attributeValues = createTripDto.AttributeValues.Select(av => new TripAttributeValue
+            {
+                TripId = trip.Id,
+                TripTypeAttributeId = av.TripTypeAttributeId,
+                Value = av.Value,
+                CreatedAt = DateTime.UtcNow
+            });
+            
+            await _tripAttributeValueRepository.AddRangeAsync(attributeValues);
+        }
+        
         // Reload to get navigation properties
         var createdTrip = await _tripRepository.GetByIdAsync(trip.Id);
-        return MapToDto(createdTrip!);
+        return await MapToDtoAsync(createdTrip!);
     }
 
     public async Task<TripDto> UpdateTripAsync(int id, UpdateTripDto updateTripDto)
@@ -543,7 +561,31 @@ public class TripService : ITripService
                 UpdatedAt = trip.Approver.UpdatedAt
             } : null,
             ApprovedAt = trip.ApprovedAt,
-            CreatedAt = trip.CreatedAt
+            CreatedAt = trip.CreatedAt,
+            TripTypeId = trip.TripTypeId
         };
+    }
+    
+    private async Task<TripDto> MapToDtoAsync(Trip trip)
+    {
+        var dto = MapToDto(trip);
+        
+        // Load attribute values
+        if (trip.TripTypeId.HasValue)
+        {
+            var attributeValues = await _tripAttributeValueRepository.GetByTripIdAsync(trip.Id);
+            dto.AttributeValues = attributeValues.Select(av => new TripAttributeValueDto
+            {
+                Id = av.Id,
+                TripId = av.TripId,
+                TripTypeAttributeId = av.TripTypeAttributeId,
+                Value = av.Value,
+                AttributeName = av.TripTypeAttribute?.Name,
+                AttributeLabel = av.TripTypeAttribute?.Label,
+                AttributeDataType = av.TripTypeAttribute?.DataType
+            }).ToList();
+        }
+        
+        return dto;
     }
 }

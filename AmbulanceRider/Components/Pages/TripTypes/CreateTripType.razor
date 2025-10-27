@@ -1,0 +1,192 @@
+@page "/triptypes/create"
+@using AmbulanceRider.Models
+@using AmbulanceRider.Services
+@using Microsoft.AspNetCore.Authorization
+@inject ApiService ApiService
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Admin,Dispatcher")]
+
+<PageTitle>Create Trip Type</PageTitle>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="bi bi-plus-circle me-2"></i>Create Trip Type
+        </h1>
+        <button class="btn btn-outline-secondary" @onclick="NavigateBack">
+            <i class="bi bi-arrow-left me-1"></i>Back to List
+        </button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
+            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Trip Type Information</h5>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@tripType" OnValidSubmit="HandleSubmit">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label class="form-label">Name <span class="text-danger">*</span></label>
+                            <InputText @bind-Value="tripType.Name" class="form-control" placeholder="e.g., Emergency, Routine" />
+                            <ValidationMessage For="@(() => tripType.Name)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <InputTextArea @bind-Value="tripType.Description" class="form-control" rows="3" placeholder="Brief description of this trip type" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Color</label>
+                                <div class="input-group">
+                                    <input type="color" @bind="tripType.Color" class="form-control form-control-color" title="Choose color" />
+                                    <InputText @bind-Value="tripType.Color" class="form-control" placeholder="#FF0000" />
+                                </div>
+                                <small class="text-muted">Used for visual identification in the UI</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Icon</label>
+                                <InputText @bind-Value="tripType.Icon" class="form-control" placeholder="e.g., alert-circle, calendar" />
+                                <small class="text-muted">Bootstrap icon name (without 'bi-' prefix)</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Display Order</label>
+                                <InputNumber @bind-Value="tripType.DisplayOrder" class="form-control" />
+                                <small class="text-muted">Lower numbers appear first</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check mt-4">
+                                    <InputCheckbox @bind-Value="tripType.IsActive" class="form-check-input" id="isActive" />
+                                    <label class="form-check-label" for="isActive">
+                                        Active
+                                    </label>
+                                </div>
+                                <small class="text-muted d-block">Only active types are shown in trip creation</small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                                @if (isSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1"></span>
+                                }
+                                <i class="bi bi-check-circle me-1"></i>Create Trip Type
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" @onclick="NavigateBack" disabled="@isSubmitting">
+                                Cancel
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Preview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="card" style="border-left: 4px solid @(tripType.Color ?? "#6c757d")">
+                        <div class="card-header d-flex align-items-center" style="background-color: @(tripType.Color ?? "#6c757d")20">
+                            @if (!string.IsNullOrEmpty(tripType.Icon))
+                            {
+                                <i class="bi bi-@tripType.Icon me-2" style="color: @(tripType.Color ?? "#6c757d"); font-size: 1.5rem;"></i>
+                            }
+                            <div>
+                                <h6 class="mb-0">@(string.IsNullOrEmpty(tripType.Name) ? "Trip Type Name" : tripType.Name)</h6>
+                                @if (!tripType.IsActive)
+                                {
+                                    <span class="badge bg-secondary mt-1">Inactive</span>
+                                }
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(tripType.Description))
+                        {
+                            <div class="card-body">
+                                <p class="card-text small text-muted mb-0">@tripType.Description</p>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Next Step:</strong> After creating the trip type, you can add custom attributes (fields) to it.
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Common Icons</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var icon in commonIcons)
+                        {
+                            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => tripType.Icon = icon" title="@icon">
+                                <i class="bi bi-@icon"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private CreateTripTypeDto tripType = new() { IsActive = true, DisplayOrder = 0, Color = "#2563EB" };
+    private bool isSubmitting = false;
+    private string? errorMessage;
+
+    private readonly string[] commonIcons = new[]
+    {
+        "alert-circle", "calendar", "arrow-right-left", "home", "hospital",
+        "heart-pulse", "ambulance", "bandaid", "capsule", "clipboard2-pulse",
+        "thermometer", "activity", "shield-plus", "truck"
+    };
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+
+            var created = await ApiService.CreateTripTypeAsync(tripType);
+            Navigation.NavigateTo($"/triptypes/edit/{created.Id}");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error creating trip type: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/triptypes");
+    }
+}

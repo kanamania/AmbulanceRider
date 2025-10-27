@@ -40,6 +40,7 @@ builder.Services.AddScoped<ApiService>(sp =>
         configuration
     )
 );
+builder.Services.AddScoped<TelemetryService>();
 
 try
 {

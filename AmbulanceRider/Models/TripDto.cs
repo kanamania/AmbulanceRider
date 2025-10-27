@@ -47,6 +47,7 @@ public class CreateTripDto
     
     public int? VehicleId { get; set; }
     public Guid? DriverId { get; set; }
+    public TelemetryDto? Telemetry { get; set; }
 }
 
 public class UpdateTripDto
@@ -67,6 +68,9 @@ public class UpdateTripDto
     public Guid? DriverId { get; set; }
     public DateTime? ActualStartTime { get; set; }
     public DateTime? ActualEndTime { get; set; }
+    
+    // Telemetry
+    public TelemetryDto? Telemetry { get; set; }
 }
 
 public class ApproveTripDto

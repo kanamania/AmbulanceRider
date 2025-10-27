@@ -1,0 +1,449 @@
+@page "/triptypes/edit/{Id:int}"
+@using AmbulanceRider.Models
+@using AmbulanceRider.Services
+@using Microsoft.AspNetCore.Authorization
+@inject ApiService ApiService
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Admin,Dispatcher")]
+
+<PageTitle>Edit Trip Type</PageTitle>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="bi bi-pencil me-2"></i>Edit Trip Type
+        </h1>
+        <button class="btn btn-outline-secondary" @onclick="NavigateBack">
+            <i class="bi bi-arrow-left me-1"></i>Back to List
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (tripType == null)
+    {
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle me-2"></i>Trip type not found.
+        </div>
+    }
+    else
+    {
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
+                <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>@successMessage
+                <button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
+            </div>
+        }
+
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Trip Type Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <EditForm Model="@updateDto" OnValidSubmit="HandleUpdate">
+                            <div class="mb-3">
+                                <label class="form-label">Name</label>
+                                <InputText @bind-Value="updateDto.Name" class="form-control" placeholder="@tripType.Name" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <InputTextArea @bind-Value="updateDto.Description" class="form-control" rows="2" placeholder="@tripType.Description" />
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Color</label>
+                                    <div class="input-group">
+                                        <input type="color" @bind="updateDto.Color" class="form-control form-control-color" />
+                                        <InputText @bind-Value="updateDto.Color" class="form-control" placeholder="@tripType.Color" />
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Icon</label>
+                                    <InputText @bind-Value="updateDto.Icon" class="form-control" placeholder="@tripType.Icon" />
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Display Order</label>
+                                    <InputNumber @bind-Value="updateDto.DisplayOrder" class="form-control" />
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check mt-4">
+                                        <InputCheckbox @bind-Value="updateDto.IsActive" class="form-check-input" id="isActive" />
+                                        <label class="form-check-label" for="isActive">Active</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                                @if (isSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1"></span>
+                                }
+                                <i class="bi bi-check-circle me-1"></i>Update Trip Type
+                            </button>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Custom Attributes (@tripType.Attributes.Count)</h5>
+                        <button class="btn btn-sm btn-primary" @onclick="ShowAddAttributeModal">
+                            <i class="bi bi-plus-circle me-1"></i>Add Attribute
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        @if (!tripType.Attributes.Any())
+                        {
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                No attributes yet. Click "Add Attribute" to create custom fields for this trip type.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="list-group">
+                                @foreach (var attr in tripType.Attributes.OrderBy(a => a.DisplayOrder))
+                                {
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">
+                                                    @attr.Label
+                                                    @if (attr.IsRequired)
+                                                    {
+                                                        <span class="text-danger">*</span>
+                                                    }
+                                                    @if (!attr.IsActive)
+                                                    {
+                                                        <span class="badge bg-secondary">Inactive</span>
+                                                    }
+                                                </h6>
+                                                <p class="mb-1 small text-muted">
+                                                    <strong>Type:</strong> @attr.DataType
+                                                    <span class="mx-2">|</span>
+                                                    <strong>Name:</strong> @attr.Name
+                                                </p>
+                                                @if (!string.IsNullOrEmpty(attr.Description))
+                                                {
+                                                    <p class="mb-0 small">@attr.Description</p>
+                                                }
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => ConfirmDeleteAttribute(attr)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@* Add Attribute Modal *@
+@if (showAddAttributeModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Custom Attribute</h5>
+                    <button type="button" class="btn-close" @onclick="CloseAddAttributeModal"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@newAttribute" OnValidSubmit="HandleAddAttribute">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Label <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="newAttribute.Label" class="form-control" placeholder="e.g., Patient Age" />
+                                <small class="text-muted">Display name shown to users</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Field Name <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="newAttribute.Name" class="form-control" placeholder="e.g., patient_age" />
+                                <small class="text-muted">Internal field name (use snake_case)</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <InputTextArea @bind-Value="newAttribute.Description" class="form-control" rows="2" placeholder="Help text for this field" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Data Type <span class="text-danger">*</span></label>
+                                <InputSelect @bind-Value="newAttribute.DataType" class="form-select">
+                                    <option value="text">Text (single line)</option>
+                                    <option value="textarea">Text Area (multi-line)</option>
+                                    <option value="number">Number</option>
+                                    <option value="date">Date</option>
+                                    <option value="boolean">Boolean (checkbox)</option>
+                                    <option value="select">Select (dropdown)</option>
+                                </InputSelect>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Display Order</label>
+                                <InputNumber @bind-Value="newAttribute.DisplayOrder" class="form-control" />
+                            </div>
+                        </div>
+
+                        @if (newAttribute.DataType == "select")
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Options (JSON array) <span class="text-danger">*</span></label>
+                                <InputTextArea @bind-Value="newAttribute.Options" class="form-control" rows="2" placeholder='["Option 1", "Option 2", "Option 3"]' />
+                                <small class="text-muted">JSON array format</small>
+                            </div>
+                        }
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Placeholder</label>
+                                <InputText @bind-Value="newAttribute.Placeholder" class="form-control" placeholder="Enter placeholder text" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Default Value</label>
+                                <InputText @bind-Value="newAttribute.DefaultValue" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <InputCheckbox @bind-Value="newAttribute.IsRequired" class="form-check-input" id="attrRequired" />
+                                <label class="form-check-label" for="attrRequired">Required Field</label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary" disabled="@isAddingAttribute">
+                                @if (isAddingAttribute)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1"></span>
+                                }
+                                Add Attribute
+                            </button>
+                            <button type="button" class="btn btn-secondary" @onclick="CloseAddAttributeModal">Cancel</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@* Delete Attribute Confirmation *@
+@if (attributeToDelete != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" @onclick="CancelDeleteAttribute"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the attribute <strong>@attributeToDelete.Label</strong>?</p>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        This will also delete all values for this attribute in existing trips.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelDeleteAttribute">Cancel</button>
+                    <button type="button" class="btn btn-danger" @onclick="DeleteAttribute" disabled="@isDeletingAttribute">
+                        @if (isDeletingAttribute)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private TripTypeDto? tripType;
+    private UpdateTripTypeDto updateDto = new();
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+    private string? errorMessage;
+    private string? successMessage;
+
+    // Attribute management
+    private bool showAddAttributeModal = false;
+    private CreateTripTypeAttributeDto newAttribute = new();
+    private bool isAddingAttribute = false;
+    private TripTypeAttributeDto? attributeToDelete;
+    private bool isDeletingAttribute = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTripType();
+    }
+
+    private async Task LoadTripType()
+    {
+        try
+        {
+            isLoading = true;
+            tripType = await ApiService.GetTripTypeByIdAsync(Id);
+            
+            if (tripType != null)
+            {
+                updateDto = new UpdateTripTypeDto
+                {
+                    Name = tripType.Name,
+                    Description = tripType.Description,
+                    Color = tripType.Color,
+                    Icon = tripType.Icon,
+                    IsActive = tripType.IsActive,
+                    DisplayOrder = tripType.DisplayOrder
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading trip type: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleUpdate()
+    {
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+            successMessage = null;
+
+            tripType = await ApiService.UpdateTripTypeAsync(Id, updateDto);
+            successMessage = "Trip type updated successfully!";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error updating trip type: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void ShowAddAttributeModal()
+    {
+        newAttribute = new CreateTripTypeAttributeDto
+        {
+            TripTypeId = Id,
+            DataType = "text",
+            IsActive = true,
+            DisplayOrder = tripType?.Attributes.Count ?? 0
+        };
+        showAddAttributeModal = true;
+    }
+
+    private void CloseAddAttributeModal()
+    {
+        showAddAttributeModal = false;
+        newAttribute = new();
+    }
+
+    private async Task HandleAddAttribute()
+    {
+        try
+        {
+            isAddingAttribute = true;
+            errorMessage = null;
+
+            var created = await ApiService.CreateTripTypeAttributeAsync(newAttribute);
+            await LoadTripType(); // Reload to get updated attributes
+            CloseAddAttributeModal();
+            successMessage = "Attribute added successfully!";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error adding attribute: {ex.Message}";
+        }
+        finally
+        {
+            isAddingAttribute = false;
+        }
+    }
+
+    private void ConfirmDeleteAttribute(TripTypeAttributeDto attribute)
+    {
+        attributeToDelete = attribute;
+    }
+
+    private void CancelDeleteAttribute()
+    {
+        attributeToDelete = null;
+    }
+
+    private async Task DeleteAttribute()
+    {
+        if (attributeToDelete == null) return;
+
+        try
+        {
+            isDeletingAttribute = true;
+            await ApiService.DeleteTripTypeAttributeAsync(attributeToDelete.Id);
+            await LoadTripType();
+            attributeToDelete = null;
+            successMessage = "Attribute deleted successfully!";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error deleting attribute: {ex.Message}";
+        }
+        finally
+        {
+            isDeletingAttribute = false;
+        }
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/triptypes");
+    }
+}

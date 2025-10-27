@@ -13,10 +13,12 @@ namespace AmbulanceRider.API.Controllers;
 public class TripsController : ControllerBase
 {
     private readonly ITripService _tripService;
+    private readonly ITelemetryService _telemetryService;
 
-    public TripsController(ITripService tripService)
+    public TripsController(ITripService tripService, ITelemetryService telemetryService)
     {
         _tripService = tripService;
+        _telemetryService = telemetryService;
     }
 
     /// <summary>
@@ -97,6 +99,15 @@ public class TripsController : ControllerBase
             }
 
             var trip = await _tripService.CreateTripAsync(createTripDto, userId);
+            
+            // Log telemetry
+            await _telemetryService.LogTelemetryAsync(
+                "TripCreate",
+                createTripDto.Telemetry,
+                userId,
+                $"Trip created: {trip.Name} (ID: {trip.Id})"
+            );
+            
             return CreatedAtAction(nameof(GetById), new { id = trip.Id }, trip);
         }
         catch (KeyNotFoundException ex)
@@ -117,7 +128,23 @@ public class TripsController : ControllerBase
     {
         try
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            Guid? userId = null;
+            if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var parsedUserId))
+            {
+                userId = parsedUserId;
+            }
+            
             var trip = await _tripService.UpdateTripAsync(id, updateTripDto);
+            
+            // Log telemetry
+            await _telemetryService.LogTelemetryAsync(
+                "TripUpdate",
+                updateTripDto.Telemetry,
+                userId,
+                $"Trip updated: {trip.Name} (ID: {trip.Id})"
+            );
+            
             return Ok(trip);
         }
         catch (KeyNotFoundException ex)
@@ -149,6 +176,15 @@ public class TripsController : ControllerBase
             }
 
             var trip = await _tripService.ApproveTripAsync(id, approveTripDto, approverId);
+            
+            // Log telemetry
+            await _telemetryService.LogTelemetryAsync(
+                approveTripDto.Approve ? "TripApprove" : "TripReject",
+                approveTripDto.Telemetry,
+                approverId,
+                $"Trip {(approveTripDto.Approve ? "approved" : "rejected")}: {trip.Name} (ID: {trip.Id})"
+            );
+            
             return Ok(trip);
         }
         catch (KeyNotFoundException ex)
@@ -173,7 +209,23 @@ public class TripsController : ControllerBase
     {
         try
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            Guid? userId = null;
+            if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var parsedUserId))
+            {
+                userId = parsedUserId;
+            }
+            
             var trip = await _tripService.StartTripAsync(id, startTripDto);
+            
+            // Log telemetry
+            await _telemetryService.LogTelemetryAsync(
+                "TripStart",
+                startTripDto.Telemetry,
+                userId,
+                $"Trip started: {trip.Name} (ID: {trip.Id})"
+            );
+            
             return Ok(trip);
         }
         catch (KeyNotFoundException ex)
@@ -198,7 +250,23 @@ public class TripsController : ControllerBase
     {
         try
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            Guid? userId = null;
+            if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var parsedUserId))
+            {
+                userId = parsedUserId;
+            }
+            
             var trip = await _tripService.CompleteTripAsync(id, completeTripDto);
+            
+            // Log telemetry
+            await _telemetryService.LogTelemetryAsync(
+                "TripComplete",
+                completeTripDto.Telemetry,
+                userId,
+                $"Trip completed: {trip.Name} (ID: {trip.Id})"
+            );
+            
             return Ok(trip);
         }
         catch (KeyNotFoundException ex)

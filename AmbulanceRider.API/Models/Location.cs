@@ -18,8 +18,4 @@ public class Location : BaseModel
     public string? ImagePath { get; set; }
     
     public string? ImageUrl { get; set; }
-    
-    // Navigation properties
-    public virtual ICollection<Route> RoutesFrom { get; set; } = new List<Route>();
-    public virtual ICollection<Route> RoutesTo { get; set; } = new List<Route>();
 }

@@ -1,10 +1,13 @@
 # 🚑 AmbulanceRider - Emergency Medical Dispatch System
 
-A full-stack web application for managing emergency medical dispatch operations with comprehensive trip management, status workflow, audit trails, and real-time tracking.
+A full-stack web application for managing emergency medical dispatch operations with comprehensive trip management, status workflow, audit trails, real-time tracking, and advanced telemetry.
 
-> **Latest Updates (2025-10-27):** Trip Status Change Logging & Audit Trail System implemented with complete timeline UI and automatic change tracking.
+> **Latest Updates (2025-10-27):** 
+> - Trip Status Change Logging & Audit Trail System ✅
+> - Dynamic Trip Types with Custom Attributes ⭐
+> - Comprehensive Telemetry & Analytics System ⭐ NEW
 
-📚 **[Complete Documentation Index](./DOCUMENTATION_INDEX.md)** - Navigate all 14 documentation files organized by topic and use case.
+📚 **[Complete Documentation Index](./DOCUMENTATION_INDEX.md)** - Navigate all documentation files organized by topic and use case.
 
 ## 🎯 Features
 
@@ -17,6 +20,7 @@ A full-stack web application for managing emergency medical dispatch operations 
 - ✅ **Soft Delete** implementation
 - ✅ **Automatic Auditing** (CreatedAt, UpdatedAt, CreatedBy, etc.)
 - ✅ **CORS** enabled for cross-origin requests
+- ✅ **Telemetry & Analytics** - Device, GPS, and user behavior tracking ⭐ NEW
 
 ### Frontend
 - ✅ **Blazor WebAssembly** (.NET 9.0)
@@ -40,24 +44,43 @@ A full-stack web application for managing emergency medical dispatch operations 
    - Driver assignment capability
    - Auto-fill driver selection based on vehicle
 
-3. **Routes Management**
-   - Route planning with start/end locations
-   - Distance and duration tracking
-   - Description and notes
-   - Table-based list view
-
-4. **Trips Management** ⭐ NEW
+3. **Trips Management** ⭐ ENHANCED
    - Interactive map-based location selection
    - Coordinate-based trip planning (latitude/longitude)
    - Complete status workflow (Pending → Approved → InProgress → Completed)
-   - Driver trip completion with notes
+   - Driver/User trip creation and management
    - Admin approval/rejection with reasons
    - Trip cancellation with optional reasons
    - Force complete capability (Admin override)
    - **Audit Trail System** - Complete status change history
    - **Visual Timeline UI** - See who changed what, when, and why
+   - **Dynamic Trip Types** ⭐ NEW - Categorize trips with custom attributes
+   - **Custom Attributes** ⭐ NEW - Add dynamic fields per trip type
    - Real-time status updates
    - Role-based permissions
+
+5. **Trip Types Management** ⭐
+   - Define trip categories (Emergency, Routine, Transfer, etc.)
+   - Add custom attributes with multiple data types
+   - Support for text, number, date, boolean, select, textarea fields
+   - Validation rules and default values
+   - UI metadata (colors, icons, labels, placeholders)
+   - Active/inactive status management
+   - Display order configuration
+
+6. **Telemetry & Analytics** ⭐ NEW
+   - **Device Information** - OS, browser, device type, app version
+   - **Account Detection** - Google/Apple account type based on OS
+   - **GPS Tracking** - Real-time location data with accuracy
+   - **Network Monitoring** - Connection type, online status
+   - **Battery Status** - Level and charging state
+   - **Installed Apps** - Browser plugins and PWA apps (limited)
+   - **Event Tracking** - Login, register, trip operations
+   - **Timeseries Logging** - Batch telemetry for high-volume data ⭐ NEW
+   - **Time-based Queries** - Query telemetry by date ranges ⭐ NEW
+   - **Route Visualization** - Track location history over time ⭐ NEW
+   - **Privacy-Conscious** - Graceful permission handling
+   - **Non-Blocking** - Never interrupts main operations
 
 ## 🏗️ Architecture
 
@@ -79,9 +102,8 @@ AmbulanceRider/
 │   │   └── Pages/               # CRUD pages
 │   │       ├── Users/           # User management
 │   │       ├── Vehicles/        # Vehicle management
-│   │       ├── Routes/          # Route management
 │   │       ├── Locations/       # Location management
-│   │       └── Trips/           # Trip management ⭐ NEW
+│   │       └── Trips/           # Trip management ⭐
 │   │           ├── Trips.razor           # Trip list
 │   │           ├── CreateTrip.razor      # Create trip with maps
 │   │           ├── EditTrip.razor        # Edit trip
@@ -98,7 +120,7 @@ AmbulanceRider/
 ### Prerequisites
 - .NET 9.0 SDK
 - Docker Desktop (for PostgreSQL)
-- Visual Studio 2022 or VS Code
+- PowerShell 7
 
 ### Running with Docker Compose
 
@@ -142,20 +164,28 @@ App will be available at the configured port (check console output)
 - **vehicles** - Vehicle information
 - **vehicle_types** - Vehicle type classifications
 - **vehicle_drivers** - Driver-vehicle assignments
-- **routes** - Emergency routes
 - **locations** - Predefined locations
-- **trips** - Trip management with coordinates ⭐ NEW
-- **trip_status_logs** - Audit trail for status changes ⭐ NEW
+- **trips** - Trip management with coordinates
+- **trip_status_logs** - Audit trail for status changes
+- **trip_types** - Trip categories with metadata ⭐
+- **trip_type_attributes** - Custom field definitions ⭐
+- **trip_attribute_values** - Actual field values per trip ⭐
+- **telemetries** - Device, GPS, and analytics data ⭐ NEW
 - **refresh_tokens** - JWT refresh token management
 
 ### Relationships
 - Users ↔ Roles (Many-to-Many)
 - Users ↔ Vehicles (Many-to-Many via vehicle_drivers)
 - Vehicles → VehicleTypes (One-to-Many)
-- Trips → Users (Driver, Approver)
+- Trips → Users (Driver, Approver, Creator)
 - Trips → Vehicles (One-to-Many)
-- TripStatusLogs → Trips (One-to-Many, cascade delete) ⭐
-- TripStatusLogs → Users (One-to-Many) ⭐
+- Trips → TripTypes (Many-to-One) ⭐
+- TripStatusLogs → Trips (One-to-Many, cascade delete)
+- TripStatusLogs → Users (One-to-Many)
+- TripTypes → TripTypeAttributes (One-to-Many, cascade delete) ⭐
+- TripAttributeValues → Trips (Many-to-One, cascade delete) ⭐
+- TripAttributeValues → TripTypeAttributes (Many-to-One) ⭐
+- Telemetries → Users (Many-to-One, optional) ⭐ NEW
 
 ## 🔐 Authentication & Authorization
 
@@ -168,12 +198,12 @@ Authorization: Bearer <your-token-here>
 
 ### Roles & Permissions
 
-| Role | Users | Vehicles | Routes | Trips | Trip Status |
+| Role | Users | Vehicles | Trips | Trip Status |
 |------|-------|----------|--------|-------|-------------|
-| **Admin** | Full CRUD | Full CRUD | Full CRUD | Full CRUD | Approve, Reject, Force Complete |
-| **Dispatcher** | Read | Create, Read, Update | Create, Read, Update | Full CRUD | Approve, Reject, Force Complete |
-| **Driver** | Read | Read | Read | Create, Read, Update | Complete, Cancel (own trips) |
-| **User** | Read | Read | Read | Create, Read, Update | Complete, Cancel (own trips) |
+| **Admin** | Full CRUD | Full CRUD | Full CRUD | Approve, Reject, Force Complete |
+| **Dispatcher** | Read | Create, Read, Update | Full CRUD | Approve, Reject, Force Complete |
+| **Driver** | Read | Read | Create, Read, Update | Complete, Cancel (own trips) |
+| **User** | Read | Read | Create, Read, Update | Complete, Cancel (own trips) |
 
 **Note:** Driver and User roles have the same permissions for trip management. Both can create trips and manage their own trips.
 
@@ -218,27 +248,36 @@ Response:
 - `PUT /api/vehicles/{id}` - Update vehicle (Admin, Dispatcher)
 - `DELETE /api/vehicles/{id}` - Delete vehicle (Admin)
 
-### Routes
-- `GET /api/routes` - Get all routes
-- `GET /api/routes/{id}` - Get route by ID
-- `POST /api/routes` - Create route (Admin, Dispatcher)
-- `PUT /api/routes/{id}` - Update route (Admin, Dispatcher)
-- `DELETE /api/routes/{id}` - Delete route (Admin)
-
-### Trips ⭐ NEW
+### Trips ⭐
 - `GET /api/trips` - Get all trips
 - `GET /api/trips/{id}` - Get trip by ID
 - `GET /api/trips/status/{status}` - Get trips by status
 - `GET /api/trips/pending` - Get pending trips
-- `POST /api/trips` - Create trip
-- `PUT /api/trips/{id}` - Update trip
-- `PUT /api/trips/{id}/status` - Update trip status (with validation)
-- `POST /api/trips/{id}/approve` - Approve trip (Admin, Dispatcher)
-- `POST /api/trips/{id}/start` - Start trip (Driver)
-- `POST /api/trips/{id}/complete` - Complete trip (Driver)
+- `POST /api/trips` - Create trip (with telemetry)
+- `PUT /api/trips/{id}` - Update trip (with telemetry)
+- `PUT /api/trips/{id}/status` - Update trip status (with validation & telemetry)
+- `POST /api/trips/{id}/approve` - Approve trip (Admin, Dispatcher, with telemetry)
+- `POST /api/trips/{id}/start` - Start trip (Driver, with telemetry)
+- `POST /api/trips/{id}/complete` - Complete trip (Driver, with telemetry)
 - `POST /api/trips/{id}/cancel` - Cancel trip
 - `GET /api/trips/{id}/status-logs` - Get status change history ⭐
 - `DELETE /api/trips/{id}` - Delete trip (Admin)
+
+### Authentication ⭐
+- `POST /api/auth/register` - Register new user (with telemetry)
+- `POST /api/auth/login` - Login (with telemetry)
+- `POST /api/auth/logout` - Logout
+- `POST /api/auth/refresh` - Refresh token
+- `POST /api/auth/forgot-password` - Request password reset (with telemetry)
+- `POST /api/auth/reset-password` - Reset password (with telemetry)
+- `GET /api/auth/me` - Get current user
+
+### Telemetry ⭐ NEW
+- `POST /api/telemetry` - Log single telemetry event
+- `POST /api/telemetry/batch` - Log batch telemetry (timeseries)
+- `POST /api/telemetry/timeseries` - Query timeseries data (Admin/Dispatcher)
+- `GET /api/telemetry/user/{userId}/timeseries` - Get user timeseries
+- `GET /api/telemetry/me/timeseries` - Get current user's timeseries
 
 ## 🛠️ Technologies
 
@@ -256,6 +295,7 @@ Response:
 - **Icons:** Bootstrap Icons
 - **HTTP Client:** System.Net.Http
 - **Maps:** Leaflet.js (via MapPicker component) ⭐
+- **Telemetry:** JavaScript Geolocation API, Battery API, Network Information API ⭐ NEW
 
 ### DevOps
 - **Containerization:** Docker
@@ -385,13 +425,18 @@ dotnet ef database update
 8. **[TRIP_COORDINATES_UPDATE.md](./TRIP_COORDINATES_UPDATE.md)** - Map integration details
 9. **[TRIP_MODULE_SUMMARY.md](./TRIP_MODULE_SUMMARY.md)** - Trip module overview
 
+#### Telemetry & Analytics ⭐ NEW
+10. **[TELEMETRY_IMPLEMENTATION.md](./TELEMETRY_IMPLEMENTATION.md)** - Complete telemetry system documentation
+11. **[TELEMETRY_ENHANCEMENTS.md](./TELEMETRY_ENHANCEMENTS.md)** - Account & apps tracking features
+12. **[TELEMETRY_TIMESERIES_GUIDE.md](./TELEMETRY_TIMESERIES_GUIDE.md)** - Timeseries logging and querying ⭐ NEW
+
 #### Implementation Guides
-10. **[IMPLEMENTATION_COMPLETE.md](./IMPLEMENTATION_COMPLETE.md)** - Status management implementation
-11. **[IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md)** - General implementation summary
-12. **[VEHICLE_DRIVER_AUTO_FILL_SUMMARY.md](./VEHICLE_DRIVER_AUTO_FILL_SUMMARY.md)** - Vehicle-driver integration
+13. **[IMPLEMENTATION_COMPLETE.md](./IMPLEMENTATION_COMPLETE.md)** - Status management implementation
+14. **[IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md)** - General implementation summary
+15. **[VEHICLE_DRIVER_AUTO_FILL_SUMMARY.md](./VEHICLE_DRIVER_AUTO_FILL_SUMMARY.md)** - Vehicle-driver integration
 
 #### Quick Start
-13. **[QUICKSTART.md](./QUICKSTART.md)** - Getting started guide
+16. **[QUICKSTART.md](./QUICKSTART.md)** - Getting started guide
 
 ### 🗂️ Documentation by Topic
 
@@ -405,11 +450,15 @@ dotnet ef database update
 - **Feature Overview**: [FEATURE_SUMMARY.md](./FEATURE_SUMMARY.md)
 - **Trip Workflow**: [TRIP_STATUS_WORKFLOW_SUMMARY.md](./TRIP_STATUS_WORKFLOW_SUMMARY.md)
 - **Audit System**: [TRIP_STATUS_LOGGING_IMPLEMENTATION.md](./TRIP_STATUS_LOGGING_IMPLEMENTATION.md)
+- **Telemetry System**: [TELEMETRY_IMPLEMENTATION.md](./TELEMETRY_IMPLEMENTATION.md) ⭐ NEW
+- **Telemetry Enhancements**: [TELEMETRY_ENHANCEMENTS.md](./TELEMETRY_ENHANCEMENTS.md) ⭐ NEW
+- **Timeseries Telemetry**: [TELEMETRY_TIMESERIES_GUIDE.md](./TELEMETRY_TIMESERIES_GUIDE.md) ⭐ NEW
 
 #### For Administrators
 - **Complete Feature List**: [FEATURE_SUMMARY.md](./FEATURE_SUMMARY.md)
 - **Status Workflow Rules**: [TRIP_STATUS_WORKFLOW_SUMMARY.md](./TRIP_STATUS_WORKFLOW_SUMMARY.md)
 - **Implementation Details**: [IMPLEMENTATION_COMPLETE.md](./IMPLEMENTATION_COMPLETE.md)
+- **Analytics & Tracking**: [TELEMETRY_IMPLEMENTATION.md](./TELEMETRY_IMPLEMENTATION.md) ⭐ NEW
 
 ## 📋 Change Log
 
@@ -447,26 +496,46 @@ dotnet ef database update
 - ✅ Vehicle-driver assignment management
 - ✅ Driver availability tracking
 
+**Telemetry & Analytics System** ⭐ NEW
+- ✅ Device information tracking (OS, browser, device type, app version)
+- ✅ Google/Apple account type detection based on OS
+- ✅ GPS location tracking with accuracy metrics
+- ✅ Network monitoring (connection type, online status)
+- ✅ Battery status tracking (level, charging state)
+- ✅ Installed apps detection (browser plugins, PWA apps)
+- ✅ Event tracking (login, register, trip operations)
+- ✅ **Timeseries logging** - Batch telemetry for high-volume data ⭐ NEW
+- ✅ **Time-based queries** - Query telemetry by date ranges ⭐ NEW
+- ✅ **Route visualization** - Track location history over time ⭐ NEW
+- ✅ **User privacy controls** - Users can only access their own data ⭐ NEW
+- ✅ Privacy-conscious implementation with graceful permission handling
+- ✅ Non-blocking telemetry collection
+- ✅ Database storage with indexed queries
+
 #### 🔧 Technical Improvements
-- ✅ Repository pattern for TripStatusLog
+- ✅ Repository pattern for TripStatusLog and Telemetry
 - ✅ Service layer with business logic validation
 - ✅ DTOs for clean API contracts
 - ✅ Database indexes for performance
 - ✅ Soft delete implementation
 - ✅ Comprehensive error handling
 - ✅ Loading states and user feedback
+- ✅ JavaScript interop for browser APIs
+- ✅ Geolocation, Battery, and Network Information APIs
 
 #### 📝 Documentation
-- ✅ 13 comprehensive documentation files
+- ✅ 16 comprehensive documentation files
 - ✅ User guides and quick starts
 - ✅ Technical implementation details
 - ✅ API endpoint documentation
 - ✅ Status workflow diagrams
+- ✅ Telemetry system documentation
+- ✅ Timeseries telemetry guide ⭐ NEW
+- ✅ Privacy and compliance guidelines
 
 ### Version 0.9.0 (Previous)
 - ✅ User management with roles
 - ✅ Vehicle management with types
-- ✅ Route management
 - ✅ Location management
 - ✅ JWT authentication
 - ✅ Basic trip CRUD operations
@@ -475,14 +544,17 @@ dotnet ef database update
 
 ### Planned Features
 - [ ] Real-time notifications with SignalR
-- [ ] GPS tracking integration
-- [ ] Mobile app (MAUI)
-- [ ] Advanced reporting and analytics
+- [ ] Mobile app (MAUI) for enhanced telemetry access
+- [ ] Advanced reporting and analytics dashboard
+- [ ] Telemetry analytics dashboard with charts and graphs
+- [ ] Telemetry data export (CSV, JSON)
+- [ ] Telemetry aggregation and statistics
 - [ ] Multi-language support
 - [ ] Email notifications on status changes
 - [ ] Performance monitoring dashboard
 - [ ] Unit and integration tests
 - [ ] CI/CD pipeline
+- [ ] OAuth integration for Google/Apple account emails
 
 ### Audit Trail Enhancements
 - [ ] Export logs to CSV/PDF
