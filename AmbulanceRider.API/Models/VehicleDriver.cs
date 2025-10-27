@@ -2,7 +2,7 @@ namespace AmbulanceRider.API.Models;
 
 public class VehicleDriver : BaseModel
 {
-    public int UserId { get; set; }
+    public Guid UserId { get; set; }
     public int VehicleId { get; set; }
     
     // Navigation properties

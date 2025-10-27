@@ -38,12 +38,7 @@
                                 <InputText @bind-Value="model.Name" class="form-control" />
                                 <ValidationMessage For="@(() => model.Name)" />
                             </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Image URL</label>
-                                <InputText @bind-Value="model.Image" class="form-control" />
-                            </div>
-
+                            
                             <div class="mb-3">
                                 <label class="form-label">Vehicle Type *</label>
                                 <select @bind="selectedVehicleTypeId" class="form-select">

@@ -23,8 +23,8 @@ public class Trip : BaseModel
     // Foreign keys
     public int RouteId { get; set; }
     public int? VehicleId { get; set; }
-    public int? DriverId { get; set; }
-    public int? ApprovedBy { get; set; }
+    public Guid? DriverId { get; set; }
+    public Guid? ApprovedBy { get; set; }
     public DateTime? ApprovedAt { get; set; }
     
     // Navigation properties

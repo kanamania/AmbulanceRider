@@ -1,6 +1,4 @@
-using AmbulanceRider.API.Models;
-
-namespace AmbulanceRider.API.DTOs;
+namespace AmbulanceRider.Models;
 
 public class TripDto
 {
@@ -26,10 +24,10 @@ public class TripDto
 
 public class CreateTripDto
 {
-    public required string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public required DateTime ScheduledStartTime { get; set; }
-    public required int RouteId { get; set; }
+    public DateTime ScheduledStartTime { get; set; } = DateTime.Now.AddHours(1);
+    public int RouteId { get; set; }
     public int? VehicleId { get; set; }
     public Guid? DriverId { get; set; }
 }
@@ -48,16 +46,26 @@ public class UpdateTripDto
 
 public class ApproveTripDto
 {
-    public required bool Approve { get; set; }
+    public bool Approve { get; set; }
     public string? RejectionReason { get; set; }
 }
 
 public class StartTripDto
 {
-    public required DateTime ActualStartTime { get; set; }
+    public DateTime ActualStartTime { get; set; } = DateTime.Now;
 }
 
 public class CompleteTripDto
 {
-    public required DateTime ActualEndTime { get; set; }
+    public DateTime ActualEndTime { get; set; } = DateTime.Now;
+}
+
+public enum TripStatus
+{
+    Pending = 0,
+    Approved = 1,
+    Rejected = 2,
+    InProgress = 3,
+    Completed = 4,
+    Cancelled = 5
 }

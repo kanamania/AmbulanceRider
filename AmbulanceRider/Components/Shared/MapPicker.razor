@@ -1,0 +1,103 @@
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<div class="map-picker">
+    <div id="@MapId" style="height: @Height; width: 100%; border-radius: 8px; border: 1px solid #dee2e6;"></div>
+    
+    @if (Editable)
+    {
+        <div class="mt-3">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Latitude</label>
+                    <input type="number" class="form-control" step="0.000001" @bind="currentLatitude" @bind:event="oninput" @onchange="OnCoordinateChanged" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Longitude</label>
+                    <input type="number" class="form-control" step="0.000001" @bind="currentLongitude" @bind:event="oninput" @onchange="OnCoordinateChanged" />
+                </div>
+            </div>
+            <small class="text-muted d-block mt-2">
+                <i class="bi bi-info-circle me-1"></i>Click on the map or drag the marker to select a location
+            </small>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string MapId { get; set; } = "map";
+    [Parameter] public double Latitude { get; set; } = 0.0;
+    [Parameter] public double Longitude { get; set; } = 0.0;
+    [Parameter] public int Zoom { get; set; } = 13;
+    [Parameter] public bool Editable { get; set; } = true;
+    [Parameter] public string Height { get; set; } = "400px";
+    [Parameter] public EventCallback<(double Latitude, double Longitude)> OnLocationChanged { get; set; }
+
+    private double currentLatitude;
+    private double currentLongitude;
+    private DotNetObjectReference<MapPicker>? dotNetHelper;
+    private bool isInitialized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            currentLatitude = Latitude != 0.0 ? Latitude : 0.3476;  // Default to Nairobi
+            currentLongitude = Longitude != 0.0 ? Longitude : 36.8126;
+            
+            dotNetHelper = DotNetObjectReference.Create(this);
+            
+            await JSRuntime.InvokeVoidAsync("mapHelper.initMap", MapId, currentLatitude, currentLongitude, Zoom, Editable);
+            
+            if (Editable)
+            {
+                await JSRuntime.InvokeVoidAsync("mapHelper.onMarkerDragEnd", MapId, dotNetHelper);
+                await JSRuntime.InvokeVoidAsync("mapHelper.onMapClick", MapId, dotNetHelper);
+            }
+            
+            isInitialized = true;
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnMarkerMoved(double lat, double lng)
+    {
+        currentLatitude = lat;
+        currentLongitude = lng;
+        await OnLocationChanged.InvokeAsync((lat, lng));
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task OnMapClicked(double lat, double lng)
+    {
+        currentLatitude = lat;
+        currentLongitude = lng;
+        await JSRuntime.InvokeVoidAsync("mapHelper.updateMarker", MapId, lat, lng);
+        await OnLocationChanged.InvokeAsync((lat, lng));
+        StateHasChanged();
+    }
+
+    private async Task OnCoordinateChanged()
+    {
+        if (isInitialized)
+        {
+            await JSRuntime.InvokeVoidAsync("mapHelper.updateMarker", MapId, currentLatitude, currentLongitude);
+            await OnLocationChanged.InvokeAsync((currentLatitude, currentLongitude));
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (isInitialized)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("mapHelper.destroyMap", MapId);
+            }
+            catch { }
+        }
+        
+        dotNetHelper?.Dispose();
+    }
+}

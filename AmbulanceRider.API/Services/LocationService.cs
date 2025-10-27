@@ -42,6 +42,8 @@ public class LocationService : ILocationService
         var location = new Location
         {
             Name = createLocationDto.Name,
+            Latitude = createLocationDto.Latitude,
+            Longitude = createLocationDto.Longitude,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -57,6 +59,12 @@ public class LocationService : ILocationService
 
         if (!string.IsNullOrEmpty(updateLocationDto.Name))
             location.Name = updateLocationDto.Name;
+
+        if (updateLocationDto.Latitude.HasValue)
+            location.Latitude = updateLocationDto.Latitude.Value;
+
+        if (updateLocationDto.Longitude.HasValue)
+            location.Longitude = updateLocationDto.Longitude.Value;
 
         if (updateLocationDto.ImagePath != null)
             location.ImagePath = updateLocationDto.ImagePath;
@@ -95,6 +103,8 @@ public class LocationService : ILocationService
         {
             Id = location.Id,
             Name = location.Name,
+            Latitude = location.Latitude,
+            Longitude = location.Longitude,
             ImagePath = location.ImagePath,
             ImageUrl = location.ImageUrl,
             CreatedAt = location.CreatedAt

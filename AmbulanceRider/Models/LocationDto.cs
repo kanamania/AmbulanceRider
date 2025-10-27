@@ -1,4 +1,4 @@
-namespace AmbulanceRider.API.DTOs;
+namespace AmbulanceRider.Models;
 
 public class LocationDto
 {

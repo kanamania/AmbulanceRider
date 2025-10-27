@@ -57,6 +57,22 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.ToTable("roles");
         });
 
+        // Configure UserRole to use Identity's built-in properties
+        modelBuilder.Entity<UserRole>(entity =>
+        {
+            entity.ToTable("user_roles");
+            
+            entity.HasOne(ur => ur.User)
+                .WithMany(u => u.UserRoles)
+                .HasForeignKey(ur => ur.UserId)
+                .IsRequired();
+                
+            entity.HasOne(ur => ur.Role)
+                .WithMany(r => r.UserRoles)
+                .HasForeignKey(ur => ur.RoleId)
+                .IsRequired();
+        });
+
         // RefreshToken configuration
         modelBuilder.Entity<RefreshToken>(entity =>
         {
@@ -99,7 +115,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.HasKey(e => e.Id);
             entity.HasOne(e => e.Vehicle).WithMany(v => v.VehicleDrivers).HasForeignKey(e => e.VehicleId);
             entity.HasOne(e => e.User).WithMany(u => u.VehicleDrivers).HasForeignKey(e => e.UserId);
-            entity.HasQueryFilter(e => !e.IsDeleted);
+            entity.HasQueryFilter(e => e.DeletedAt == null);
         });
 
         // Route configuration
@@ -123,7 +139,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
                 .HasForeignKey(r => r.ToLocationId)
                 .OnDelete(DeleteBehavior.Restrict);
             
-            entity.HasQueryFilter(e => !e.IsDeleted);
+            entity.HasQueryFilter(e => e.DeletedAt == null);
         });
         
         // Location configuration
@@ -135,7 +151,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.ImagePath).HasMaxLength(255);
             entity.Property(e => e.ImageUrl).HasMaxLength(512);
             
-            entity.HasQueryFilter(e => !e.IsDeleted);
+            entity.HasQueryFilter(e => e.DeletedAt == null);
         });
 
         // Trip configuration
@@ -170,7 +186,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
                 .HasForeignKey(t => t.ApprovedBy)
                 .OnDelete(DeleteBehavior.Restrict);
             
-            entity.HasQueryFilter(e => !e.IsDeleted);
+            entity.HasQueryFilter(e => e.DeletedAt == null);
         });
     }
 

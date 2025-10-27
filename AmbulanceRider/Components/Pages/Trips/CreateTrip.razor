@@ -1,0 +1,227 @@
+@page "/trips/create"
+@using AmbulanceRider.Models
+@using AmbulanceRider.Services
+@inject ApiService ApiService
+@inject NavigationManager Navigation
+
+<PageTitle>Schedule New Trip</PageTitle>
+
+<div class="container">
+    <div class="d-flex align-items-center mb-4">
+        <button class="btn btn-outline-secondary me-3" @onclick="GoBack">
+            <i class="bi bi-arrow-left"></i>
+        </button>
+        <h1><i class="bi bi-calendar-plus me-2"></i>Schedule New Trip</h1>
+    </div>
+
+    @if (errorMessage != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
+            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <EditForm Model="model" OnValidSubmit="HandleSubmit">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-tag me-1"></i>Trip Name *
+                            </label>
+                            <InputText class="form-control" @bind-Value="model.Name" placeholder="Enter trip name" />
+                            <ValidationMessage For="@(() => model.Name)" class="text-danger" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-text-paragraph me-1"></i>Description
+                            </label>
+                            <InputTextArea class="form-control" @bind-Value="model.Description" rows="3" placeholder="Enter trip description" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-calendar me-1"></i>Scheduled Start Time *
+                            </label>
+                            <InputDate Type="InputDateType.DateTimeLocal" class="form-control" @bind-Value="model.ScheduledStartTime" />
+                            <ValidationMessage For="@(() => model.ScheduledStartTime)" class="text-danger" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-map me-1"></i>Route *
+                            </label>
+                            <select class="form-select" @bind="model.RouteId">
+                                <option value="0">-- Select Route --</option>
+                                @foreach (var route in routes)
+                                {
+                                    <option value="@route.Id">@route.Name (@route.StartLocation → @route.EndLocation)</option>
+                                }
+                            </select>
+                            @if (model.RouteId == 0)
+                            {
+                                <div class="text-danger">Route is required</div>
+                            }
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-truck me-1"></i>Vehicle
+                            </label>
+                            <select class="form-select" @bind="model.VehicleId">
+                                <option value="">-- Select Vehicle (Optional) --</option>
+                                @foreach (var vehicle in vehicles)
+                                {
+                                    <option value="@vehicle.Id">@vehicle.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-person me-1"></i>Driver
+                            </label>
+                            <select class="form-select" @bind="selectedDriverId">
+                                <option value="">-- Select Driver (Optional) --</option>
+                                @foreach (var driver in drivers)
+                                {
+                                    <option value="@driver.Id">@driver.FirstName @driver.LastName</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <button type="button" class="btn btn-outline-secondary" @onclick="GoBack">
+                                <i class="bi bi-x-circle me-1"></i>Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-lg" disabled="@isSubmitting">
+                                @if (isSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                    <span>Creating...</span>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    <span>Schedule Trip</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Trip Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Name:</strong>
+                        <p class="text-muted mb-0">@(string.IsNullOrEmpty(model.Name) ? "Not set" : model.Name)</p>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Scheduled:</strong>
+                        <p class="text-muted mb-0">@model.ScheduledStartTime.ToString("MMM dd, yyyy HH:mm")</p>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Route:</strong>
+                        <p class="text-muted mb-0">@(model.RouteId == 0 ? "Not selected" : routes.FirstOrDefault(r => r.Id == model.RouteId)?.Name ?? "Not selected")</p>
+                    </div>
+                    <hr />
+                    <div class="alert alert-info mb-0">
+                        <small>
+                            <i class="bi bi-lightbulb me-1"></i>
+                            <strong>Note:</strong> Vehicle and driver can be assigned later. The trip will be in "Pending" status until approved.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private CreateTripDto model = new();
+    private List<RouteDto> routes = new();
+    private List<VehicleDto> vehicles = new();
+    private List<UserDto> drivers = new();
+    private bool isSubmitting = false;
+    private string? errorMessage;
+    private string? selectedDriverId;
+
+    private void OnDriverChanged()
+    {
+        if (!string.IsNullOrEmpty(selectedDriverId) && Guid.TryParse(selectedDriverId, out var driverId))
+        {
+            model.DriverId = driverId;
+        }
+        else
+        {
+            model.DriverId = null;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            routes = await ApiService.GetRoutesAsync();
+            vehicles = await ApiService.GetVehiclesAsync();
+            var allUsers = await ApiService.GetUsersAsync();
+            drivers = allUsers.Where(u => u.Roles.Contains("Driver")).ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+
+            if (model.RouteId == 0)
+            {
+                errorMessage = "Please select a route";
+                return;
+            }
+
+            // Update DriverId from selected value
+            if (!string.IsNullOrEmpty(selectedDriverId) && Guid.TryParse(selectedDriverId, out var driverId))
+            {
+                model.DriverId = driverId;
+            }
+            else
+            {
+                model.DriverId = null;
+            }
+
+            await ApiService.CreateTripAsync(model);
+            Navigation.NavigateTo("/trips");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error creating trip: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/trips");
+    }
+}

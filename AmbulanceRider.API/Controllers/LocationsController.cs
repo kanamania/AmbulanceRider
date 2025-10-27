@@ -18,8 +18,22 @@ public class LocationsController(ILocationService locationService, IConfiguratio
     [ProducesResponseType(typeof(IEnumerable<LocationDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<LocationDto>>> GetAll()
     {
-        var locations = await locationService.GetAllLocationsAsync();
-        return Ok(locations);
+        try
+        {
+            var locations = await locationService.GetAllLocationsAsync();
+            return Ok(locations);
+        }
+        catch (Exception ex)
+        {
+            // Log the full exception for debugging
+            Console.WriteLine($"Error in GetAll Locations: {ex.Message}");
+            Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+            }
+            return StatusCode(500, new { message = "Internal server error", detail = ex.Message });
+        }
     }
 
     /// <summary>
@@ -44,29 +58,10 @@ public class LocationsController(ILocationService locationService, IConfiguratio
     [Authorize(Roles = "Admin,Dispatcher")]
     [ProducesResponseType(typeof(LocationDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<LocationDto>> Create([FromForm] CreateLocationDto createLocationDto)
+    public async Task<ActionResult<LocationDto>> Create([FromBody] CreateLocationDto createLocationDto)
     {
         try
         {
-            if (createLocationDto.Image != null)
-            {
-                var baseUrl = configuration["BaseUrl"] ?? $"{Request.Scheme}://{Request.Host}";
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "locations");
-                if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);
-
-                var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(createLocationDto.Image.FileName)}";
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await createLocationDto.Image.CopyToAsync(stream);
-                }
-
-                createLocationDto.ImagePath = $"uploads/locations/{uniqueFileName}";
-                createLocationDto.ImageUrl = $"{baseUrl}/uploads/locations/{uniqueFileName}";
-            }
-
             var location = await locationService.CreateLocationAsync(createLocationDto);
             return CreatedAtAction(nameof(GetById), new { id = location.Id }, location);
         }
@@ -84,66 +79,10 @@ public class LocationsController(ILocationService locationService, IConfiguratio
     [ProducesResponseType(typeof(LocationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<LocationDto>> Update(int id, [FromForm] UpdateLocationDto updateLocationDto)
+    public async Task<ActionResult<LocationDto>> Update(int id, [FromBody] UpdateLocationDto updateLocationDto)
     {
         try
         {
-            var existingLocation = await locationService.GetLocationByIdAsync(id);
-            if (existingLocation == null)
-                return NotFound();
-
-            var baseUrl = configuration["BaseUrl"] ?? $"{Request.Scheme}://{Request.Host}";
-            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "locations");
-            
-            // Handle image upload if a new image is provided
-            if (updateLocationDto.Image != null)
-            {
-                // Delete old image if it exists
-                if (!string.IsNullOrEmpty(existingLocation.ImagePath))
-                {
-                    var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", existingLocation.ImagePath);
-                    if (System.IO.File.Exists(oldFilePath))
-                    {
-                        System.IO.File.Delete(oldFilePath);
-                    }
-                }
-
-                // Save new image
-                if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);
-
-                var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(updateLocationDto.Image.FileName)}";
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await updateLocationDto.Image.CopyToAsync(stream);
-                }
-
-                updateLocationDto = new UpdateLocationDto
-                {
-                    Name = updateLocationDto.Name,
-                    Image = updateLocationDto.Image,
-                    RemoveImage = updateLocationDto.RemoveImage,
-                    ImagePath = $"uploads/locations/{uniqueFileName}",
-                    ImageUrl = $"{baseUrl}/uploads/locations/{uniqueFileName}"
-                };
-            }
-            // Handle image removal if requested
-            else if (updateLocationDto.RemoveImage && !string.IsNullOrEmpty(existingLocation.ImagePath))
-            {
-                var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", existingLocation.ImagePath);
-                if (System.IO.File.Exists(oldFilePath))
-                {
-                    System.IO.File.Delete(oldFilePath);
-                }
-                updateLocationDto = new UpdateLocationDto
-                {
-                    ImagePath = null,
-                    ImageUrl = null
-                };
-            }
-
             var location = await locationService.UpdateLocationAsync(id, updateLocationDto);
             return Ok(location);
         }

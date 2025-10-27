@@ -53,7 +53,7 @@ public class TripService : ITripService
         return trips.Select(MapToDto);
     }
 
-    public async Task<IEnumerable<TripDto>> GetTripsByDriverAsync(int driverId)
+    public async Task<IEnumerable<TripDto>> GetTripsByDriverAsync(Guid driverId)
     {
         var trips = await _tripRepository.GetTripsByDriverAsync(driverId);
         return trips.Select(MapToDto);
@@ -155,7 +155,7 @@ public class TripService : ITripService
 
         if (updateTripDto.DriverId.HasValue)
         {
-            if (updateTripDto.DriverId.Value != 0)
+            if (updateTripDto.DriverId.Value != Guid.Empty)
             {
                 var driver = await _userRepository.GetByIdAsync(updateTripDto.DriverId.Value);
                 if (driver == null)
@@ -174,7 +174,7 @@ public class TripService : ITripService
         return MapToDto(updatedTrip!);
     }
 
-    public async Task<TripDto> ApproveTripAsync(int id, ApproveTripDto approveTripDto, int approverId)
+    public async Task<TripDto> ApproveTripAsync(int id, ApproveTripDto approveTripDto, Guid approverId)
     {
         var trip = await _tripRepository.GetByIdAsync(id);
         if (trip == null)

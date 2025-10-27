@@ -1,0 +1,268 @@
+@page "/trips"
+@using AmbulanceRider.Models
+@using AmbulanceRider.Services
+@inject ApiService ApiService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Trips</PageTitle>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-calendar-check me-2"></i>Trips Management</h1>
+        <button class="btn btn-primary create-btn" @onclick="NavigateToCreate">
+            <i class="bi bi-plus-circle me-1"></i> Schedule New Trip
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Route</th>
+                                <th>Vehicle</th>
+                                <th>Driver</th>
+                                <th>Scheduled</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var trip in trips)
+                            {
+                                <tr>
+                                    <td>@trip.Id</td>
+                                    <td><strong>@trip.Name</strong></td>
+                                    <td>
+                                        @if (trip.Route != null)
+                                        {
+                                            <span>@trip.Route.Name</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (trip.Vehicle != null)
+                                        {
+                                            <span>@trip.Vehicle.Name</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Not assigned</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (trip.Driver != null)
+                                        {
+                                            <span>@trip.Driver.FirstName @trip.Driver.LastName</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Not assigned</span>
+                                        }
+                                    </td>
+                                    <td>@trip.ScheduledStartTime.ToString("MMM dd, yyyy HH:mm")</td>
+                                    <td>
+                                        <span class="badge @GetStatusBadgeClass(trip.Status)">
+                                            @trip.Status
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            @if (trip.Status == "Pending")
+                                            {
+                                                <button class="btn btn-success" @onclick="() => ApproveTrip(trip.Id)" title="Approve">
+                                                    <i class="bi bi-check-circle"></i>
+                                                </button>
+                                                <button class="btn btn-danger" @onclick="() => RejectTrip(trip.Id)" title="Reject">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            }
+                                            @if (trip.Status == "Approved")
+                                            {
+                                                <button class="btn btn-info" @onclick="() => StartTrip(trip.Id)" title="Start">
+                                                    <i class="bi bi-play-circle"></i>
+                                                </button>
+                                            }
+                                            @if (trip.Status == "InProgress")
+                                            {
+                                                <button class="btn btn-warning" @onclick="() => CompleteTrip(trip.Id)" title="Complete">
+                                                    <i class="bi bi-check2-circle"></i>
+                                                </button>
+                                            }
+                                            <button class="btn btn-outline-primary" @onclick="() => NavigateToEdit(trip.Id)" title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger" @onclick="() => DeleteTrip(trip.Id)" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (trips.Count == 0)
+                {
+                    <div class="alert alert-info text-center">
+                        <i class="bi bi-info-circle me-2"></i>No trips found. Click "Schedule New Trip" to create one.
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<TripDto> trips = new();
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTrips();
+    }
+
+    private async Task LoadTrips()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            trips = await ApiService.GetTripsAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading trips: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void NavigateToCreate()
+    {
+        Navigation.NavigateTo("/trips/create");
+    }
+
+    private void NavigateToEdit(int id)
+    {
+        Navigation.NavigateTo($"/trips/edit/{id}");
+    }
+
+    private async Task ApproveTrip(int id)
+    {
+        try
+        {
+            await ApiService.ApproveTripAsync(id, new ApproveTripDto { Approve = true });
+            await LoadTrips();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error approving trip: {ex.Message}";
+        }
+    }
+
+    private async Task RejectTrip(int id)
+    {
+        var reason = await JSRuntime.InvokeAsync<string>("prompt", "Enter rejection reason:");
+        if (!string.IsNullOrEmpty(reason))
+        {
+            try
+            {
+                await ApiService.ApproveTripAsync(id, new ApproveTripDto { Approve = false, RejectionReason = reason });
+                await LoadTrips();
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error rejecting trip: {ex.Message}";
+            }
+        }
+    }
+
+    private async Task StartTrip(int id)
+    {
+        if (await JSRuntime.InvokeAsync<bool>("confirm", "Start this trip now?"))
+        {
+            try
+            {
+                await ApiService.StartTripAsync(id, new StartTripDto { ActualStartTime = DateTime.Now });
+                await LoadTrips();
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error starting trip: {ex.Message}";
+            }
+        }
+    }
+
+    private async Task CompleteTrip(int id)
+    {
+        if (await JSRuntime.InvokeAsync<bool>("confirm", "Mark this trip as completed?"))
+        {
+            try
+            {
+                await ApiService.CompleteTripAsync(id, new CompleteTripDto { ActualEndTime = DateTime.Now });
+                await LoadTrips();
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error completing trip: {ex.Message}";
+            }
+        }
+    }
+
+    private async Task DeleteTrip(int id)
+    {
+        if (await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this trip?"))
+        {
+            try
+            {
+                await ApiService.DeleteTripAsync(id);
+                await LoadTrips();
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error deleting trip: {ex.Message}";
+            }
+        }
+    }
+
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning",
+            "Approved" => "bg-success",
+            "Rejected" => "bg-danger",
+            "InProgress" => "bg-info",
+            "Completed" => "bg-primary",
+            "Cancelled" => "bg-secondary",
+            _ => "bg-secondary"
+        };
+    }
+}

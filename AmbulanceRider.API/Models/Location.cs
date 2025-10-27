@@ -9,6 +9,12 @@ public class Location : BaseModel
     [MaxLength(100)]
     public string Name { get; set; } = string.Empty;
     
+    [Required]
+    public double Latitude { get; set; }
+    
+    [Required]
+    public double Longitude { get; set; }
+    
     public string? ImagePath { get; set; }
     
     public string? ImageUrl { get; set; }

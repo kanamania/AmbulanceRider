@@ -1,4 +1,4 @@
-@page "/users/edit/{id:int}"
+@page "/users/edit/{id}"
 @using AmbulanceRider.Models
 @using AmbulanceRider.Services
 @inject ApiService ApiService
@@ -83,7 +83,7 @@
 </div>
 
 @code {
-    [Parameter] public int Id { get; set; }
+    [Parameter] public string Id { get; set; } = string.Empty;
     private UpdateUserDto? model;
     private bool isLoading = true;
     private bool isSubmitting = false;

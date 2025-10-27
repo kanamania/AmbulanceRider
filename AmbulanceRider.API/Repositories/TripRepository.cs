@@ -73,7 +73,7 @@ public class TripRepository : Repository<Trip>, ITripRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Trip>> GetTripsByDriverAsync(int driverId)
+    public async Task<IEnumerable<Trip>> GetTripsByDriverAsync(Guid driverId)
     {
         return await _dbSet
             .Include(t => t.Route)

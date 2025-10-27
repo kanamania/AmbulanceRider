@@ -1,0 +1,277 @@
+@page "/trips/edit/{id:int}"
+@using AmbulanceRider.Models
+@using AmbulanceRider.Services
+@inject ApiService ApiService
+@inject NavigationManager Navigation
+
+<PageTitle>Edit Trip</PageTitle>
+
+<div class="container">
+    <div class="d-flex align-items-center mb-4">
+        <button class="btn btn-outline-secondary me-3" @onclick="GoBack">
+            <i class="bi bi-arrow-left"></i>
+        </button>
+        <h1><i class="bi bi-calendar-event me-2"></i>Edit Trip</h1>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
+            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+        </div>
+    }
+    else if (trip == null)
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-circle me-2"></i>Trip not found.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <EditForm Model="model" OnValidSubmit="HandleSubmit">
+                            <DataAnnotationsValidator />
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-tag me-1"></i>Trip Name
+                                </label>
+                                <InputText class="form-control" @bind-Value="model.Name" placeholder="Enter trip name" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="bi bi-text-paragraph me-1"></i>Description
+                                </label>
+                                <InputTextArea class="form-control" @bind-Value="model.Description" rows="3" placeholder="Enter trip description" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-calendar me-1"></i>Scheduled Start Time
+                                </label>
+                                <InputDate Type="InputDateType.DateTimeLocal" class="form-control" @bind-Value="model.ScheduledStartTime" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-map me-1"></i>Route
+                                </label>
+                                <select class="form-select" @bind="model.RouteId">
+                                    <option value="">-- Keep Current --</option>
+                                    @foreach (var route in routes)
+                                    {
+                                        <option value="@route.Id">@route.Name (@route.StartLocation → @route.EndLocation)</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="bi bi-truck me-1"></i>Vehicle
+                                </label>
+                                <select class="form-select" @bind="model.VehicleId">
+                                    <option value="">-- Keep Current --</option>
+                                    @foreach (var vehicle in vehicles)
+                                    {
+                                        <option value="@vehicle.Id">@vehicle.Name</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="bi bi-person me-1"></i>Driver
+                                </label>
+                                <select class="form-select" @bind="selectedDriverId">
+                                    <option value="">-- Keep Current --</option>
+                                    @foreach (var driver in drivers)
+                                    {
+                                        <option value="@driver.Id">@driver.FirstName @driver.LastName</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mt-4">
+                                <button type="button" class="btn btn-outline-secondary" @onclick="GoBack">
+                                    <i class="bi bi-x-circle me-1"></i>Cancel
+                                </button>
+                                <button type="submit" class="btn btn-primary btn-lg" disabled="@isSubmitting">
+                                    @if (isSubmitting)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                        <span>Updating...</span>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        <span>Update Trip</span>
+                                    }
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Trip Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Status:</strong>
+                            <p class="mb-0">
+                                <span class="badge @GetStatusBadgeClass(trip.Status)">@trip.Status</span>
+                            </p>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Created:</strong>
+                            <p class="text-muted mb-0">@trip.CreatedAt.ToString("MMM dd, yyyy HH:mm")</p>
+                        </div>
+                        @if (trip.ActualStartTime.HasValue)
+                        {
+                            <div class="mb-3">
+                                <strong>Started:</strong>
+                                <p class="text-muted mb-0">@trip.ActualStartTime.Value.ToString("MMM dd, yyyy HH:mm")</p>
+                            </div>
+                        }
+                        @if (trip.ActualEndTime.HasValue)
+                        {
+                            <div class="mb-3">
+                                <strong>Completed:</strong>
+                                <p class="text-muted mb-0">@trip.ActualEndTime.Value.ToString("MMM dd, yyyy HH:mm")</p>
+                            </div>
+                        }
+                        @if (trip.Approver != null)
+                        {
+                            <div class="mb-3">
+                                <strong>Approved By:</strong>
+                                <p class="text-muted mb-0">@trip.Approver.FirstName @trip.Approver.LastName</p>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(trip.RejectionReason))
+                        {
+                            <div class="alert alert-danger mb-0">
+                                <strong>Rejection Reason:</strong>
+                                <p class="mb-0">@trip.RejectionReason</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private TripDto? trip;
+    private UpdateTripDto model = new();
+    private List<RouteDto> routes = new();
+    private List<VehicleDto> vehicles = new();
+    private List<UserDto> drivers = new();
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+    private string? errorMessage;
+    private string? selectedDriverId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+
+            trip = await ApiService.GetTripByIdAsync(Id);
+            routes = await ApiService.GetRoutesAsync();
+            vehicles = await ApiService.GetVehiclesAsync();
+            var allUsers = await ApiService.GetUsersAsync();
+            drivers = allUsers.Where(u => u.Roles.Contains("Driver")).ToList();
+
+            if (trip != null)
+            {
+                model.Name = trip.Name;
+                model.Description = trip.Description;
+                model.ScheduledStartTime = trip.ScheduledStartTime;
+                selectedDriverId = trip.DriverId?.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading trip: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+
+            // Update DriverId from selected value
+            if (!string.IsNullOrEmpty(selectedDriverId) && Guid.TryParse(selectedDriverId, out var driverId))
+            {
+                model.DriverId = driverId;
+            }
+            else if (string.IsNullOrEmpty(selectedDriverId))
+            {
+                model.DriverId = null;
+            }
+
+            await ApiService.UpdateTripAsync(Id, model);
+            Navigation.NavigateTo("/trips");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error updating trip: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/trips");
+    }
+
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning",
+            "Approved" => "bg-success",
+            "Rejected" => "bg-danger",
+            "InProgress" => "bg-info",
+            "Completed" => "bg-primary",
+            "Cancelled" => "bg-secondary",
+            _ => "bg-secondary"
+        };
+    }
+}

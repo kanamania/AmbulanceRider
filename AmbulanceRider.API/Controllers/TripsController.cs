@@ -84,7 +84,7 @@ public class TripsController : ControllerBase
     /// </summary>
     [HttpGet("driver/{driverId}")]
     [ProducesResponseType(typeof(IEnumerable<TripDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<TripDto>>> GetByDriver(int driverId)
+    public async Task<ActionResult<IEnumerable<TripDto>>> GetByDriver(Guid driverId)
     {
         var trips = await _tripService.GetTripsByDriverAsync(driverId);
         return Ok(trips);
@@ -148,7 +148,7 @@ public class TripsController : ControllerBase
         try
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int approverId))
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid approverId))
             {
                 return Unauthorized(new { message = "Invalid user token" });
             }

@@ -17,7 +17,9 @@ html {
         font-size: 14px;
     }
 }
-
+.navbar {
+    padding: 0;
+}
 /* Login Page Styles */
 .login-container {
     display: flex;
