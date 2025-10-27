@@ -86,7 +86,7 @@ public class LocationService : ILocationService
             }
         }
 
-        await _locationRepository.DeleteAsync(location);
+        await _locationRepository.DeleteAsync(location.Id);
     }
 
     private static LocationDto MapToDto(Location location)

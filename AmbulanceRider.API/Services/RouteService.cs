@@ -29,8 +29,8 @@ public class RouteService : IRouteService
         var route = new Models.Route
         {
             Name = createRouteDto.Name,
-            StartLocation = createRouteDto.StartLocation,
-            EndLocation = createRouteDto.EndLocation,
+            FromLocationId = createRouteDto.FromLocationId,
+            ToLocationId = createRouteDto.ToLocationId,
             Distance = createRouteDto.Distance,
             EstimatedDuration = createRouteDto.EstimatedDuration,
             Description = createRouteDto.Description,
@@ -52,11 +52,11 @@ public class RouteService : IRouteService
         if (!string.IsNullOrEmpty(updateRouteDto.Name))
             route.Name = updateRouteDto.Name;
         
-        if (!string.IsNullOrEmpty(updateRouteDto.StartLocation))
-            route.StartLocation = updateRouteDto.StartLocation;
-        
-        if (!string.IsNullOrEmpty(updateRouteDto.EndLocation))
-            route.EndLocation = updateRouteDto.EndLocation;
+        if (updateRouteDto.FromLocationId.HasValue && updateRouteDto.FromLocationId.Value != 0)
+            route.FromLocationId = updateRouteDto.FromLocationId.Value;
+
+        if (updateRouteDto.ToLocationId.HasValue && updateRouteDto.ToLocationId.Value != 0)
+            route.ToLocationId = updateRouteDto.ToLocationId.Value;
         
         if (updateRouteDto.Distance.HasValue)
             route.Distance = updateRouteDto.Distance.Value;
@@ -91,8 +91,10 @@ public class RouteService : IRouteService
         {
             Id = route.Id,
             Name = route.Name,
-            StartLocation = route.StartLocation,
-            EndLocation = route.EndLocation,
+            FromLocation = route.FromLocation,
+            ToLocation = route.ToLocation,
+            FromLocationId = route.FromLocationId,
+            ToLocationId = route.ToLocationId,
             Distance = route.Distance,
             EstimatedDuration = route.EstimatedDuration,
             Description = route.Description,

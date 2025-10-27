@@ -1,9 +1,11 @@
 using System.Text;
 using AmbulanceRider.API.Data;
+using AmbulanceRider.API.Models;
 using AmbulanceRider.API.Repositories;
 using AmbulanceRider.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
@@ -29,33 +31,82 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Add Repositories
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
 // Add Services
 builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-// Add CORS
-builder.Services.AddCors(options =>
+// Add Identity
+builder.Services.AddIdentity<User, Role>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+// Configure Identity options
+builder.Services.Configure<IdentityOptions>(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
+    // Password settings
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequiredLength = 8;
+    
+    // Lockout settings
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    
+    // User settings
+    options.User.RequireUniqueEmail = true;
 });
 
-// Add JWT Authentication
+// Add CORS
+var corsSettings = builder.Configuration.GetSection("Cors").Get<CorsSettings>();
+if (corsSettings?.AllowedOrigins?.Any() == true)
+{
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowSpecificOrigins", policy =>
+        {
+            policy.WithOrigins(corsSettings.AllowedOrigins.ToArray())
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        });
+    });
+}
+else
+{
+    // Fallback to allowing all origins if not configured
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAll", policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        });
+    });
+}
+
+// Configure JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("JWT Issuer not configured");
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? throw new InvalidOperationException("JWT Audience not configured");
+var jwtExpiresInMinutes = builder.Configuration["Jwt:ExpiresInMinutes"] ?? "1440";
 
+// Add JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = false;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -64,8 +115,30 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtIssuer,
         ValidAudience = jwtAudience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        ClockSkew = TimeSpan.Zero
     };
+    
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
+
+// Add Authorization
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("RequireUserRole", policy => policy.RequireRole("User"));
 });
 
 builder.Services.AddAuthorization();
@@ -76,6 +149,7 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IRouteRepository, RouteRepository>();
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
+builder.Services.AddScoped<ITripRepository, TripRepository>();
 
 // Register Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -83,6 +157,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IRouteService, RouteService>();
 builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.AddScoped<ITripService, TripService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Add Controllers
 builder.Services.AddControllers();
@@ -132,14 +208,12 @@ builder.Services.AddSwaggerGen(c =>
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
-    {
         c.IncludeXmlComments(xmlPath);
-    }
 });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
+// Configure Swagger UI
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -151,7 +225,13 @@ if (app.Environment.IsDevelopment())
 }
 
 // Enable static files
-var uploadsPath = Path.Combine(app.Environment.WebRootPath, "uploads");
+var webRootPath = app.Environment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+if (!Directory.Exists(webRootPath))
+{
+    Directory.CreateDirectory(webRootPath);
+}
+
+var uploadsPath = Path.Combine(webRootPath, "uploads");
 if (!Directory.Exists(uploadsPath))
 {
     Directory.CreateDirectory(uploadsPath);
@@ -165,8 +245,15 @@ app.UseStaticFiles(new StaticFileOptions
 
 app.UseStaticFiles();
 
-// Configure CORS
-app.UseCors("AllowAll");
+// Configure CORS with the appropriate policy
+if (corsSettings?.AllowedOrigins?.Any() == true)
+{
+    app.UseCors("AllowSpecificOrigins");
+}
+else
+{
+    app.UseCors("AllowAll");
+}
 
 // Apply migrations and seed data
 using (var scope = app.Services.CreateScope())
@@ -175,6 +262,8 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
+        var userManager = services.GetRequiredService<UserManager<User>>();
+        var roleManager = services.GetRequiredService<RoleManager<Role>>();
         var logger = services.GetRequiredService<ILogger<Program>>();
         
         // Apply any pending migrations
@@ -182,10 +271,10 @@ using (var scope = app.Services.CreateScope())
         context.Database.Migrate();
         
         // Seed initial data if needed (only if no roles exist)
-        if (!context.Roles.Any())
+        if (!await roleManager.Roles.AnyAsync())
         {
             logger.LogInformation("Seeding initial data...");
-            await DataSeeder.SeedData(context);
+            await DataSeeder.SeedData(context, userManager, roleManager);
             logger.LogInformation("Database seeded successfully.");
         }
         else
@@ -201,13 +290,24 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-app.UseCors("AllowAll");
-
 app.UseHttpsRedirection();
 
+// Add request logging for debugging
+app.Use(async (context, next) =>
+{
+    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation($"Request: {context.Request.Method} {context.Request.Path}");
+    await next();
+});
+
+// Authentication & Authorization must be in this order
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Map controllers
 app.MapControllers();
+
+// Add a simple health check endpoint
+app.MapGet("/health", () => Results.Ok("API is running"));
 
 app.Run();

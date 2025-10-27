@@ -1,40 +1,41 @@
 using AmbulanceRider.API.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace AmbulanceRider.API.Data;
 
 public static class DataSeeder
 {
-    public static async Task SeedData(ApplicationDbContext context)
+    public static async Task SeedData(ApplicationDbContext context, UserManager<User> userManager,
+        RoleManager<Role> roleManager)
     {
         // Check if roles already exist
-        if (!context.Roles.Any())
+        if (!await roleManager.Roles.AnyAsync())
         {
             // Add roles
-            var roles = new List<Role>
+            var roles = new List<string> { "Admin", "Driver", "User" };
+            foreach (var roleName in roles)
             {
-                new() { Id = 1, Name = "Admin" },
-                new() { Id = 2, Name = "Driver" },
-                new() { Id = 4, Name = "User" }
-            };
-            await context.Roles.AddRangeAsync(roles);
+                await roleManager.CreateAsync(new Role { Name = roleName });
+            }
 
             // Add admin user
             var adminUser = new User
             {
-                Id = 1,
+                UserName = "demo@gmail.com",
                 FirstName = "System",
                 LastName = "Admin",
                 Email = "demo@gmail.com",
                 PhoneNumber = "+1234567890",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                EmailConfirmed = true,
+                CreatedAt = DateTime.UtcNow
             };
-            await context.Users.AddAsync(adminUser);
 
-            // Assign admin role
-            await context.UserRoles.AddAsync(new UserRole { Id = 1, UserId = 1, RoleId = 1 });
+            var result = await userManager.CreateAsync(adminUser, "Admin@123");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, "Admin");
+            }
 
             // Add vehicle types
             var vehicleTypes = new List<VehicleType>
@@ -46,4 +47,5 @@ public static class DataSeeder
 
             await context.SaveChangesAsync();
         }
-    }}
+    }
+}

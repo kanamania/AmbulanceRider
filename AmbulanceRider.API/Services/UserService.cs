@@ -23,7 +23,7 @@ public class UserService : IUserService
         return users.Select(MapToDto);
     }
 
-    public async Task<UserDto?> GetUserByIdAsync(int id)
+    public async Task<UserDto?> GetUserByIdAsync(Guid id)
     {
         var user = await _userRepository.GetByIdWithRolesAsync(id);
         return user == null ? null : MapToDto(user);
@@ -62,7 +62,7 @@ public class UserService : IUserService
             var userRole = new UserRole
             {
                 UserId = user.Id,
-                RoleId = roleId
+                RoleId = Guid.Parse(roleId.ToString())
             };
             _context.UserRoles.Add(userRole);
         }
@@ -72,7 +72,7 @@ public class UserService : IUserService
         return (await GetUserByIdAsync(user.Id))!;
     }
 
-    public async Task<UserDto> UpdateUserAsync(int id, UpdateUserDto updateUserDto)
+    public async Task<UserDto> UpdateUserAsync(Guid id, UpdateUserDto updateUserDto)
     {
         var user = await _userRepository.GetByIdWithRolesAsync(id);
         if (user == null)
@@ -116,7 +116,7 @@ public class UserService : IUserService
             // Add new roles
             foreach (var roleId in updateUserDto.RoleIds)
             {
-                _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = roleId });
+                _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = Guid.Parse(roleId.ToString()) });
             }
         }
 
@@ -125,7 +125,7 @@ public class UserService : IUserService
         return (await GetUserByIdAsync(user.Id))!;
     }
 
-    public async Task DeleteUserAsync(int id)
+    public async Task DeleteUserAsync(Guid id)
     {
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null)
@@ -141,23 +141,26 @@ public class UserService : IUserService
             }
         }
 
-        await _userRepository.DeleteAsync(user.Id);
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
     }
 
     private static UserDto MapToDto(User user)
     {
         return new UserDto
         {
-            Id = user.Id,
+            Id = user.Id.ToString(),
+            Name = $"{user.FirstName} {user.LastName}",
             FirstName = user.FirstName,
             LastName = user.LastName,
-            Email = user.Email,
+            Email = user.Email!,
             PhoneNumber = user.PhoneNumber,
             ImagePath = user.ImagePath,
             ImageUrl = user.ImageUrl,
             Roles = user.UserRoles?.Select(ur => ur.Role?.Name ?? string.Empty)
                 .Where(name => !string.IsNullOrEmpty(name)).ToList() ?? new List<string>(),
-            CreatedAt = user.CreatedAt
+            CreatedAt = user.CreatedAt,
+            UpdatedAt = user.UpdatedAt
         };
     }
 }

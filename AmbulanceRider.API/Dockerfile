@@ -2,6 +2,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
+# Install EF Core tools
+RUN dotnet tool install --global dotnet-ef --version 9.0.0
+ENV PATH="$PATH:/root/.dotnet/tools"
+
 # Copy csproj and restore dependencies
 COPY ["AmbulanceRider.API.csproj", "./"]
 RUN dotnet restore "AmbulanceRider.API.csproj"

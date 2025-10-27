@@ -1,22 +1,27 @@
 using AmbulanceRider.API.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using Route = AmbulanceRider.API.Models.Route;
 
 namespace AmbulanceRider.API.Data;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
     }
 
-    public DbSet<User> Users { get; set; }
-    public DbSet<Role> Roles { get; set; }
-    public DbSet<UserRole> UserRoles { get; set; }
+    public new DbSet<User> Users { get; set; }
+    public new DbSet<Role> Roles { get; set; }
+    public new DbSet<UserRole> UserRoles { get; set; }
     public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<VehicleType> VehicleTypes { get; set; }
     public DbSet<VehicleDriver> VehicleDrivers { get; set; }
     public DbSet<Location> Locations { get; set; }
+    public DbSet<Route> Routes { get; set; }
+    public DbSet<Trip> Trips { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -33,44 +38,39 @@ public class ApplicationDbContext : DbContext
                 modelBuilder.Entity(entityType.ClrType).HasQueryFilter(lambda);
             }
 
-        // User configuration
+        // Configure Identity tables with custom names
         modelBuilder.Entity<User>(entity =>
         {
             entity.ToTable("users");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Email).IsRequired().HasMaxLength(100);
-            entity.Property(e => e.PasswordHash).IsRequired().HasMaxLength(255);
             entity.Property(e => e.FirstName).IsRequired().HasMaxLength(50);
             entity.Property(e => e.LastName).IsRequired().HasMaxLength(50);
-            entity.Property(e => e.PhoneNumber).HasMaxLength(20);
-            entity.HasIndex(e => e.Email).IsUnique();
+            
+            // Relationship with RefreshTokens
+            entity.HasMany(u => u.RefreshTokens)
+                .WithOne(rt => rt.User)
+                .HasForeignKey(rt => rt.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // Role configuration
         modelBuilder.Entity<Role>(entity =>
         {
             entity.ToTable("roles");
-            entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.Name).IsUnique();
-            entity.Property(e => e.Name).IsRequired().HasMaxLength(50);
         });
 
-        // UserRole configuration
-        modelBuilder.Entity<UserRole>(entity =>
+        // RefreshToken configuration
+        modelBuilder.Entity<RefreshToken>(entity =>
         {
-            entity.ToTable("user_roles");
+            entity.ToTable("refresh_tokens");
             entity.HasKey(e => e.Id);
-            entity.HasIndex(e => new { e.UserId, e.RoleId }).IsUnique();
+            entity.Property(e => e.Token).IsRequired();
+            entity.Property(e => e.Expires).IsRequired();
+            entity.Property(e => e.Created).IsRequired();
             
-            entity.HasOne(e => e.User)
-                .WithMany(u => u.UserRoles)
-                .HasForeignKey(e => e.UserId)
+            // Relationship with User
+            entity.HasOne(rt => rt.User)
+                .WithMany(u => u.RefreshTokens)
+                .HasForeignKey(rt => rt.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
-            entity.HasOne(e => e.Role)
-                .WithMany(r => r.UserRoles)
-                .HasForeignKey(e => e.RoleId)
-                .OnDelete(DeleteBehavior.Restrict);
         });
 
         // Vehicle configuration
@@ -134,6 +134,41 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
             entity.Property(e => e.ImagePath).HasMaxLength(255);
             entity.Property(e => e.ImageUrl).HasMaxLength(512);
+            
+            entity.HasQueryFilter(e => !e.IsDeleted);
+        });
+
+        // Trip configuration
+        modelBuilder.Entity<Trip>(entity =>
+        {
+            entity.ToTable("trips");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.RejectionReason).HasMaxLength(500);
+            entity.Property(e => e.Status).IsRequired();
+            entity.Property(e => e.ScheduledStartTime).IsRequired();
+            
+            // Relationships
+            entity.HasOne(t => t.Route)
+                .WithMany()
+                .HasForeignKey(t => t.RouteId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(t => t.Vehicle)
+                .WithMany()
+                .HasForeignKey(t => t.VehicleId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(t => t.Driver)
+                .WithMany()
+                .HasForeignKey(t => t.DriverId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(t => t.Approver)
+                .WithMany()
+                .HasForeignKey(t => t.ApprovedBy)
+                .OnDelete(DeleteBehavior.Restrict);
             
             entity.HasQueryFilter(e => !e.IsDeleted);
         });

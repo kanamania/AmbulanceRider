@@ -31,7 +31,7 @@ public class UsersController(IUserService userService, IConfiguration configurat
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<UserDto>> GetById(int id)
+    public async Task<ActionResult<UserDto>> GetById(Guid id)
     {
         var user = await userService.GetUserByIdAsync(id);
         if (user == null)
@@ -87,7 +87,7 @@ public class UsersController(IUserService userService, IConfiguration configurat
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<UserDto>> Update(int id, [FromForm] UpdateUserDto updateUserDto)
+    public async Task<ActionResult<UserDto>> Update(Guid id, [FromForm] UpdateUserDto updateUserDto)
     {
         try
         {
@@ -158,7 +158,7 @@ public class UsersController(IUserService userService, IConfiguration configurat
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(Guid id)
     {
         try
         {

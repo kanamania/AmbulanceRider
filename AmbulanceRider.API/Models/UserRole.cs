@@ -1,12 +1,10 @@
+using Microsoft.AspNetCore.Identity;
+
 namespace AmbulanceRider.API.Models;
 
-public class UserRole
+public class UserRole : IdentityUserRole<Guid>
 {
-    public int Id { get; set; }
-    public int UserId { get; set; }
-    public int RoleId { get; set; }
-    
     // Navigation properties
-    public User User { get; set; } = null!;
-    public Role Role { get; set; } = null!;
+    public User? User { get; set; }
+    public Role? Role { get; set; }
 }

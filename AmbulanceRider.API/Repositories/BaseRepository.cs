@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using AmbulanceRider.API.Data;
 
 namespace AmbulanceRider.API.Repositories;
 
