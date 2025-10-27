@@ -14,6 +14,8 @@ public class VehicleRepository : Repository<Vehicle>, IVehicleRepository
     {
         return await _dbSet
             .Include(v => v.VehicleTypes)
+            .Include(v => v.VehicleDrivers)
+                .ThenInclude(vd => vd.User)
             .FirstOrDefaultAsync(v => v.Id == id);
     }
 
@@ -21,6 +23,8 @@ public class VehicleRepository : Repository<Vehicle>, IVehicleRepository
     {
         return await _dbSet
             .Include(v => v.VehicleTypes)
+            .Include(v => v.VehicleDrivers)
+                .ThenInclude(vd => vd.User)
             .ToListAsync();
     }
 }

@@ -43,77 +43,76 @@
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <EditForm Model="model" OnValidSubmit="HandleSubmit">
-                            <DataAnnotationsValidator />
+                            <DataAnnotationsValidator/>
 
                             <div class="mb-3">
                                 <label class="form-label fw-bold">
                                     <i class="bi bi-tag me-1"></i>Trip Name
                                 </label>
-                                <InputText class="form-control" @bind-Value="model.Name" placeholder="Enter trip name" />
+                                <InputText class="form-control" @bind-Value="model.Name" placeholder="Enter trip name"/>
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label">
-                                    <i class="bi bi-text-paragraph me-1"></i>Description
+                                    <i class="bi bi-text-paragraph me-1"></i>Notes
                                 </label>
-                                <InputTextArea class="form-control" @bind-Value="model.Description" rows="3" placeholder="Enter trip description" />
+                                <InputTextArea class="form-control" @bind-Value="model.Description" rows="3"
+                                               placeholder="Enter trip description"/>
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label fw-bold">
                                     <i class="bi bi-calendar me-1"></i>Scheduled Start Time
                                 </label>
-                                <InputDate Type="InputDateType.DateTimeLocal" class="form-control" @bind-Value="model.ScheduledStartTime" />
+                                <InputDate Type="InputDateType.DateTimeLocal" class="form-control"
+                                           @bind-Value="model.ScheduledStartTime"/>
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label fw-bold">
                                     <i class="bi bi-geo-alt me-1"></i>From Location
                                 </label>
-                                <input type="text" class="form-control mb-2" @bind="model.FromLocationName" placeholder="Enter starting location name" />
-                                <MapPicker MapId="editFromMap" 
-                                          Latitude="@(model.FromLatitude ?? trip.FromLatitude)" 
-                                          Longitude="@(model.FromLongitude ?? trip.FromLongitude)"
-                                          Height="250px"
-                                          OnLocationChanged="@OnFromLocationChanged" />
+                                <input type="text" class="form-control mb-2" @bind="model.FromLocationName"
+                                       placeholder="Enter starting location name"/>
+                                <MapPicker MapId="editFromMap"
+                                           Latitude="@(model.FromLatitude ?? trip.FromLatitude)"
+                                           Longitude="@(model.FromLongitude ?? trip.FromLongitude)"
+                                           Height="250px"
+                                           OnLocationChanged="@OnFromLocationChanged"/>
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label fw-bold">
                                     <i class="bi bi-geo-alt-fill me-1"></i>To Location
                                 </label>
-                                <input type="text" class="form-control mb-2" @bind="model.ToLocationName" placeholder="Enter destination name" />
-                                <MapPicker MapId="editToMap" 
-                                          Latitude="@(model.ToLatitude ?? trip.ToLatitude)" 
-                                          Longitude="@(model.ToLongitude ?? trip.ToLongitude)"
-                                          Height="250px"
-                                          OnLocationChanged="@OnToLocationChanged" />
+                                <input type="text" class="form-control mb-2" @bind="model.ToLocationName"
+                                       placeholder="Enter destination name"/>
+                                <MapPicker MapId="editToMap"
+                                           Latitude="@(model.ToLatitude ?? trip.ToLatitude)"
+                                           Longitude="@(model.ToLongitude ?? trip.ToLongitude)"
+                                           Height="250px"
+                                           OnLocationChanged="@OnToLocationChanged"/>
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label">
                                     <i class="bi bi-truck me-1"></i>Vehicle
                                 </label>
-                                <select class="form-select" @bind="model.VehicleId">
+                                <select class="form-select" @bind="model.VehicleId" @bind:after="OnVehicleChanged">
                                     <option value="">-- Keep Current --</option>
                                     @foreach (var vehicle in vehicles)
                                     {
                                         <option value="@vehicle.Id">@vehicle.Name</option>
                                     }
                                 </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">
-                                    <i class="bi bi-person me-1"></i>Driver
-                                </label>
-                                <select class="form-select" @bind="selectedDriverId">
-                                    <option value="">-- Keep Current --</option>
-                                    @foreach (var driver in drivers)
-                                    {
-                                        <option value="@driver.Id">@driver.FirstName @driver.LastName</option>
-                                    }
-                                </select>
+                                @if (selectedVehicle?.AssignedDrivers.Any() == true)
+                                {
+                                    <small class="text-muted mt-1 d-block">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Assigned
+                                        drivers: @string.Join(", ", selectedVehicle.AssignedDrivers.Select(d => $"{d.FirstName} {d.LastName}"))
+                                    </small>
+                                }
                             </div>
 
                             <div class="d-flex justify-content-between align-items-center mt-4">
@@ -196,10 +195,13 @@
     private UpdateTripDto model = new();
     private List<VehicleDto> vehicles = new();
     private List<UserDto> drivers = new();
+    private List<UserDto> availableDrivers = new();
+    private VehicleDto? selectedVehicle;
     private bool isLoading = true;
     private bool isSubmitting = false;
     private string? errorMessage;
     private string? selectedDriverId;
+    private bool autoAssignedDriver = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -217,6 +219,7 @@
             vehicles = await ApiService.GetVehiclesAsync();
             var allUsers = await ApiService.GetUsersAsync();
             drivers = allUsers.Where(u => u.Roles.Contains("Driver")).ToList();
+            availableDrivers = drivers;
 
             if (trip != null)
             {
@@ -226,6 +229,16 @@
                 model.FromLocationName = trip.FromLocationName;
                 model.ToLocationName = trip.ToLocationName;
                 selectedDriverId = trip.DriverId?.ToString();
+
+                // Set selected vehicle if trip has one
+                if (trip.VehicleId.HasValue)
+                {
+                    selectedVehicle = vehicles.FirstOrDefault(v => v.Id == trip.VehicleId.Value);
+                    if (selectedVehicle?.AssignedDrivers.Any() == true)
+                    {
+                        availableDrivers = selectedVehicle.AssignedDrivers;
+                    }
+                }
             }
         }
         catch (Exception ex)
@@ -235,6 +248,38 @@
         finally
         {
             isLoading = false;
+        }
+    }
+
+    private void OnVehicleChanged()
+    {
+        if (model.VehicleId.HasValue && model.VehicleId.Value > 0)
+        {
+            selectedVehicle = vehicles.FirstOrDefault(v => v.Id == model.VehicleId.Value);
+
+            if (selectedVehicle?.AssignedDrivers.Any() == true)
+            {
+                // Show only assigned drivers for this vehicle
+                availableDrivers = selectedVehicle.AssignedDrivers;
+
+                // Auto-select first assigned driver if no driver currently selected
+                if (string.IsNullOrEmpty(selectedDriverId))
+                {
+                    var firstDriver = selectedVehicle.AssignedDrivers.First();
+                    selectedDriverId = firstDriver.Id;
+                    model.DriverId = Guid.Parse(firstDriver.Id);
+                }
+            }
+            else
+            {
+                // Show all drivers if no assigned drivers
+                availableDrivers = drivers;
+            }
+        }
+        else
+        {
+            selectedVehicle = null;
+            availableDrivers = drivers;
         }
     }
 
@@ -298,4 +343,5 @@
             _ => "bg-secondary"
         };
     }
+
 }

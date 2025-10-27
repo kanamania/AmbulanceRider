@@ -6,6 +6,7 @@ public class VehicleDto
     public string Name { get; set; } = string.Empty;
     public string? Image { get; set; }
     public List<string> Types { get; set; } = new();
+    public List<UserDto> AssignedDrivers { get; set; } = new();
     public DateTime CreatedAt { get; set; }
 }
 

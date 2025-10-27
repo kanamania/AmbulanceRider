@@ -9,6 +9,7 @@ public class VehicleDto
     public string? ImagePath { get; set; }
     public string? ImageUrl { get; set; }
     public List<string> Types { get; set; } = new();
+    public List<UserDto> AssignedDrivers { get; set; } = new();
     public DateTime CreatedAt { get; set; }
 }
 

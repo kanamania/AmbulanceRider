@@ -114,6 +114,22 @@ public class VehicleService : IVehicleService
             Name = vehicle.Name,
             ImagePath = vehicle.Image,
             Types = vehicle.VehicleTypes.Select(vt => vt.Name).ToList(),
+            AssignedDrivers = vehicle.VehicleDrivers
+                .Where(vd => vd.DeletedAt == null)
+                .Select(vd => new UserDto
+                {
+                    Id = vd.User.Id.ToString(),
+                    Name = $"{vd.User.FirstName} {vd.User.LastName}",
+                    FirstName = vd.User.FirstName,
+                    LastName = vd.User.LastName,
+                    Email = vd.User.Email!,
+                    PhoneNumber = vd.User.PhoneNumber,
+                    ImagePath = vd.User.ImagePath,
+                    ImageUrl = vd.User.ImageUrl,
+                    Roles = new List<string>(),
+                    CreatedAt = vd.User.CreatedAt,
+                    UpdatedAt = vd.User.UpdatedAt
+                }).ToList(),
             CreatedAt = vehicle.CreatedAt
         };
     }
