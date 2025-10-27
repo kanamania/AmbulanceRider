@@ -51,7 +51,8 @@ The AmbulanceRider Emergency Medical Dispatch System has been successfully devel
 - [x] Interactive map-based location selection
 - [x] Coordinate-based trip planning
 - [x] Complete status workflow
-- [x] Driver trip completion with notes
+- [x] Driver/User trip creation and management
+- [x] Driver/User trip completion with notes
 - [x] Admin approval/rejection
 - [x] Trip cancellation
 - [x] Force complete capability
@@ -59,6 +60,8 @@ The AmbulanceRider Emergency Medical Dispatch System has been successfully devel
 - [x] **Visual timeline UI** ⭐
 - [x] Real-time status updates
 - [x] Role-based permissions
+
+**Note:** Driver and User roles have identical permissions for trip management.
 
 ---
 

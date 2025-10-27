@@ -114,10 +114,12 @@ Updated trip management to use interactive map pickers for selecting locations i
 - ✅ Audit trail logging
 
 ### User Roles & Permissions
-- ✅ **Driver**: Start, complete, cancel own trips
+- ✅ **Driver/User**: Create trips, complete, cancel own trips
 - ✅ **Admin/Dispatcher**: All permissions + approve/reject/force complete
 - ✅ **Role-based UI**: Different actions for different roles
 - ✅ **Authorization**: API-level permission checks
+
+**Note:** Driver and User roles have identical permissions for trip management.
 
 ### Audit & Compliance
 - ✅ Complete status change history

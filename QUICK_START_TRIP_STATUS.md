@@ -3,7 +3,9 @@
 ## Overview
 This guide shows you how to use the new trip status management features.
 
-## For Drivers
+## For Drivers and Users
+
+**Note:** Drivers and Users have the same permissions for trip management.
 
 ### How to Complete a Trip
 1. Navigate to **Edit Trip** page for your assigned trip

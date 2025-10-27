@@ -83,14 +83,20 @@ public class TripsController : ControllerBase
     /// Create a new trip
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = "Admin,Dispatcher")]
+    [Authorize(Roles = "Admin,Dispatcher,Driver,User")]
     [ProducesResponseType(typeof(TripDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<TripDto>> Create([FromBody] CreateTripDto createTripDto)
     {
         try
         {
-            var trip = await _tripService.CreateTripAsync(createTripDto);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new { message = "Invalid user token" });
+            }
+
+            var trip = await _tripService.CreateTripAsync(createTripDto, userId);
             return CreatedAtAction(nameof(GetById), new { id = trip.Id }, trip);
         }
         catch (KeyNotFoundException ex)
@@ -103,7 +109,7 @@ public class TripsController : ControllerBase
     /// Update an existing trip (only pending trips)
     /// </summary>
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin,Dispatcher")]
+    [Authorize(Roles = "Admin,Dispatcher,Driver,User")]
     [ProducesResponseType(typeof(TripDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -159,6 +165,7 @@ public class TripsController : ControllerBase
     /// Start a trip (change status to in-progress)
     /// </summary>
     [HttpPost("{id}/start")]
+    [Authorize(Roles = "Admin,Dispatcher,Driver,User")]
     [ProducesResponseType(typeof(TripDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -183,6 +190,7 @@ public class TripsController : ControllerBase
     /// Complete a trip
     /// </summary>
     [HttpPost("{id}/complete")]
+    [Authorize(Roles = "Admin,Dispatcher,Driver,User")]
     [ProducesResponseType(typeof(TripDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -243,7 +251,7 @@ public class TripsController : ControllerBase
     /// Cancel a trip
     /// </summary>
     [HttpPost("{id}/cancel")]
-    [Authorize(Roles = "Admin,Dispatcher")]
+    [Authorize(Roles = "Admin,Dispatcher,Driver,User")]
     [ProducesResponseType(typeof(TripDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

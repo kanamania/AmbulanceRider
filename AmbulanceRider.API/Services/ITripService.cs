@@ -9,7 +9,7 @@ public interface ITripService
     Task<TripDto?> GetTripByIdAsync(int id);
     Task<IEnumerable<TripDto>> GetTripsByStatusAsync(TripStatus status);
     Task<IEnumerable<TripDto>> GetPendingTripsAsync();
-    Task<TripDto> CreateTripAsync(CreateTripDto createTripDto);
+    Task<TripDto> CreateTripAsync(CreateTripDto createTripDto, Guid createdBy);
     Task<TripDto> UpdateTripAsync(int id, UpdateTripDto updateTripDto);
     Task<TripDto> ApproveTripAsync(int id, ApproveTripDto approveTripDto, Guid approverId);
     Task<TripDto> StartTripAsync(int id, StartTripDto startTripDto);

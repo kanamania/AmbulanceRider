@@ -98,28 +98,40 @@ Request Body:
 Response: 200 OK with updated TripDto
 Error Responses:
 - 400 Bad Request: Invalid status transition
-- 403 Forbidden: Insufficient permissions
 - 404 Not Found: Trip not found
 ```
 
+## Role-Based Permissions
+
+### Driver and User Roles
+**Note:** Driver and User roles have identical permissions for trip management.
+
+- ✅ Can create trips
+- ✅ Can complete trips (InProgress → Completed)
+- ✅ Can cancel trips (any status except Completed)
+- ✅ Can only act on their own trips
+- ❌ Cannot approve or reject trips
+- ❌ Cannot force complete trips
+
+### Admin/Dispatcher Role
+- ✅ Can approve/reject pending trips
+- ✅ Can force complete any trip
+- ✅ Can cancel any trip
+- ✅ Can move Rejected/Cancelled trips back to Pending
+- ✅ Full CRUD access to all trips
+
 ## Business Rules
 
-1. **Driver/User Permissions**:
-   - Can complete trips they are assigned to (when InProgress)
-   - Can cancel trips they are assigned to (except Completed)
-   - Cannot approve/reject trips
-
-2. **Admin/Dispatcher Permissions**:
-   - Can approve/reject pending trips
-   - Can force complete any trip
-   - Can cancel any trip
-   - Can move Rejected/Cancelled trips back to Pending
-
-3. **Audit Trail**:
+1. **Status Transitions**:
    - All status changes are timestamped
    - Notes are appended to trip description
    - Rejection reasons are stored separately
    - Approver information is tracked
+
+2. **Validation**:
+   - Invalid transitions return 400 Bad Request
+   - Unauthorized actions return 403 Forbidden
+   - Non-existent trips return 404 Not Found
 
 ## UI Features
 

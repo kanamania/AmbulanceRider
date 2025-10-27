@@ -205,10 +205,13 @@ This document summarizes **ALL changes made** to the AmbulanceRider project from
 - `EditTrip.razor` - Integrated TripActions component
 
 **Features Implemented:**
-1. **Driver Actions:**
+1. **Driver and User Actions:**
+   **Note:** Driver and User roles have identical permissions.
+   - ✅ Create trips
    - ✅ Complete trips (InProgress → Completed)
    - ✅ Cancel trips (Any → Cancelled)
    - ✅ Optional notes for both actions
+   - ✅ Can only manage their own trips
 
 2. **Admin/Dispatcher Actions:**
    - ✅ Approve trips (Pending → Approved)

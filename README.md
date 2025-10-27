@@ -172,8 +172,10 @@ Authorization: Bearer <your-token-here>
 |------|-------|----------|--------|-------|-------------|
 | **Admin** | Full CRUD | Full CRUD | Full CRUD | Full CRUD | Approve, Reject, Force Complete |
 | **Dispatcher** | Read | Create, Read, Update | Create, Read, Update | Full CRUD | Approve, Reject, Force Complete |
-| **Driver** | Read | Read | Read | Read, Update | Complete, Cancel (own trips) |
-| **User** | Read | Read | Read | Read | View only |
+| **Driver** | Read | Read | Read | Create, Read, Update | Complete, Cancel (own trips) |
+| **User** | Read | Read | Read | Create, Read, Update | Complete, Cancel (own trips) |
+
+**Note:** Driver and User roles have the same permissions for trip management. Both can create trips and manage their own trips.
 
 ### Login Endpoint
 

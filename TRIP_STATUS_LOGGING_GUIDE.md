@@ -126,11 +126,14 @@ Click the **[Refresh]** button in the card header to reload the latest status ch
 
 ## Benefits
 
-### For Drivers
+### For Drivers and Users
+**Note:** Drivers and Users have the same permissions and access.
+
 - See when your trip was approved
 - Know who approved your trip
 - Understand any rejection reasons
 - Track your trip timeline
+- View complete trip history
 
 ### For Dispatchers/Admins
 - Full audit trail of all changes

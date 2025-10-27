@@ -53,7 +53,7 @@ public class TripService : ITripService
         return trips.Select(MapToDto);
     }
 
-    public async Task<TripDto> CreateTripAsync(CreateTripDto createTripDto)
+    public async Task<TripDto> CreateTripAsync(CreateTripDto createTripDto, Guid createdBy)
     {
         // Validate vehicle if provided
         if (createTripDto.VehicleId.HasValue)
@@ -89,7 +89,8 @@ public class TripService : ITripService
             VehicleId = createTripDto.VehicleId,
             DriverId = createTripDto.DriverId,
             Status = TripStatus.Pending,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = createdBy
         };
 
         await _tripRepository.AddAsync(trip);
@@ -293,8 +294,11 @@ public class TripService : ITripService
         var trip = await _tripRepository.GetByIdAsync(tripId) ?? throw new KeyNotFoundException("Trip not found");
         var oldStatus = trip.Status;
         
+        // Check if user is the creator of the trip
+        var isCreator = userId == trip.CreatedBy;
+        
         // Validate status transition
-        if (!IsValidStatusTransition(trip.Status, updateDto.Status, isAdminOrDispatcher, userId == trip.DriverId, updateDto.ForceComplete))
+        if (!IsValidStatusTransition(trip.Status, updateDto.Status, isAdminOrDispatcher, isCreator, updateDto.ForceComplete))
         {
             throw new InvalidOperationException("Invalid status transition");
         }
@@ -328,9 +332,9 @@ public class TripService : ITripService
                 break;
 
             case TripStatus.Cancelled:
-                if (!isAdminOrDispatcher && userId != trip.DriverId)
+                if (!isAdminOrDispatcher && userId != trip.CreatedBy)
                 {
-                    throw new UnauthorizedAccessException("Only admins, dispatchers, or the assigned driver can cancel a trip");
+                    throw new UnauthorizedAccessException("Only admins, dispatchers, or the trip creator can cancel a trip");
                 }
                 trip.RejectionReason = updateDto.Notes;
                 break;
@@ -382,7 +386,7 @@ public class TripService : ITripService
         await _tripStatusLogRepository.AddAsync(statusLog);
     }
 
-    private bool IsValidStatusTransition(TripStatus currentStatus, TripStatus newStatus, bool isAdminOrDispatcher, bool isDriver, bool forceComplete = false)
+    private bool IsValidStatusTransition(TripStatus currentStatus, TripStatus newStatus, bool isAdminOrDispatcher, bool isCreator, bool forceComplete = false)
     {
         // If forcing completion, only check if the target status is Completed
         if (forceComplete)
@@ -397,17 +401,17 @@ public class TripService : ITripService
             {
                 (TripStatus.Approved, true, false),    // Admin/Dispatcher can approve
                 (TripStatus.Rejected, true, false),    // Admin/Dispatcher can reject
-                (TripStatus.Cancelled, true, true),    // Anyone can cancel a pending trip
+                (TripStatus.Cancelled, true, true),    // Creator or Admin can cancel a pending trip
             },
             [TripStatus.Approved] = new()
             {
-                (TripStatus.InProgress, true, true),   // Driver can start the trip
-                (TripStatus.Cancelled, true, true),    // Anyone can cancel an approved trip
+                (TripStatus.InProgress, true, true),   // Creator or Admin can start the trip
+                (TripStatus.Cancelled, true, true),    // Creator or Admin can cancel an approved trip
             },
             [TripStatus.InProgress] = new()
             {
-                (TripStatus.Completed, true, true),    // Driver can complete the trip
-                (TripStatus.Cancelled, true, true),    // Anyone can cancel an in-progress trip
+                (TripStatus.Completed, true, true),    // Creator or Admin can complete the trip
+                (TripStatus.Cancelled, true, true),    // Creator or Admin can cancel an in-progress trip
             },
             [TripStatus.Rejected] = new()
             {
@@ -429,7 +433,7 @@ public class TripService : ITripService
             return allowedTransitions.Any(t => 
                 t.Item1 == newStatus && 
                 (t.Item2 || !isAdminOrDispatcher) &&   // If transition requires admin/dispatcher, check if user is one
-                (t.Item3 || isDriver)                  // If transition requires driver, check if user is the driver
+                (t.Item3 || isCreator)                 // If transition requires creator, check if user is the creator
             );
         }
 

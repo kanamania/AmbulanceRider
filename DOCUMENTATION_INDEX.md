@@ -165,7 +165,6 @@ Start here if you're deploying or configuring the application:
 - Auto-fill functionality
 - Driver assignment
 - Vehicle-driver relationships
-- UI implementation
 
 ---
 
@@ -178,6 +177,15 @@ Start here if you're deploying or configuring the application:
 - Running the application
 - First login
 - Basic operations
+
+#### 15. [ROLES_PERMISSIONS_CLARIFICATION.md](./ROLES_PERMISSIONS_CLARIFICATION.md) ⭐ NEW
+**Driver and User role permissions clarification**
+- Permissions matrix
+- Driver vs User roles
+- Trip lifecycle
+- Common questions
+- API authorization
+- UI component behavior
 
 ---
 
@@ -245,16 +253,17 @@ Start here if you're deploying or configuring the application:
 
 ## 📝 Documentation Statistics
 
-- **Total Documentation Files:** 14
-- **Total Pages:** ~150+ pages
+- **Total Documentation Files:** 17
+- **Total Pages:** ~220+ pages
 - **Last Updated:** 2025-10-27
 - **Coverage:** Complete (all features documented)
 
 ### Documentation Breakdown
-- **User Guides:** 3 files
+- **User Guides:** 4 files
 - **Developer Guides:** 6 files
-- **Implementation Details:** 4 files
+- **Implementation Details:** 5 files
 - **API Reference:** 1 file
+- **Project Overview:** 1 file
 
 ---
 
