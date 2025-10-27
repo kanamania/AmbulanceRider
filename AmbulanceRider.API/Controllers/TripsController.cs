@@ -204,6 +204,42 @@ public class TripsController : ControllerBase
     }
 
     /// <summary>
+    /// Update trip status (unified endpoint for all status updates)
+    /// </summary>
+    [HttpPut("{id}/status")]
+    [ProducesResponseType(typeof(TripDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<TripDto>> UpdateStatus(int id, [FromBody] UpdateTripStatusDto updateDto)
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new { message = "Invalid user token" });
+            }
+
+            var isAdminOrDispatcher = User.IsInRole("Admin") || User.IsInRole("Dispatcher");
+            var trip = await _tripService.UpdateTripStatusAsync(id, updateDto, userId, isAdminOrDispatcher);
+            return Ok(trip);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Cancel a trip
     /// </summary>
     [HttpPost("{id}/cancel")]
@@ -245,6 +281,25 @@ public class TripsController : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound();
+        }
+    }
+
+    /// <summary>
+    /// Get status change history for a trip
+    /// </summary>
+    [HttpGet("{id}/status-logs")]
+    [ProducesResponseType(typeof(IEnumerable<TripStatusLogDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IEnumerable<TripStatusLogDto>>> GetStatusLogs(int id)
+    {
+        try
+        {
+            var logs = await _tripService.GetTripStatusLogsAsync(id);
+            return Ok(logs);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
         }
     }
 }

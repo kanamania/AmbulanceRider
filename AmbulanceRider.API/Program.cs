@@ -150,6 +150,7 @@ builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IRouteRepository, RouteRepository>();
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 builder.Services.AddScoped<ITripRepository, TripRepository>();
+builder.Services.AddScoped<ITripStatusLogRepository, TripStatusLogRepository>();
 
 // Register Services
 builder.Services.AddScoped<IAuthService, AuthService>();

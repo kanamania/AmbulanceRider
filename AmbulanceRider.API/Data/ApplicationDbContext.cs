@@ -21,6 +21,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<Location> Locations { get; set; }
     public DbSet<Route> Routes { get; set; }
     public DbSet<Trip> Trips { get; set; }
+    public DbSet<TripStatusLog> TripStatusLogs { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -188,6 +189,37 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
                 .WithMany()
                 .HasForeignKey(t => t.ApprovedBy)
                 .OnDelete(DeleteBehavior.Restrict);
+            
+            entity.HasQueryFilter(e => e.DeletedAt == null);
+        });
+
+        // TripStatusLog configuration
+        modelBuilder.Entity<TripStatusLog>(entity =>
+        {
+            entity.ToTable("trip_status_logs");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.FromStatus).IsRequired();
+            entity.Property(e => e.ToStatus).IsRequired();
+            entity.Property(e => e.ChangedAt).IsRequired();
+            entity.Property(e => e.Notes).HasMaxLength(1000);
+            entity.Property(e => e.RejectionReason).HasMaxLength(500);
+            entity.Property(e => e.UserRole).HasMaxLength(100);
+            entity.Property(e => e.UserName).HasMaxLength(255);
+            
+            // Relationships
+            entity.HasOne(tsl => tsl.Trip)
+                .WithMany()
+                .HasForeignKey(tsl => tsl.TripId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(tsl => tsl.User)
+                .WithMany()
+                .HasForeignKey(tsl => tsl.ChangedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            // Index for faster queries
+            entity.HasIndex(e => e.TripId);
+            entity.HasIndex(e => e.ChangedAt);
             
             entity.HasQueryFilter(e => e.DeletedAt == null);
         });

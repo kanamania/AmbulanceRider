@@ -1,0 +1,257 @@
+@using AmbulanceRider.Models
+@using AmbulanceRider.Services
+@inject ApiService ApiService
+
+@if (Trip != null)
+{
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Status History</h5>
+            <button class="btn btn-sm btn-outline-primary" @onclick="LoadStatusLogs">
+                <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+            </button>
+        </div>
+        <div class="card-body">
+            @if (isLoading)
+            {
+                <div class="text-center py-3">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-muted mt-2 mb-0">Loading history...</p>
+                </div>
+            }
+            else if (errorMessage != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
+                    <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+                </div>
+            }
+            else if (!statusLogs.Any())
+            {
+                <div class="text-center text-muted py-3">
+                    <i class="bi bi-inbox fs-1"></i>
+                    <p class="mb-0">No status changes recorded yet</p>
+                </div>
+            }
+            else
+            {
+                <div class="timeline">
+                    @foreach (var log in statusLogs)
+                    {
+                        <div class="timeline-item mb-3">
+                            <div class="d-flex">
+                                <div class="timeline-marker me-3">
+                                    <div class="timeline-icon @GetStatusIconClass(log.ToStatus)">
+                                        <i class="bi @GetStatusIcon(log.ToStatus)"></i>
+                                    </div>
+                                    @if (log != statusLogs.Last())
+                                    {
+                                        <div class="timeline-line"></div>
+                                    }
+                                </div>
+                                <div class="timeline-content flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <div>
+                                            <h6 class="mb-1">
+                                                <span class="badge @GetStatusBadgeClass(log.FromStatus) me-1">@log.FromStatus</span>
+                                                <i class="bi bi-arrow-right mx-1"></i>
+                                                <span class="badge @GetStatusBadgeClass(log.ToStatus)">@log.ToStatus</span>
+                                                @if (log.IsForceComplete)
+                                                {
+                                                    <span class="badge bg-warning text-dark ms-1">
+                                                        <i class="bi bi-exclamation-triangle me-1"></i>Force Complete
+                                                    </span>
+                                                }
+                                            </h6>
+                                            <small class="text-muted">
+                                                <i class="bi bi-person me-1"></i>@log.UserName
+                                                @if (!string.IsNullOrEmpty(log.UserRole))
+                                                {
+                                                    <span class="badge bg-secondary ms-1">@log.UserRole</span>
+                                                }
+                                            </small>
+                                        </div>
+                                        <small class="text-muted">
+                                            <i class="bi bi-clock me-1"></i>@log.ChangedAt.ToString("MMM dd, yyyy HH:mm")
+                                        </small>
+                                    </div>
+                                    
+                                    @if (!string.IsNullOrEmpty(log.Notes))
+                                    {
+                                        <div class="alert alert-info mb-2 py-2">
+                                            <i class="bi bi-sticky me-1"></i>
+                                            <strong>Notes:</strong> @log.Notes
+                                        </div>
+                                    }
+                                    
+                                    @if (!string.IsNullOrEmpty(log.RejectionReason))
+                                    {
+                                        <div class="alert alert-danger mb-2 py-2">
+                                            <i class="bi bi-x-circle me-1"></i>
+                                            <strong>Rejection Reason:</strong> @log.RejectionReason
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<style>
+    .timeline {
+        position: relative;
+    }
+
+    .timeline-item {
+        position: relative;
+    }
+
+    .timeline-marker {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .timeline-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        z-index: 1;
+    }
+
+    .timeline-icon.status-pending {
+        background-color: #ffc107;
+        color: white;
+    }
+
+    .timeline-icon.status-approved {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .timeline-icon.status-rejected {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .timeline-icon.status-inprogress {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .timeline-icon.status-completed {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .timeline-icon.status-cancelled {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .timeline-line {
+        width: 2px;
+        flex-grow: 1;
+        background-color: #dee2e6;
+        margin-top: 8px;
+        min-height: 30px;
+    }
+
+    .timeline-content {
+        padding-bottom: 1rem;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public TripDto? Trip { get; set; }
+
+    [Parameter]
+    public EventCallback OnLogsRefreshed { get; set; }
+
+    private List<TripStatusLogDto> statusLogs = new();
+    private bool isLoading = false;
+    private string? errorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Trip != null)
+        {
+            await LoadStatusLogs();
+        }
+    }
+
+    private async Task LoadStatusLogs()
+    {
+        if (Trip == null) return;
+
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            statusLogs = await ApiService.GetTripStatusLogsAsync(Trip.Id);
+            await OnLogsRefreshed.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading status history: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning",
+            "Approved" => "bg-success",
+            "Rejected" => "bg-danger",
+            "InProgress" => "bg-info",
+            "Completed" => "bg-primary",
+            "Cancelled" => "bg-secondary",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetStatusIconClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "status-pending",
+            "Approved" => "status-approved",
+            "Rejected" => "status-rejected",
+            "InProgress" => "status-inprogress",
+            "Completed" => "status-completed",
+            "Cancelled" => "status-cancelled",
+            _ => "status-pending"
+        };
+    }
+
+    private string GetStatusIcon(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bi-hourglass-split",
+            "Approved" => "bi-check-circle-fill",
+            "Rejected" => "bi-x-circle-fill",
+            "InProgress" => "bi-arrow-right-circle-fill",
+            "Completed" => "bi-check-circle-fill",
+            "Cancelled" => "bi-slash-circle-fill",
+            _ => "bi-circle"
+        };
+    }
+}

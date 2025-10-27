@@ -194,4 +194,16 @@ public class ApiService
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<TripDto>() ?? throw new Exception("Failed to complete trip");
     }
+
+    public async Task<TripDto> UpdateTripStatusAsync(int id, UpdateTripStatusDto updateDto)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"/api/trips/{id}/status", updateDto);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<TripDto>() ?? throw new Exception("Failed to update trip status");
+    }
+
+    public async Task<List<TripStatusLogDto>> GetTripStatusLogsAsync(int tripId)
+    {
+        return await _httpClient.GetFromJsonAsync<List<TripStatusLogDto>>($"/api/trips/{tripId}/status-logs") ?? new List<TripStatusLogDto>();
+    }
 }

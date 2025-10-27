@@ -9,15 +9,18 @@ public class TripService : ITripService
     private readonly ITripRepository _tripRepository;
     private readonly IVehicleRepository _vehicleRepository;
     private readonly IUserRepository _userRepository;
+    private readonly ITripStatusLogRepository _tripStatusLogRepository;
 
     public TripService(
         ITripRepository tripRepository,
         IVehicleRepository vehicleRepository,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        ITripStatusLogRepository tripStatusLogRepository)
     {
         _tripRepository = tripRepository;
         _vehicleRepository = vehicleRepository;
         _userRepository = userRepository;
+        _tripStatusLogRepository = tripStatusLogRepository;
     }
 
     public async Task<IEnumerable<TripDto>> GetAllTripsAsync()
@@ -260,27 +263,177 @@ public class TripService : ITripService
         return MapToDto(updatedTrip!);
     }
 
-    public async Task<TripDto> CancelTripAsync(int id)
+    public async Task<TripDto> CancelTripAsync(int id, string? reason = null)
     {
-        var trip = await _tripRepository.GetByIdAsync(id);
-        if (trip == null)
+        var trip = await _tripRepository.GetByIdAsync(id) ?? throw new KeyNotFoundException("Trip not found");
+
+        if (trip.Status == TripStatus.Cancelled)
         {
-            throw new KeyNotFoundException("Trip not found");
+            return MapToDto(trip);
         }
 
         if (trip.Status == TripStatus.Completed)
         {
-            throw new InvalidOperationException("Completed trips cannot be cancelled");
+            throw new InvalidOperationException("Cannot cancel a completed trip");
         }
 
         trip.Status = TripStatus.Cancelled;
         trip.UpdatedAt = DateTime.UtcNow;
+        trip.RejectionReason = reason;
 
         await _tripRepository.UpdateAsync(trip);
         
         // Reload to get navigation properties
         var updatedTrip = await _tripRepository.GetByIdAsync(trip.Id);
         return MapToDto(updatedTrip!);
+    }
+
+    public async Task<TripDto> UpdateTripStatusAsync(int tripId, UpdateTripStatusDto updateDto, Guid userId, bool isAdminOrDispatcher)
+    {
+        var trip = await _tripRepository.GetByIdAsync(tripId) ?? throw new KeyNotFoundException("Trip not found");
+        var oldStatus = trip.Status;
+        
+        // Validate status transition
+        if (!IsValidStatusTransition(trip.Status, updateDto.Status, isAdminOrDispatcher, userId == trip.DriverId, updateDto.ForceComplete))
+        {
+            throw new InvalidOperationException("Invalid status transition");
+        }
+
+        // Apply status-specific logic
+        switch (updateDto.Status)
+        {
+            case TripStatus.Approved:
+                if (!isAdminOrDispatcher)
+                {
+                    throw new UnauthorizedAccessException("Only admins and dispatchers can approve trips");
+                }
+                trip.ApprovedBy = userId;
+                trip.ApprovedAt = DateTime.UtcNow;
+                break;
+
+            case TripStatus.Rejected:
+                if (!isAdminOrDispatcher)
+                {
+                    throw new UnauthorizedAccessException("Only admins and dispatchers can reject trips");
+                }
+                trip.RejectionReason = updateDto.RejectionReason ?? "No reason provided";
+                break;
+
+            case TripStatus.InProgress:
+                trip.ActualStartTime = DateTime.UtcNow;
+                break;
+
+            case TripStatus.Completed:
+                trip.ActualEndTime = DateTime.UtcNow;
+                break;
+
+            case TripStatus.Cancelled:
+                if (!isAdminOrDispatcher && userId != trip.DriverId)
+                {
+                    throw new UnauthorizedAccessException("Only admins, dispatchers, or the assigned driver can cancel a trip");
+                }
+                trip.RejectionReason = updateDto.Notes;
+                break;
+        }
+
+        // Update the status and save
+        trip.Status = updateDto.Status;
+        trip.UpdatedAt = DateTime.UtcNow;
+        
+        // Add a note to the description if provided
+        if (!string.IsNullOrWhiteSpace(updateDto.Notes))
+        {
+            trip.Description = string.IsNullOrEmpty(trip.Description) 
+                ? updateDto.Notes 
+                : $"{trip.Description}\n\nStatus Update: {updateDto.Notes}";
+        }
+
+        await _tripRepository.UpdateAsync(trip);
+        
+        // Log the status change
+        await LogStatusChangeAsync(trip, oldStatus, updateDto.Status, userId, isAdminOrDispatcher, updateDto);
+        
+        // Reload to get navigation properties
+        var updatedTrip = await _tripRepository.GetByIdAsync(trip.Id);
+        return MapToDto(updatedTrip!);
+    }
+
+    private async Task LogStatusChangeAsync(Trip trip, TripStatus fromStatus, TripStatus toStatus, Guid userId, bool isAdminOrDispatcher, UpdateTripStatusDto updateDto)
+    {
+        // Get user information
+        var user = await _userRepository.GetByIdAsync(userId);
+        var userRole = isAdminOrDispatcher ? "Admin/Dispatcher" : "Driver";
+        
+        var statusLog = new TripStatusLog
+        {
+            TripId = trip.Id,
+            FromStatus = fromStatus,
+            ToStatus = toStatus,
+            ChangedBy = userId,
+            ChangedAt = DateTime.UtcNow,
+            Notes = updateDto.Notes,
+            RejectionReason = updateDto.RejectionReason,
+            IsForceComplete = updateDto.ForceComplete,
+            UserRole = userRole,
+            UserName = user != null ? $"{user.FirstName} {user.LastName}" : "Unknown User",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _tripStatusLogRepository.AddAsync(statusLog);
+    }
+
+    private bool IsValidStatusTransition(TripStatus currentStatus, TripStatus newStatus, bool isAdminOrDispatcher, bool isDriver, bool forceComplete = false)
+    {
+        // If forcing completion, only check if the target status is Completed
+        if (forceComplete)
+        {
+            return newStatus == TripStatus.Completed;
+        }
+
+        // Define valid transitions
+        var validTransitions = new Dictionary<TripStatus, List<(TripStatus, bool, bool)>>
+        {
+            [TripStatus.Pending] = new()
+            {
+                (TripStatus.Approved, true, false),    // Admin/Dispatcher can approve
+                (TripStatus.Rejected, true, false),    // Admin/Dispatcher can reject
+                (TripStatus.Cancelled, true, true),    // Anyone can cancel a pending trip
+            },
+            [TripStatus.Approved] = new()
+            {
+                (TripStatus.InProgress, true, true),   // Driver can start the trip
+                (TripStatus.Cancelled, true, true),    // Anyone can cancel an approved trip
+            },
+            [TripStatus.InProgress] = new()
+            {
+                (TripStatus.Completed, true, true),    // Driver can complete the trip
+                (TripStatus.Cancelled, true, true),    // Anyone can cancel an in-progress trip
+            },
+            [TripStatus.Rejected] = new()
+            {
+                (TripStatus.Pending, true, false),     // Admin/Dispatcher can move back to pending
+            },
+            [TripStatus.Completed] = new()
+            {
+                // No valid transitions from completed
+            },
+            [TripStatus.Cancelled] = new()
+            {
+                (TripStatus.Pending, true, false),     // Admin/Dispatcher can move back to pending
+            }
+        };
+
+        // Check if the transition is valid
+        if (validTransitions.TryGetValue(currentStatus, out var allowedTransitions))
+        {
+            return allowedTransitions.Any(t => 
+                t.Item1 == newStatus && 
+                (t.Item2 || !isAdminOrDispatcher) &&   // If transition requires admin/dispatcher, check if user is one
+                (t.Item3 || isDriver)                  // If transition requires driver, check if user is the driver
+            );
+        }
+
+        return false;
     }
 
     public async Task DeleteTripAsync(int id)
@@ -293,6 +446,39 @@ public class TripService : ITripService
 
         trip.DeletedAt = DateTime.UtcNow;
         await _tripRepository.UpdateAsync(trip);
+    }
+
+    public async Task<IEnumerable<TripStatusLogDto>> GetTripStatusLogsAsync(int tripId)
+    {
+        var logs = await _tripStatusLogRepository.GetLogsByTripIdAsync(tripId);
+        return logs.Select(MapStatusLogToDto);
+    }
+
+    private static TripStatusLogDto MapStatusLogToDto(TripStatusLog log)
+    {
+        return new TripStatusLogDto
+        {
+            Id = log.Id,
+            TripId = log.TripId,
+            FromStatus = log.FromStatus.ToString(),
+            ToStatus = log.ToStatus.ToString(),
+            ChangedBy = log.ChangedBy,
+            ChangedAt = log.ChangedAt,
+            Notes = log.Notes,
+            RejectionReason = log.RejectionReason,
+            IsForceComplete = log.IsForceComplete,
+            UserRole = log.UserRole,
+            UserName = log.UserName,
+            User = log.User != null ? new UserDto
+            {
+                Id = log.User.Id.ToString(),
+                FirstName = log.User.FirstName,
+                LastName = log.User.LastName,
+                Email = log.User.Email ?? string.Empty,
+                PhoneNumber = log.User.PhoneNumber,
+                Roles = new List<string>()
+            } : null
+        };
     }
 
     private static TripDto MapToDto(Trip trip)

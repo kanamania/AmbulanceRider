@@ -138,6 +138,10 @@
             </div>
 
             <div class="col-lg-4">
+                <TripActions Trip="@trip" OnTripUpdated="@HandleTripUpdated" />
+                
+                <TripStatusHistory Trip="@trip" />
+                
                 <div class="card shadow-sm mb-3">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Trip Details</h5>
@@ -328,6 +332,12 @@
     private void GoBack()
     {
         Navigation.NavigateTo("/trips");
+    }
+
+    private async Task HandleTripUpdated(TripDto updatedTrip)
+    {
+        trip = updatedTrip;
+        await InvokeAsync(StateHasChanged);
     }
 
     private string GetStatusBadgeClass(string status)
