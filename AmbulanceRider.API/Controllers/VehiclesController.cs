@@ -6,12 +6,22 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Http;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace AmbulanceRider.API.Controllers;
 
+/// <summary>
+/// Vehicle fleet management endpoints
+/// </summary>
+/// <remarks>
+/// Manage ambulance fleet including registration, status tracking, and availability.
+/// Supports vehicle types, capacity management, and real-time status updates.
+/// </remarks>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[Produces("application/json")]
+[SwaggerTag("Manage ambulance fleet and vehicle information")]
 public class VehiclesController(IVehicleService vehicleService, ApplicationDbContext context, IConfiguration configuration) : ControllerBase
 {
     /// <summary>

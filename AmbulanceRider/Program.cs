@@ -12,10 +12,10 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // Configure HTTP client with error handling
-var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? "/api/";
+var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5000/";
 builder.Services.AddScoped(sp => 
 {
-    var client = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };
+    var client = new HttpClient { BaseAddress = new Uri(apiBaseUrl) };
     return client;
 });
 

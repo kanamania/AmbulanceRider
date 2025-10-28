@@ -3,15 +3,23 @@ using AmbulanceRider.API.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace AmbulanceRider.API.Controllers;
 
 /// <summary>
-/// Controller for analytics and reporting
+/// Analytics and reporting endpoints
 /// </summary>
+/// <remarks>
+/// Provides comprehensive analytics including dashboard statistics, vehicle utilization,
+/// driver performance metrics, and trip summaries. Supports date range filtering for
+/// historical analysis and trend identification.
+/// </remarks>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[Produces("application/json")]
+[SwaggerTag("Access analytics, reports, and performance metrics")]
 public class AnalyticsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;

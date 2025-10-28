@@ -130,6 +130,260 @@ Reset password with token. Supports telemetry collection.
 
 ---
 
+### **GET** `/api/auth/me`
+Get current authenticated user profile.
+
+**Authorization:** Required (Any authenticated user)  
+**Response:** `200 OK`
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "name": "John Doe",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "user@example.com",
+  "phoneNumber": "+254712345678",
+  "imagePath": "/path/to/image.jpg",
+  "imageUrl": "/uploads/profiles/user_image.jpg",
+  "roles": ["User"],
+  "createdAt": "2025-01-15T10:30:00Z",
+  "updatedAt": "2025-10-28T16:25:00Z"
+}
+```
+
+**Error Responses:**
+- `401 Unauthorized` - Not authenticated or invalid token
+
+---
+
+### **PUT** `/api/auth/profile`
+Update current user's profile information.
+
+**Authorization:** Required (Any authenticated user)  
+**Content-Type:** `application/json`
+
+**Request Body:**
+```json
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "phoneNumber": "+254712345678"
+}
+```
+
+**Notes:**
+- All fields are optional
+- Only provided fields will be updated
+- Empty or null fields are ignored
+- Email cannot be changed through this endpoint
+
+**Response:** `200 OK`
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "name": "John Doe",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "user@example.com",
+  "phoneNumber": "+254712345678",
+  "imagePath": null,
+  "imageUrl": null,
+  "roles": ["User"],
+  "createdAt": "2025-01-15T10:30:00Z",
+  "updatedAt": "2025-10-28T16:25:00Z"
+}
+```
+
+**Error Responses:**
+- `400 Bad Request` - Invalid input data
+- `401 Unauthorized` - Not authenticated
+
+---
+
+### **POST** `/api/auth/change-password`
+Change current user's password.
+
+**Authorization:** Required (Any authenticated user)  
+**Content-Type:** `application/json`
+
+**Request Body:**
+```json
+{
+  "currentPassword": "OldPassword@123",
+  "newPassword": "NewSecurePass@456",
+  "confirmPassword": "NewSecurePass@456"
+}
+```
+
+**Password Requirements:**
+- Minimum 8 characters
+- At least one uppercase letter
+- At least one lowercase letter
+- At least one digit
+- At least one special character
+- New password must match confirmation password
+
+**Response:** `200 OK`
+```json
+{
+  "message": "Password changed successfully"
+}
+```
+
+**Error Responses:**
+- `400 Bad Request` - Invalid current password or new password doesn't meet requirements
+  ```json
+  {
+    "message": "Failed to change password",
+    "errors": [
+      {
+        "code": "PasswordMismatch",
+        "description": "Current password is incorrect"
+      }
+    ]
+  }
+  ```
+- `401 Unauthorized` - Not authenticated
+
+---
+
+### **POST** `/api/auth/profile/image`
+Upload profile image for current user.
+
+**Authorization:** Required (Any authenticated user)  
+**Content-Type:** `multipart/form-data`
+
+**Request Body (Form Data):**
+```
+image: [File]
+```
+
+**Image Requirements:**
+- **Allowed formats:** JPG, JPEG, PNG, GIF
+- **Maximum size:** 5MB
+- **Previous image:** Automatically deleted when uploading new one
+
+**Response:** `200 OK`
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "name": "John Doe",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "user@example.com",
+  "phoneNumber": "+254712345678",
+  "imagePath": "/path/to/uploads/profiles/123e4567_abc123.jpg",
+  "imageUrl": "/uploads/profiles/123e4567_abc123.jpg",
+  "roles": ["User"],
+  "createdAt": "2025-01-15T10:30:00Z",
+  "updatedAt": "2025-10-28T16:25:00Z"
+}
+```
+
+**Error Responses:**
+- `400 Bad Request` - Invalid image format or size
+  ```json
+  {
+    "message": "Invalid image format. Allowed formats: jpg, jpeg, png, gif"
+  }
+  ```
+  ```json
+  {
+    "message": "Image size must be less than 5MB"
+  }
+  ```
+  ```json
+  {
+    "message": "No image file provided"
+  }
+  ```
+- `401 Unauthorized` - Not authenticated
+
+**cURL Example:**
+```bash
+curl -X POST http://localhost:5000/api/auth/profile/image \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "image=@/path/to/image.jpg"
+```
+
+---
+
+### **DELETE** `/api/auth/profile/image`
+Remove profile image for current user.
+
+**Authorization:** Required (Any authenticated user)
+
+**Response:** `200 OK`
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "name": "John Doe",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "user@example.com",
+  "phoneNumber": "+254712345678",
+  "imagePath": null,
+  "imageUrl": null,
+  "roles": ["User"],
+  "createdAt": "2025-01-15T10:30:00Z",
+  "updatedAt": "2025-10-28T16:25:00Z"
+}
+```
+
+**Notes:**
+- Deletes the image file from the server
+- Clears image path and URL from user profile
+- Safe to call even if no image exists
+
+**Error Responses:**
+- `401 Unauthorized` - Not authenticated
+
+---
+
+### **POST** `/api/auth/logout`
+Logout and invalidate refresh token.
+
+**Authorization:** Required (Any authenticated user)
+
+**Response:** `200 OK`
+```json
+{
+  "message": "Successfully logged out"
+}
+```
+
+**Error Responses:**
+- `401 Unauthorized` - Not authenticated
+
+---
+
+### **POST** `/api/auth/refresh`
+Refresh access token using refresh token.
+
+**Authorization:** None  
+**Content-Type:** `application/json`
+
+**Request Body:**
+```json
+{
+  "refreshToken": "string"
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "accessToken": "string",
+  "refreshToken": "string",
+  "expiresIn": 86400
+}
+```
+
+**Error Responses:**
+- `401 Unauthorized` - Invalid or expired refresh token
+
+---
+
 ## **User Endpoints**
 
 ### **GET** `/api/users`
@@ -1896,3 +2150,29 @@ Track user activity and system events for compliance and security auditing.
 - No sensitive data (passwords, tokens) is ever logged
 
 ---
+
+## **Changelog**
+
+### **2025-10-28 - Profile Management**
+Added comprehensive profile management endpoints:
+- **GET /api/auth/me** - Get current user profile
+- **PUT /api/auth/profile** - Update profile information (name, phone)
+- **POST /api/auth/change-password** - Change password with verification
+- **POST /api/auth/profile/image** - Upload profile image (JPG, PNG, GIF, max 5MB)
+- **DELETE /api/auth/profile/image** - Remove profile image
+- **POST /api/auth/logout** - Logout and invalidate refresh token
+- **POST /api/auth/refresh** - Refresh access token
+
+**Features:**
+- Partial profile updates (only send fields to change)
+- Password complexity enforcement
+- Image validation and automatic cleanup
+- Secure file storage in `/uploads/profiles/`
+
+See [PROFILE_MANAGEMENT_GUIDE.md](./PROFILE_MANAGEMENT_GUIDE.md) for detailed documentation.
+
+---
+
+**Last Updated:** 2025-10-28  
+**API Version:** 1.0.0  
+**Documentation Status:** ✅ Complete

@@ -3,13 +3,23 @@ using AmbulanceRider.API.Models;
 using AmbulanceRider.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Security.Claims;
 
 namespace AmbulanceRider.API.Controllers;
 
+/// <summary>
+/// Trip management endpoints
+/// </summary>
+/// <remarks>
+/// Manage emergency trips including creation, tracking, status updates, and completion.
+/// Supports full trip lifecycle from request to completion with real-time status tracking.
+/// </remarks>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[Produces("application/json")]
+[SwaggerTag("Manage emergency trips and their lifecycle")]
 public class TripsController : ControllerBase
 {
     private readonly ITripService _tripService;

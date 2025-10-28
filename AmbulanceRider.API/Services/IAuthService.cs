@@ -15,6 +15,12 @@ public interface IAuthService
     // User
     Task<UserDto> GetUserByIdAsync(string userId);
     
+    // Profile Management
+    Task<UserDto> UpdateProfileAsync(string userId, UpdateProfileDto updateProfileDto);
+    Task<IdentityResult> ChangePasswordAsync(string userId, ChangePasswordDto changePasswordDto);
+    Task<UserDto> UpdateProfileImageAsync(string userId, IFormFile image);
+    Task<UserDto> RemoveProfileImageAsync(string userId);
+    
     // Password
     Task SendPasswordResetEmailAsync(string email);
     Task<IdentityResult> ResetPasswordAsync(ResetPasswordDto resetPasswordDto);

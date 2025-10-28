@@ -277,6 +277,151 @@ public class AuthService : IAuthService
         return principal;
     }
 
+    public async Task<UserDto> UpdateProfileAsync(string userId, UpdateProfileDto updateProfileDto)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new ApplicationException("User not found");
+        }
+
+        // Update fields if provided
+        if (!string.IsNullOrWhiteSpace(updateProfileDto.FirstName))
+            user.FirstName = updateProfileDto.FirstName;
+        
+        if (!string.IsNullOrWhiteSpace(updateProfileDto.LastName))
+            user.LastName = updateProfileDto.LastName;
+        
+        if (!string.IsNullOrWhiteSpace(updateProfileDto.PhoneNumber))
+            user.PhoneNumber = updateProfileDto.PhoneNumber;
+
+        user.UpdatedAt = DateTime.UtcNow;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            throw new ApplicationException(string.Join(", ", result.Errors.Select(e => e.Description)));
+        }
+
+        return await GetUserDtoAsync(user);
+    }
+
+    public async Task<IdentityResult> ChangePasswordAsync(string userId, ChangePasswordDto changePasswordDto)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new ApplicationException("User not found");
+        }
+
+        if (changePasswordDto.NewPassword != changePasswordDto.ConfirmPassword)
+        {
+            return IdentityResult.Failed(new IdentityError 
+            { 
+                Code = "PasswordMismatch", 
+                Description = "New password and confirmation password do not match" 
+            });
+        }
+
+        var result = await _userManager.ChangePasswordAsync(
+            user, 
+            changePasswordDto.CurrentPassword, 
+            changePasswordDto.NewPassword);
+
+        if (result.Succeeded)
+        {
+            user.UpdatedAt = DateTime.UtcNow;
+            await _userManager.UpdateAsync(user);
+        }
+
+        return result;
+    }
+
+    public async Task<UserDto> UpdateProfileImageAsync(string userId, IFormFile image)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new ApplicationException("User not found");
+        }
+
+        // Validate image
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+        var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
+        
+        if (!allowedExtensions.Contains(extension))
+        {
+            throw new ApplicationException("Invalid image format. Allowed formats: jpg, jpeg, png, gif");
+        }
+
+        if (image.Length > 5 * 1024 * 1024) // 5MB limit
+        {
+            throw new ApplicationException("Image size must be less than 5MB");
+        }
+
+        // Delete old image if exists
+        if (!string.IsNullOrEmpty(user.ImagePath) && File.Exists(user.ImagePath))
+        {
+            File.Delete(user.ImagePath);
+        }
+
+        // Save new image
+        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profiles");
+        Directory.CreateDirectory(uploadsFolder);
+
+        var uniqueFileName = $"{userId}_{Guid.NewGuid()}{extension}";
+        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+        using (var fileStream = new FileStream(filePath, FileMode.Create))
+        {
+            await image.CopyToAsync(fileStream);
+        }
+
+        user.ImagePath = filePath;
+        user.ImageUrl = $"/uploads/profiles/{uniqueFileName}";
+        user.UpdatedAt = DateTime.UtcNow;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            // Delete the uploaded file if update fails
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+            throw new ApplicationException(string.Join(", ", result.Errors.Select(e => e.Description)));
+        }
+
+        return await GetUserDtoAsync(user);
+    }
+
+    public async Task<UserDto> RemoveProfileImageAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new ApplicationException("User not found");
+        }
+
+        // Delete image file if exists
+        if (!string.IsNullOrEmpty(user.ImagePath) && File.Exists(user.ImagePath))
+        {
+            File.Delete(user.ImagePath);
+        }
+
+        user.ImagePath = null;
+        user.ImageUrl = null;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            throw new ApplicationException(string.Join(", ", result.Errors.Select(e => e.Description)));
+        }
+
+        return await GetUserDtoAsync(user);
+    }
+
     private async Task<UserDto> GetUserDtoAsync(User user)
     {
         var roles = await _userManager.GetRolesAsync(user);
@@ -285,8 +430,12 @@ public class AuthService : IAuthService
         {
             Id = user.Id.ToString(),
             Name = user.FirstName + " " + user.LastName,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
             Email = user.Email!,
             PhoneNumber = user.PhoneNumber,
+            ImagePath = user.ImagePath,
+            ImageUrl = user.ImageUrl,
             Roles = roles.ToList(),
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt

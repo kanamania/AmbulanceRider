@@ -18,11 +18,13 @@ Start here if you're using the AmbulanceRider application:
 Start here if you're developing or maintaining the application:
 
 1. **[README.md](./README.md)** - Main project overview and setup
-2. **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** - Complete API reference
-3. **[FEATURE_SUMMARY.md](./FEATURE_SUMMARY.md)** - All implemented features
-4. **[TRIP_STATUS_WORKFLOW_SUMMARY.md](./TRIP_STATUS_WORKFLOW_SUMMARY.md)** - Status workflow rules
-5. **[TRIP_TYPES_IMPLEMENTATION.md](./TRIP_TYPES_IMPLEMENTATION.md)** - Trip types technical documentation ⭐
-6. **[TELEMETRY_TIMESERIES_GUIDE.md](./TELEMETRY_TIMESERIES_GUIDE.md)** - Timeseries telemetry logging ⭐ NEW
+2. **[SWAGGER_QUICK_START.md](./SWAGGER_QUICK_START.md)** - Interactive API testing (5 min guide) ⭐ NEW
+3. **[SWAGGER_DOCUMENTATION.md](./SWAGGER_DOCUMENTATION.md)** - Complete Swagger/OpenAPI guide ⭐ NEW
+4. **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** - Complete API reference
+5. **[FEATURE_SUMMARY.md](./FEATURE_SUMMARY.md)** - All implemented features
+6. **[TRIP_STATUS_WORKFLOW_SUMMARY.md](./TRIP_STATUS_WORKFLOW_SUMMARY.md)** - Status workflow rules
+7. **[TRIP_TYPES_IMPLEMENTATION.md](./TRIP_TYPES_IMPLEMENTATION.md)** - Trip types technical documentation ⭐
+8. **[TELEMETRY_TIMESERIES_GUIDE.md](./TELEMETRY_TIMESERIES_GUIDE.md)** - Timeseries telemetry logging ⭐
 
 ### 🔧 For System Administrators
 Start here if you're deploying or configuring the application:
@@ -65,6 +67,26 @@ Start here if you're deploying or configuring the application:
 - Authentication details
 - Error codes
 - Rate limiting (if applicable)
+
+#### 4. [SWAGGER_QUICK_START.md](./SWAGGER_QUICK_START.md) ⭐ NEW
+**5-minute Swagger UI guide**
+- Quick authentication setup
+- Testing endpoints interactively
+- Common tasks walkthrough
+- Test account credentials
+- Troubleshooting tips
+- Keyboard shortcuts
+
+#### 5. [SWAGGER_DOCUMENTATION.md](./SWAGGER_DOCUMENTATION.md) ⭐ NEW
+**Complete Swagger/OpenAPI documentation**
+- Comprehensive Swagger UI features
+- Enhanced documentation system
+- XML comments and annotations
+- Custom styling and themes
+- OpenAPI spec export
+- Client code generation
+- Best practices
+- Production considerations
 
 ---
 
@@ -299,9 +321,11 @@ Start here if you're deploying or configuring the application:
 3. [FEATURE_SUMMARY.md](./FEATURE_SUMMARY.md) - Audit & Compliance section
 
 ### "I want to integrate with the API"
-1. [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
-2. [README.md](./README.md) - Authentication & Authorization section
-3. [README.md](./README.md) - API Endpoints section
+1. [SWAGGER_QUICK_START.md](./SWAGGER_QUICK_START.md) - Start here for quick testing ⭐
+2. [SWAGGER_DOCUMENTATION.md](./SWAGGER_DOCUMENTATION.md) - Complete Swagger guide ⭐
+3. [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) - Detailed API reference
+4. [README.md](./README.md) - Authentication & Authorization section
+5. [README.md](./README.md) - API Endpoints section
 
 ### "I need to troubleshoot an issue"
 1. [README.md](./README.md) - Troubleshooting section
@@ -323,18 +347,18 @@ Start here if you're deploying or configuring the application:
 
 ## 📝 Documentation Statistics
 
-- **Total Documentation Files:** 20
-- **Total Pages:** ~350+ pages
-- **Last Updated:** 2025-10-27
-- **Coverage:** Complete (all features documented + Timeseries Telemetry ⭐)
+- **Total Documentation Files:** 22
+- **Total Pages:** ~400+ pages
+- **Last Updated:** 2025-10-28
+- **Coverage:** Complete (all features documented + Swagger/OpenAPI ⭐)
 
 ### Documentation Breakdown
 - **User Guides:** 5 files
-- **Developer Guides:** 8 files
+- **Developer Guides:** 10 files (includes Swagger docs ⭐)
 - **Implementation Details:** 6 files
-- **API Reference:** 1 file
+- **API Reference:** 3 files (API + Swagger guides ⭐)
 - **Project Overview:** 1 file
-- **Telemetry & Analytics:** 3 files ⭐
+- **Telemetry & Analytics:** 3 files
 
 ---
 

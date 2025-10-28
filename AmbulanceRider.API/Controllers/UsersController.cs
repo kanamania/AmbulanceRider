@@ -5,12 +5,22 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 using Microsoft.AspNetCore.Http;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace AmbulanceRider.API.Controllers;
 
+/// <summary>
+/// User management endpoints
+/// </summary>
+/// <remarks>
+/// Manage system users including admins, dispatchers, drivers, and regular users.
+/// Supports user CRUD operations, role management, and profile updates.
+/// </remarks>
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
+[Produces("application/json")]
+[SwaggerTag("Manage users, roles, and permissions")]
 public class UsersController(IUserService userService, IConfiguration configuration) : ControllerBase
 {
     /// <summary>

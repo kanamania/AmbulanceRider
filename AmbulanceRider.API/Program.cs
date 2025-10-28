@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using AmbulanceRider.API.Data;
+using AmbulanceRider.API.Filters;
 using AmbulanceRider.API.Hubs;
 using AmbulanceRider.API.Models;
 using AmbulanceRider.API.Repositories;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -239,23 +241,60 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "AmbulanceRider API",
-        Version = "v1",
-        Description = "API for AmbulanceRider - Emergency Medical Dispatch System",
+        Version = "v1.0.0",
+        Description = @"
+# AmbulanceRider Emergency Medical Dispatch System API
+
+## Overview
+This API provides comprehensive endpoints for managing emergency medical dispatch operations including:
+- **Authentication & Authorization**: User registration, login, JWT token management
+- **Trip Management**: Create, track, and manage emergency trips
+- **Vehicle Management**: Monitor and manage ambulance fleet
+- **Location Services**: Track locations and manage facilities
+- **Analytics**: Real-time dashboards and performance metrics
+- **Telemetry**: Device tracking and location services
+- **Notifications**: Real-time updates via SignalR
+
+## Authentication
+Most endpoints require JWT Bearer token authentication. To authenticate:
+1. Register or login via `/api/auth/register` or `/api/auth/login`
+2. Copy the `accessToken` from the response
+3. Click the 'Authorize' button above and enter: `Bearer {your-token}`
+4. All subsequent requests will include the authentication header
+
+## Rate Limiting
+API requests are monitored for performance. Excessive requests may be throttled.
+
+## Support
+For issues or questions, contact: support@ambulancerider.com
+",
         Contact = new OpenApiContact
         {
-            Name = "AmbulanceRider Team",
-            Email = "support@ambulancerider.com"
-        }
+            Name = "AmbulanceRider Support Team",
+            Email = "support@ambulancerider.com",
+            Url = new Uri("https://ambulancerider.com/support")
+        },
+        License = new OpenApiLicense
+        {
+            Name = "Proprietary License",
+            Url = new Uri("https://ambulancerider.com/license")
+        },
+        TermsOfService = new Uri("https://ambulancerider.com/terms")
     });
 
     // Add JWT Authentication to Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below.",
+        Description = @"JWT Authorization header using the Bearer scheme. 
+                      
+Enter 'Bearer' [space] and then your token in the text input below.
+                      
+Example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
+        Scheme = "Bearer",
+        BearerFormat = "JWT"
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -267,17 +306,37 @@ builder.Services.AddSwaggerGen(c =>
                 {
                     Type = ReferenceType.SecurityScheme,
                     Id = "Bearer"
-                }
+                },
+                Scheme = "oauth2",
+                Name = "Bearer",
+                In = ParameterLocation.Header
             },
-            Array.Empty<string>()
+            new List<string>()
         }
     });
 
-    // Include XML comments if available
+    // Include XML comments for better documentation
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
-        c.IncludeXmlComments(xmlPath);
+    {
+        c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+    }
+
+    // Enable annotations for better documentation
+    c.EnableAnnotations();
+    
+    // Order actions by relative path
+    c.OrderActionsBy(apiDesc => $"{apiDesc.RelativePath}");
+    
+    // Use simple type names for schema IDs
+    c.CustomSchemaIds(type => type.Name);
+    
+    // Add operation filters for better documentation
+    c.OperationFilter<SwaggerDefaultValues>();
+    
+    // Add example filters
+    c.SchemaFilter<SwaggerExampleSchemaFilter>();
 });
 
 var app = builder.Build();
@@ -288,11 +347,36 @@ if (app.Environment.IsDevelopment())
     // Map SignalR hub
     app.MapHub<TripHub>("/tripHub");
     
-    app.UseSwagger();
+    app.UseSwagger(options =>
+    {
+        options.SerializeAsV2 = false;
+    });
+    
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "AmbulanceRider API V1");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "AmbulanceRider API V1.0.0");
         c.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
+        
+        // Enhanced UI settings
+        c.DocumentTitle = "AmbulanceRider API Documentation";
+        c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List);
+        c.DefaultModelsExpandDepth(2);
+        c.DefaultModelExpandDepth(2);
+        c.DisplayRequestDuration();
+        c.EnableDeepLinking();
+        c.EnableFilter();
+        c.ShowExtensions();
+        c.EnableValidator();
+        c.SupportedSubmitMethods(
+            Swashbuckle.AspNetCore.SwaggerUI.SubmitMethod.Get,
+            Swashbuckle.AspNetCore.SwaggerUI.SubmitMethod.Post,
+            Swashbuckle.AspNetCore.SwaggerUI.SubmitMethod.Put,
+            Swashbuckle.AspNetCore.SwaggerUI.SubmitMethod.Delete,
+            Swashbuckle.AspNetCore.SwaggerUI.SubmitMethod.Patch
+        );
+        
+        // Inject custom CSS for better appearance
+        c.InjectStylesheet("/swagger-ui/custom.css");
     });
 }
 

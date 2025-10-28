@@ -20,7 +20,17 @@ public class AuthService(HttpClient httpClient, AuthenticationStateProvider auth
             {
                 var content = await response.Content.ReadAsStringAsync();
                 var result = JsonSerializer.Deserialize<JsonElement>(content);
-                var token = result.GetProperty("token").GetString();
+                
+                // Try to get accessToken (new API format) or token (old format)
+                string? token = null;
+                if (result.TryGetProperty("accessToken", out var accessTokenProp))
+                {
+                    token = accessTokenProp.GetString();
+                }
+                else if (result.TryGetProperty("token", out var tokenProp))
+                {
+                    token = tokenProp.GetString();
+                }
                 
                 if (!string.IsNullOrEmpty(token))
                 {
@@ -32,8 +42,9 @@ public class AuthService(HttpClient httpClient, AuthenticationStateProvider auth
             }
             return false;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.Error.WriteLine($"Login error: {ex.Message}");
             return false;
         }
     }

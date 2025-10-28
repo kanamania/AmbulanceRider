@@ -49,3 +49,22 @@ public class LoginResponseDto
     public string Token { get; set; } = string.Empty;
     public UserDto User { get; set; } = null!;
 }
+
+public class UpdateProfileDto
+{
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public string? PhoneNumber { get; set; }
+}
+
+public class ChangePasswordDto
+{
+    public string CurrentPassword { get; set; } = string.Empty;
+    public string NewPassword { get; set; } = string.Empty;
+    public string ConfirmPassword { get; set; } = string.Empty;
+}
+
+public class UpdateProfileImageDto
+{
+    public IFormFile Image { get; set; } = null!;
+}
