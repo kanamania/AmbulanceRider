@@ -57,4 +57,26 @@ public class TripRepository : Repository<Trip>, ITripRepository
             .OrderByDescending(t => t.ScheduledStartTime)
             .ToListAsync();
     }
+
+    public async Task<Vehicle?> GetVehicleAsync(int vehicleId)
+    {
+        return await _context.Set<Vehicle>()
+            .FirstOrDefaultAsync(v => v.Id == vehicleId && v.DeletedAt == null);
+    }
+
+    public async Task<IEnumerable<Trip>> GetTripsToAutoStartAsync(DateTime currentTime, TimeSpan timeWindow)
+    {
+        var startTime = currentTime.Subtract(timeWindow);
+        var endTime = currentTime;
+        
+        return await _dbSet
+            .Include(t => t.Vehicle)
+            .Include(t => t.Driver)
+            .Where(t => t.DeletedAt == null 
+                && t.Status == TripStatus.Approved 
+                && t.ScheduledStartTime >= startTime 
+                && t.ScheduledStartTime <= endTime
+                && !t.AutoStarted)
+            .ToListAsync();
+    }
 }

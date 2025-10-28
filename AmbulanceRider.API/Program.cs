@@ -1,11 +1,14 @@
+using System.Globalization;
 using System.Text;
 using AmbulanceRider.API.Data;
+using AmbulanceRider.API.Hubs;
 using AmbulanceRider.API.Models;
 using AmbulanceRider.API.Repositories;
 using AmbulanceRider.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
@@ -33,10 +36,44 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
+// Add Repositories
+builder.Services.AddScoped<ITripRepository, TripRepository>();
+builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
+builder.Services.AddScoped<ITripStatusLogRepository, TripStatusLogRepository>();
+builder.Services.AddScoped<ITripAttributeValueRepository, TripAttributeValueRepository>();
+builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+
 // Add Services
 builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuditService, AuditService>();
+
+// Add HttpClient
+builder.Services.AddHttpClient();
+
+// Add Trip Management Services
+builder.Services.AddScoped<ITripManagementService, TripManagementService>();
+builder.Services.AddScoped<IRouteOptimizationService, MapboxRouteOptimizationService>();
+builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
+
+// Add Background Services
+builder.Services.AddHostedService<ScheduledTasksService>();
+
+// Add Configuration
+builder.Services.Configure<MapboxSettings>(builder.Configuration.GetSection("Mapbox"));
+builder.Services.Configure<FileStorageSettings>(builder.Configuration.GetSection("FileStorage"));
+
+// Add AutoMapper
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+// Add HttpContextAccessor
+builder.Services.AddHttpContextAccessor();
+
+// Add SignalR
+builder.Services.AddSignalR();
+
+// Add Notification Service
+builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
 
 // Add Identity
 builder.Services.AddIdentity<User, Role>()
@@ -72,7 +109,8 @@ if (corsSettings?.AllowedOrigins?.Any() == true)
             policy.WithOrigins(corsSettings.AllowedOrigins.ToArray())
                   .AllowAnyMethod()
                   .AllowAnyHeader()
-                  .AllowCredentials();
+                  .AllowCredentials()
+                  .SetIsOriginAllowed(_ => true); // Allow SignalR connections
         });
     });
 }
@@ -164,8 +202,34 @@ builder.Services.AddScoped<ITripService, TripService>();
 builder.Services.AddScoped<ITripTypeService, TripTypeService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ITelemetryService, TelemetryService>();
+builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
 
-// Add Controllers
+// Add SignalR
+builder.Services.AddSignalR();
+
+// Add services to the container.
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+// Configure supported cultures
+var supportedCultures = new[]
+{
+    new CultureInfo("en"),
+    new CultureInfo("sw-KE")
+};
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    options.DefaultRequestCulture = new RequestCulture("en");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+    options.RequestCultureProviders = new List<IRequestCultureProvider>
+    {
+        new QueryStringRequestCultureProvider(),
+        new CookieRequestCultureProvider(),
+        new AcceptLanguageHeaderRequestCultureProvider()
+    };
+});
+
 builder.Services.AddControllers();
 
 // Add Swagger/OpenAPI
@@ -218,9 +282,12 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Configure Swagger UI
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    // Map SignalR hub
+    app.MapHub<TripHub>("/tripHub");
+    
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
@@ -302,6 +369,9 @@ using (var scope = app.Services.CreateScope())
 
 app.UseHttpsRedirection();
 
+// Add performance monitoring middleware
+app.UseMiddleware<AmbulanceRider.API.Middleware.PerformanceMonitoringMiddleware>();
+
 // Add request logging for debugging
 app.Use(async (context, next) =>
 {
@@ -316,6 +386,10 @@ app.UseAuthorization();
 
 // Map controllers
 app.MapControllers();
+
+// Map SignalR hubs
+app.MapHub<AmbulanceRider.API.Hubs.NotificationHub>("/hubs/notifications");
+app.MapHub<AmbulanceRider.API.Hubs.TripHub>("/hubs/trips");
 
 // Add a simple health check endpoint
 app.MapGet("/health", () => Results.Ok("API is running"));

@@ -1,0 +1,319 @@
+@page "/analytics"
+@using AmbulanceRider.Services
+@inject ApiService ApiService
+@inject NavigationManager Navigation
+
+<PageTitle>Analytics Dashboard</PageTitle>
+
+<div class="container-fluid py-4">
+    <h1 class="mb-4">Analytics Dashboard</h1>
+
+    @if (isLoading)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (dashboardStats != null)
+    {
+        <!-- Date Range Filter -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <label class="form-label">Start Date</label>
+                <input type="date" class="form-control" @bind="startDate" @bind:event="oninput" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">End Date</label>
+                <input type="date" class="form-control" @bind="endDate" @bind:event="oninput" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button class="btn btn-primary w-100" @onclick="LoadDashboardStats">Apply Filter</button>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Trips</h5>
+                        <h2>@dashboardStats.TotalTrips</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Pending Trips</h5>
+                        <h2>@dashboardStats.PendingTrips</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">In Progress</h5>
+                        <h2>@dashboardStats.InProgressTrips</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Completed</h5>
+                        <h2>@dashboardStats.CompletedTrips</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vehicle and Driver Stats -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Vehicles</h5>
+                        <h3>@dashboardStats.TotalVehicles</h3>
+                        <small class="text-muted">Active: @dashboardStats.ActiveVehicles</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Drivers</h5>
+                        <h3>@dashboardStats.TotalDrivers</h3>
+                        <small class="text-muted">Active: @dashboardStats.ActiveDrivers</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-danger text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Cancelled</h5>
+                        <h3>@dashboardStats.CancelledTrips</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-secondary text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Rejected</h5>
+                        <h3>@dashboardStats.RejectedTrips</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Trip Status Distribution</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Trips Over Time</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="dateChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vehicle Utilization -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Vehicle Utilization</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (vehicleUtilization != null && vehicleUtilization.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Vehicle</th>
+                                            <th>Plate Number</th>
+                                            <th>Total Trips</th>
+                                            <th>Completed</th>
+                                            <th>In Progress</th>
+                                            <th>Utilization Rate</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var vehicle in vehicleUtilization)
+                                        {
+                                            <tr>
+                                                <td>@vehicle.VehicleName</td>
+                                                <td>@vehicle.PlateNumber</td>
+                                                <td>@vehicle.TotalTrips</td>
+                                                <td>@vehicle.CompletedTrips</td>
+                                                <td>@vehicle.InProgressTrips</td>
+                                                <td>
+                                                    <div class="progress">
+                                                        <div class="progress-bar" role="progressbar" 
+                                                             style="width: @vehicle.UtilizationRate%"
+                                                             aria-valuenow="@vehicle.UtilizationRate" 
+                                                             aria-valuemin="0" aria-valuemax="100">
+                                                            @vehicle.UtilizationRate.ToString("F1")%
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Driver Performance -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Driver Performance</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (driverPerformance != null && driverPerformance.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Driver</th>
+                                            <th>Email</th>
+                                            <th>Total Trips</th>
+                                            <th>Completed</th>
+                                            <th>In Progress</th>
+                                            <th>Cancelled</th>
+                                            <th>Completion Rate</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var driver in driverPerformance)
+                                        {
+                                            <tr>
+                                                <td>@driver.DriverName</td>
+                                                <td>@driver.Email</td>
+                                                <td>@driver.TotalTrips</td>
+                                                <td>@driver.CompletedTrips</td>
+                                                <td>@driver.InProgressTrips</td>
+                                                <td>@driver.CancelledTrips</td>
+                                                <td>
+                                                    <div class="progress">
+                                                        <div class="progress-bar bg-success" role="progressbar" 
+                                                             style="width: @driver.CompletionRate%"
+                                                             aria-valuenow="@driver.CompletionRate" 
+                                                             aria-valuemin="0" aria-valuemax="100">
+                                                            @driver.CompletionRate.ToString("F1")%
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private DateTime? startDate = DateTime.Now.AddMonths(-1);
+    private DateTime? endDate = DateTime.Now;
+    
+    private DashboardStatsDto? dashboardStats;
+    private List<VehicleUtilizationDto>? vehicleUtilization;
+    private List<DriverPerformanceDto>? driverPerformance;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardStats();
+    }
+
+    private async Task LoadDashboardStats()
+    {
+        isLoading = true;
+        try
+        {
+            var queryParams = $"?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}";
+            
+            dashboardStats = await ApiService.GetAsync<DashboardStatsDto>($"analytics/dashboard{queryParams}");
+            vehicleUtilization = await ApiService.GetAsync<List<VehicleUtilizationDto>>($"analytics/vehicles/utilization{queryParams}");
+            driverPerformance = await ApiService.GetAsync<List<DriverPerformanceDto>>($"analytics/drivers/performance{queryParams}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading analytics: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    // DTOs (these should match your API DTOs)
+    public class DashboardStatsDto
+    {
+        public int TotalTrips { get; set; }
+        public int PendingTrips { get; set; }
+        public int ApprovedTrips { get; set; }
+        public int InProgressTrips { get; set; }
+        public int CompletedTrips { get; set; }
+        public int CancelledTrips { get; set; }
+        public int RejectedTrips { get; set; }
+        public int TotalVehicles { get; set; }
+        public int ActiveVehicles { get; set; }
+        public int TotalDrivers { get; set; }
+        public int ActiveDrivers { get; set; }
+        public int TotalUsers { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+    }
+
+    public class VehicleUtilizationDto
+    {
+        public int VehicleId { get; set; }
+        public string VehicleName { get; set; } = string.Empty;
+        public string PlateNumber { get; set; } = string.Empty;
+        public int TotalTrips { get; set; }
+        public int CompletedTrips { get; set; }
+        public int InProgressTrips { get; set; }
+        public double UtilizationRate { get; set; }
+    }
+
+    public class DriverPerformanceDto
+    {
+        public Guid DriverId { get; set; }
+        public string DriverName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public int TotalTrips { get; set; }
+        public int CompletedTrips { get; set; }
+        public int InProgressTrips { get; set; }
+        public int CancelledTrips { get; set; }
+        public double CompletionRate { get; set; }
+    }
+}

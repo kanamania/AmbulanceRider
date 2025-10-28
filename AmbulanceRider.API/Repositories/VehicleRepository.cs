@@ -13,7 +13,7 @@ public class VehicleRepository : Repository<Vehicle>, IVehicleRepository
     public async Task<Vehicle?> GetByIdWithTypesAsync(int id)
     {
         return await _dbSet
-            .Include(v => v.VehicleTypes)
+            .Include(v => v.VehicleType)
             .Include(v => v.VehicleDrivers)
                 .ThenInclude(vd => vd.User)
             .FirstOrDefaultAsync(v => v.Id == id);
@@ -22,7 +22,7 @@ public class VehicleRepository : Repository<Vehicle>, IVehicleRepository
     public async Task<IEnumerable<Vehicle>> GetAllWithTypesAsync()
     {
         return await _dbSet
-            .Include(v => v.VehicleTypes)
+            .Include(v => v.VehicleType)
             .Include(v => v.VehicleDrivers)
                 .ThenInclude(vd => vd.User)
             .ToListAsync();

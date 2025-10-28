@@ -25,6 +25,8 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<TripAttributeValue> TripAttributeValues { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<Telemetry> Telemetries { get; set; }
+    public DbSet<PerformanceLog> PerformanceLogs { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -48,11 +50,20 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.FirstName).IsRequired().HasMaxLength(50);
             entity.Property(e => e.LastName).IsRequired().HasMaxLength(50);
             
+            // Ignore computed property
+            entity.Ignore(u => u.FullName);
+            
             // Relationship with RefreshTokens
             entity.HasMany(u => u.RefreshTokens)
                 .WithOne(rt => rt.User)
                 .HasForeignKey(rt => rt.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+                
+            // Relationship with Trips as Driver
+            entity.HasMany(u => u.DriverTrips)
+                .WithOne(t => t.Driver)
+                .HasForeignKey(t => t.DriverId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Role>(entity =>
@@ -97,11 +108,15 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
         {
             entity.ToTable("vehicles");
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.PlateNumber).IsRequired().HasMaxLength(50);
             
             entity.HasOne(v => v.VehicleType)
                 .WithMany(vt => vt.Vehicles)
                 .HasForeignKey(v => v.VehicleTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
+                
+            // Trips relationship is configured in Trip entity
         });
 
         // VehicleType configuration
@@ -154,14 +169,11 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             
             // Relationships
             entity.HasOne(t => t.Vehicle)
-                .WithMany()
+                .WithMany(v => v.Trips)
                 .HasForeignKey(t => t.VehicleId)
                 .OnDelete(DeleteBehavior.Restrict);
                 
-            entity.HasOne(t => t.Driver)
-                .WithMany()
-                .HasForeignKey(t => t.DriverId)
-                .OnDelete(DeleteBehavior.Restrict);
+            // Driver relationship is configured in User entity
                 
             entity.HasOne(t => t.Approver)
                 .WithMany()
@@ -302,6 +314,53 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.HasIndex(e => e.EventType);
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.CreatedAt);
+        });
+
+        // PerformanceLog configuration
+        modelBuilder.Entity<PerformanceLog>(entity =>
+        {
+            entity.ToTable("performance_logs");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Endpoint).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.HttpMethod).IsRequired().HasMaxLength(10);
+            entity.Property(e => e.StatusCode).IsRequired();
+            entity.Property(e => e.ResponseTimeMs).IsRequired();
+            entity.Property(e => e.Timestamp).IsRequired();
+            entity.Property(e => e.UserId).HasMaxLength(50);
+            entity.Property(e => e.IpAddress).HasMaxLength(50);
+            entity.Property(e => e.UserAgent).HasMaxLength(500);
+            entity.Property(e => e.ErrorMessage).HasMaxLength(2000);
+            
+            // Indexes for common queries
+            entity.HasIndex(e => e.Endpoint);
+            entity.HasIndex(e => e.Timestamp);
+            entity.HasIndex(e => e.StatusCode);
+        });
+
+        // AuditLog configuration
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.ToTable("audit_logs");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.EntityId).IsRequired();
+            entity.Property(e => e.Action).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.OldValues).HasMaxLength(4000);
+            entity.Property(e => e.NewValues).HasMaxLength(4000);
+            entity.Property(e => e.AffectedProperties).HasMaxLength(1000);
+            entity.Property(e => e.UserName).HasMaxLength(255);
+            entity.Property(e => e.UserRole).HasMaxLength(100);
+            entity.Property(e => e.IpAddress).HasMaxLength(50);
+            entity.Property(e => e.UserAgent).HasMaxLength(500);
+            entity.Property(e => e.Notes).HasMaxLength(2000);
+            entity.Property(e => e.Timestamp).IsRequired();
+            
+            // Indexes for common queries
+            entity.HasIndex(e => e.EntityType);
+            entity.HasIndex(e => e.EntityId);
+            entity.HasIndex(e => e.Action);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.Timestamp);
         });
     }
 

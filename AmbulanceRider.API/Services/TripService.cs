@@ -11,19 +11,22 @@ public class TripService : ITripService
     private readonly IUserRepository _userRepository;
     private readonly ITripStatusLogRepository _tripStatusLogRepository;
     private readonly ITripAttributeValueRepository _tripAttributeValueRepository;
+    private readonly INotificationService _notificationService;
 
     public TripService(
         ITripRepository tripRepository,
         IVehicleRepository vehicleRepository,
         IUserRepository userRepository,
         ITripStatusLogRepository tripStatusLogRepository,
-        ITripAttributeValueRepository tripAttributeValueRepository)
+        ITripAttributeValueRepository tripAttributeValueRepository,
+        INotificationService notificationService)
     {
         _tripRepository = tripRepository;
         _vehicleRepository = vehicleRepository;
         _userRepository = userRepository;
         _tripStatusLogRepository = tripStatusLogRepository;
         _tripAttributeValueRepository = tripAttributeValueRepository;
+        _notificationService = notificationService;
     }
 
     public async Task<IEnumerable<TripDto>> GetAllTripsAsync()
@@ -209,7 +212,20 @@ public class TripService : ITripService
 
         if (approveTripDto.Approve)
         {
+            if (!approveTripDto.VehicleId.HasValue)
+            {
+                throw new InvalidOperationException("Vehicle ID is required when approving a trip");
+            }
+            
+            // Verify the vehicle exists
+            var vehicle = await _vehicleRepository.GetByIdAsync(approveTripDto.VehicleId.Value);
+            if (vehicle == null)
+            {
+                throw new KeyNotFoundException("Specified vehicle not found");
+            }
+            
             trip.Status = TripStatus.Approved;
+            trip.VehicleId = approveTripDto.VehicleId.Value;
             trip.ApprovedBy = approverId;
             trip.ApprovedAt = DateTime.UtcNow;
             trip.RejectionReason = null;
@@ -369,11 +385,15 @@ public class TripService : ITripService
                 ? updateDto.Notes 
                 : $"{trip.Description}\n\nStatus Update: {updateDto.Notes}";
         }
-
+        
+        trip.UpdatedAt = DateTime.UtcNow;
         await _tripRepository.UpdateAsync(trip);
         
-        // Log the status change
-        await LogStatusChangeAsync(trip, oldStatus, updateDto.Status, userId, isAdminOrDispatcher, updateDto);
+        // Log status change
+        await LogStatusChangeAsync(trip, oldStatus, trip.Status, userId, isAdminOrDispatcher, updateDto);
+        
+        // Send notification about status change
+        await _notificationService.SendTripStatusChangeAsync(trip.Id, oldStatus.ToString(), trip.Status.ToString());
         
         // Reload to get navigation properties
         var updatedTrip = await _tripRepository.GetByIdAsync(trip.Id);

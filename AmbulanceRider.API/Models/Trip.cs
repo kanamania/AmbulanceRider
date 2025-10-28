@@ -46,6 +46,20 @@ public class Trip : BaseModel
     public DateTime? ApprovedAt { get; set; }
     public int? TripTypeId { get; set; }
     
+    // Trip management properties
+    public bool RequiresGpsVerification { get; set; }
+    public double? CompletionLatitude { get; set; }
+    public double? CompletionLongitude { get; set; }
+    public double? CompletionAccuracy { get; set; }
+    public string? PhotoUrl { get; set; }
+    public string? SignatureUrl { get; set; }
+    public bool AutoApproved { get; set; }
+    public bool AutoStarted { get; set; }
+    public string? OptimizedRoute { get; set; }
+    public string? RoutePolyline { get; set; }
+    public double? EstimatedDistance { get; set; } // in meters
+    public int? EstimatedDuration { get; set; } // in seconds
+    
     // Navigation properties
     public virtual Vehicle? Vehicle { get; set; }
     public virtual User? Driver { get; set; }

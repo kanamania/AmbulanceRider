@@ -6,9 +6,11 @@ public class VehicleDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string PlateNumber { get; set; } = string.Empty;
     public string? ImagePath { get; set; }
     public string? ImageUrl { get; set; }
-    public List<string> Types { get; set; } = new();
+    public int VehicleTypeId { get; set; }
+    public string? VehicleTypeName { get; set; }
     public List<UserDto> AssignedDrivers { get; set; } = new();
     public DateTime CreatedAt { get; set; }
 }
@@ -16,8 +18,9 @@ public class VehicleDto
 public class CreateVehicleDto
 {
     public string Name { get; set; } = string.Empty;
+    public string PlateNumber { get; set; } = string.Empty;
+    public int VehicleTypeId { get; set; }
     public IFormFile? Image { get; set; }
-    public List<string> Types { get; set; } = new();
     public string? ImagePath { get; set; }
     public string? ImageUrl { get; set; }
 }
@@ -25,9 +28,10 @@ public class CreateVehicleDto
 public class UpdateVehicleDto
 {
     public string? Name { get; set; }
+    public string? PlateNumber { get; set; }
+    public int? VehicleTypeId { get; set; }
     public IFormFile? Image { get; set; }
     public bool RemoveImage { get; set; }
-    public List<string>? Types { get; set; }
     public string? ImagePath { get; set; }
     public string? ImageUrl { get; set; }
 }

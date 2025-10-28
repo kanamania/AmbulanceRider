@@ -14,6 +14,32 @@ public class ApiService
         // Just use the configured client
     }
 
+    // Generic HTTP methods
+    public async Task<T?> GetAsync<T>(string endpoint)
+    {
+        return await _httpClient.GetFromJsonAsync<T>($"/api/{endpoint.TrimStart('/')}");
+    }
+
+    public async Task<T> PostAsync<T>(string endpoint, object data)
+    {
+        var response = await _httpClient.PostAsJsonAsync($"/api/{endpoint.TrimStart('/')}", data);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<T>() ?? throw new Exception("Failed to post data");
+    }
+
+    public async Task<T> PutAsync<T>(string endpoint, object data)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"/api/{endpoint.TrimStart('/')}", data);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<T>() ?? throw new Exception("Failed to put data");
+    }
+
+    public async Task DeleteAsync(string endpoint)
+    {
+        var response = await _httpClient.DeleteAsync($"/api/{endpoint.TrimStart('/')}");
+        response.EnsureSuccessStatusCode();
+    }
+
     // Users
     public async Task<List<UserDto>> GetUsersAsync()
     {

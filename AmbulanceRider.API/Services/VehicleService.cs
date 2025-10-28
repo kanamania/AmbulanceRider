@@ -33,21 +33,13 @@ public class VehicleService : IVehicleService
         var vehicle = new Vehicle
         {
             Name = createVehicleDto.Name,
+            PlateNumber = createVehicleDto.PlateNumber,
+            VehicleTypeId = createVehicleDto.VehicleTypeId,
             Image = createVehicleDto.ImagePath,
             CreatedAt = DateTime.UtcNow
         };
 
         await _vehicleRepository.AddAsync(vehicle);
-
-        // Add types
-        foreach (var typeName in createVehicleDto.Types)
-        {
-            var vehicleType = new VehicleType
-            {
-                Name = typeName
-            };
-            _context.VehicleTypes.Add(vehicleType);
-        }
         await _context.SaveChangesAsync();
 
         return (await GetVehicleByIdAsync(vehicle.Id))!;
@@ -64,32 +56,19 @@ public class VehicleService : IVehicleService
         if (!string.IsNullOrEmpty(updateVehicleDto.Name))
             vehicle.Name = updateVehicleDto.Name;
         
+        if (!string.IsNullOrEmpty(updateVehicleDto.PlateNumber))
+            vehicle.PlateNumber = updateVehicleDto.PlateNumber;
+        
+        if (updateVehicleDto.VehicleTypeId.HasValue)
+            vehicle.VehicleTypeId = updateVehicleDto.VehicleTypeId.Value;
+        
         if (updateVehicleDto.Image != null)
             vehicle.Image = updateVehicleDto.ImagePath;
 
         vehicle.UpdatedAt = DateTime.UtcNow;
 
         await _vehicleRepository.UpdateAsync(vehicle);
-
-        // Update types if provided
-        if (updateVehicleDto.Types != null)
-        {
-            var existingTypes = vehicle.VehicleTypes.ToList();
-            foreach (var type in existingTypes)
-            {
-                _context.VehicleTypes.Remove(type);
-            }
-
-            foreach (var typeName in updateVehicleDto.Types)
-            {
-                var vehicleType = new VehicleType
-                {
-                    Name = typeName
-                };
-                _context.VehicleTypes.Add(vehicleType);
-            }
-            await _context.SaveChangesAsync();
-        }
+        await _context.SaveChangesAsync();
 
         return (await GetVehicleByIdAsync(id))!;
     }
@@ -112,8 +91,10 @@ public class VehicleService : IVehicleService
         {
             Id = vehicle.Id,
             Name = vehicle.Name,
+            PlateNumber = vehicle.PlateNumber,
             ImagePath = vehicle.Image,
-            Types = vehicle.VehicleTypes.Select(vt => vt.Name).ToList(),
+            VehicleTypeId = vehicle.VehicleTypeId,
+            VehicleTypeName = vehicle.VehicleType?.Name,
             AssignedDrivers = vehicle.VehicleDrivers
                 .Where(vd => vd.DeletedAt == null)
                 .Select(vd => new UserDto

@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!-- Common UI Elements -->
+  <data name="AppName" xml:space="preserve">
+    <value>Ambulance Rider</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Ingia</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Toka</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Hifadhi</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Ghairi</value>
+  </data>
+  
+  <!-- Trip Related -->
+  <data name="Trip_Created" xml:space="preserve">
+    <value>Safari imeundwa kikamilifu</value>
+  </data>
+  <data name="Trip_Updated" xml:space="preserve">
+    <value>Safari imesasishwa kikamilifu</value>
+  </data>
+  <data name="Trip_Deleted" xml:space="preserve">
+    <value>Safari imefutwa kikamilifu</value>
+  </data>
+  <data name="Trip_Status_Changed" xml:space="preserve">
+    <value>Hali ya safari imebadilishwa kuwa: {0}</value>
+  </data>
+  
+  <!-- Status Messages -->
+  <data name="Status_Success" xml:space="preserve">
+    <value>Imefanikiwa</value>
+  </data>
+  <data name="Status_Error" xml:space="preserve">
+    <value>Hitilafu</value>
+  </data>
+  <data name="Status_Warning" xml:space="preserve">
+    <value>Onyo</value>
+  </data>
+  
+  <!-- Validation Messages -->
+  <data name="Validation_Required" xml:space="preserve">
+    <value>Sehemu ya {0} inahitajika</value>
+  </data>
+  <data name="Validation_InvalidEmail" xml:space="preserve">
+    <value>Tafadhali ingiza barua pepe sahihi</value>
+  </data>
+  
+  <!-- Navigation -->
+  <data name="Nav_Home" xml:space="preserve">
+    <value>Nyumbani</value>
+  </data>
+  <data name="Nav_Trips" xml:space="preserve">
+    <value>Safari</value>
+  </data>
+  <data name="Nav_Reports" xml:space="preserve">
+    <value>Ripoti</value>
+  </data>
+  <data name="Nav_Settings" xml:space="preserve">
+    <value>Mipangilio</value>
+  </data>
+  
+  <!-- Trip Statuses -->
+  <data name="TripStatus_Pending" xml:space="preserve">
+    <value>Inasubiri</value>
+  </data>
+  <data name="TripStatus_Approved" xml:space="preserve">
+    <value>Imekubaliwa</value>
+  </data>
+  <data name="TripStatus_InProgress" xml:space="preserve">
+    <value>Inaendelea</value>
+  </data>
+  <data name="TripStatus_Completed" xml:space="preserve">
+    <value>Imekamilika</value>
+  </data>
+  <data name="TripStatus_Cancelled" xml:space="preserve">
+    <value>Imesitishwa</value>
+  </data>
+  <data name="TripStatus_Rejected" xml:space="preserve">
+    <value>Imekataliwa</value>
+  </data>
+  
+  <!-- Notifications -->
+  <data name="Notification_NewTrip" xml:space="preserve">
+    <value>Safari mpya imeundwa</value>
+  </data>
+  <data name="Notification_TripAssigned" xml:space="preserve">
+    <value>Umepewa safari mpya</value>
+  </data>
+  <data name="Notification_TripStatusChanged" xml:space="preserve">
+    <value>Hali ya safari imebadilika kuwa: {0}</value>
+  </data>
+  
+  <!-- Buttons -->
+  <data name="Button_ViewDetails" xml:space="preserve">
+    <value>Angalia Maelezo</value>
+  </data>
+  <data name="Button_Edit" xml:space="preserve">
+    <value>Hariri</value>
+  </data>
+  <data name="Button_Delete" xml:space="preserve">
+    <value>Futa</value>
+  </data>
+  <data name="Button_Approve" xml:space="preserve">
+    <value>Idhinisha</value>
+  </data>
+  <data name="Button_Reject" xml:space="preserve">
+    <value>Kataa</value>
+  </data>
+  
+  <!-- Form Labels -->
+  <data name="Label_Name" xml:space="preserve">
+    <value>Jina</value>
+  </data>
+  <data name="Label_Description" xml:space="preserve">
+    <value>Maelezo</value>
+  </data>
+  <data name="Label_StartLocation" xml:space="preserve">
+    <value>Mahali Paanzia</value>
+  </data>
+  <data name="Label_EndLocation" xml:space="preserve">
+    <value>Mahali Paishia</value>
+  </data>
+  <data name="Label_Date" xml:space="preserve">
+    <value>Tarehe</value>
+  </data>
+  <data name="Label_Time" xml:space="preserve">
+    <value>Muda</value>
+  </data>
+  <data name="Label_Vehicle" xml:space="preserve">
+    <value>Gari</value>
+  </data>
+  <data name="Label_Driver" xml:space="preserve">
+    <value>Dereva</value>
+  </data>
+  
+  <!-- Messages -->
+  <data name="Message_ConfirmDelete" xml:space="preserve">
+    <value>Una uhakika unataka kufuta hii?</value>
+  </data>
+  <data name="Message_OperationSuccessful" xml:space="preserve">
+    <value>Operesheni imefanikiwa</value>
+  </data>
+  <data name="Message_OperationFailed" xml:space="preserve">
+    <value>Operesheni imeshindwa. Tafadhali jaribu tena baadaye.</value>
+  </data>
+  
+  <!-- Errors -->
+  <data name="Error_RequiredField" xml:space="preserve">
+    <value>Sehemu hii inahitajika</value>
+  </data>
+  <data name="Error_InvalidInput" xml:space="preserve">
+    <value>Thamani batili</value>
+  </data>
+  <data name="Error_Network" xml:space="preserve">
+    <value>Hitilafu ya mtandao. Tafadhali angalia muunganisho wako wa intaneti na ujaribu tena.</value>
+  </data>
+  
+  <!-- User Interface -->
+  <data name="UI_Loading" xml:space="preserve">
+    <value>Inapakia...</value>
+  </data>
+  <data name="UI_NoData" xml:space="preserve">
+    <value>Hakuna data</value>
+  </data>
+  <data name="UI_ItemsPerPage" xml:space="preserve">
+    <value>Vipengee kwa ukurasa:</value>
+  </data>
+  <data name="UI_Of" xml:space="preserve">
+    <value>ya</value>
+  </data>
+  
+  <!-- Roles -->
+  <data name="Role_Admin" xml:space="preserve">
+    <value>Msimamizi</value>
+  </data>
+  <data name="Role_Dispatcher" xml:space="preserve">
+    <value>Mtumaji</value>
+  </data>
+  <data name="Role_Driver" xml:space="preserve">
+    <value>Dereva</value>
+  </data>
+  <data name="Role_User" xml:space="preserve">
+    <value>Mtumiaji</value>
+  </data>
+  
+  <!-- Trip Types -->
+  <data name="TripType_Emergency" xml:space="preserve">
+    <value>Dharura</value>
+  </data>
+  <data name="TripType_NonEmergency" xml:space="preserve">
+    <value>Isiyo ya dharura</value>
+  </data>
+  <data name="TripType_Transfer" xml:space="preserve">
+    <value>Uhamisho</value>
+  </data>
+  
+  <!-- Audit Logs -->
+  <data name="Audit_Action_Create" xml:space="preserve">
+    <value>Imeundwa</value>
+  </data>
+  <data name="Audit_Action_Update" xml:space="preserve">
+    <value>Imehaririwa</value>
+  </data>
+  <data name="Audit_Action_Delete" xml:space="preserve">
+    <value>Imefutwa</value>
+  </data>
+  <data name="Audit_Action_StatusChange" xml:space="preserve">
+    <value>Hali imebadilishwa</value>
+  </data>
+  
+  <!-- Time -->
+  <data name="Time_Ago" xml:space="preserve">
+    <value>{0} iliyopita</value>
+  </data>
+  <data name="Time_Minute" xml:space="preserve">
+    <value>dakika</value>
+  </data>
+  <data name="Time_Hour" xml:space="preserve">
+    <value>saa</value>
+  </data>
+  <data name="Time_Day" xml:space="preserve">
+    <value>siku</value>
+  </data>
+  
+  <!-- Search -->
+  <data name="Search_Placeholder" xml:space="preserve">
+    <value>Tafuta...</value>
+  </data>
+  
+  <!-- Filters -->
+  <data name="Filter_All" xml:space="preserve">
+    <value>Zote</value>
+  </data>
+  <data name="Filter_Active" xml:space="preserve">
+    <value>Zinazoendelea</value>
+  </data>
+  <data name="Filter_Completed" xml:space="preserve">
+    <value>Zilizokamilika</value>
+  </data>
+  
+  <!-- Map -->
+  <data name="Map_CurrentLocation" xml:space="preserve">
+    <value>Eneo Lako Sasa</value>
+  </data>
+  <data name="Map_Pickup" xml:space="preserve">
+    <value>Mahali Paanzia</value>
+  </data>
+  <data name="Map_Dropoff" xml:space="preserve">
+    <value>Mahali Paishia</value>
+  </data>
+</root>

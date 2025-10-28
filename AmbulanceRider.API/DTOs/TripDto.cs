@@ -95,6 +95,9 @@ public class ApproveTripDto
     public required bool Approve { get; set; }
     public string? RejectionReason { get; set; }
     
+    // Required when approving a trip
+    public int? VehicleId { get; set; }
+    
     // Telemetry
     public TelemetryDto? Telemetry { get; set; }
 }
