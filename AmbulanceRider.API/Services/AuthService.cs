@@ -46,6 +46,7 @@ public class AuthService : IAuthService
 
         var user = new User
         {
+            UserName = registerDto.Email,
             FirstName = registerDto.FirstName,
             LastName = registerDto.LastName,
             Email = registerDto.Email,

@@ -78,6 +78,8 @@ public class PerformanceMonitoringMiddleware
                 _logger.LogWarning($"Slow request: {context.Request.Method} {context.Request.Path} took {stopwatch.Elapsed.TotalMilliseconds}ms");
             }
 
+            // Copy the response body back to the original stream
+            responseBody.Seek(0, SeekOrigin.Begin);
             await responseBody.CopyToAsync(originalBodyStream);
         }
     }

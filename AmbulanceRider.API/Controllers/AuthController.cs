@@ -66,7 +66,7 @@ public class AuthController : ControllerBase
         try
         {
             var response = await _authService.RegisterAsync(registerDto);
-            
+
             // Log telemetry
             await _telemetryService.LogTelemetryAsync(
                 "Register",
@@ -74,7 +74,7 @@ public class AuthController : ControllerBase
                 Guid.Parse(response.User.Id),
                 $"User registered: {registerDto.Email}"
             );
-            
+
             return CreatedAtAction(nameof(GetCurrentUser), new { id = response.User.Id }, response);
         }
         catch (ApplicationException ex)
@@ -113,29 +113,81 @@ public class AuthController : ControllerBase
     {
         try
         {
+            if (loginDto == null || string.IsNullOrWhiteSpace(loginDto.Email) ||
+                string.IsNullOrWhiteSpace(loginDto.Password))
+            {
+                return BadRequest(new { message = "Email and password are required" });
+            }
+
             var response = await _authService.LoginAsync(loginDto);
-            
+
+            if (response == null)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { message = "An error occurred while processing your request" });
+            }
+
+            if (string.IsNullOrEmpty(response.AccessToken) || string.IsNullOrEmpty(response.RefreshToken))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { message = "Failed to generate authentication tokens" });
+            }
+
+            if (response.User == null)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { message = "Failed to retrieve user information" });
+            }
+
             // Log telemetry
-            await _telemetryService.LogTelemetryAsync(
-                "Login",
-                loginDto.Telemetry,
-                Guid.Parse(response.User.Id),
-                $"User logged in: {loginDto.Email}"
-            );
-            
-            return Ok(response);
+            try
+            {
+                await _telemetryService.LogTelemetryAsync(
+                    "Login",
+                    loginDto.Telemetry,
+                    Guid.Parse(response.User.Id),
+                    $"User logged in: {loginDto.Email}"
+                );
+            }
+            catch (Exception ex)
+            {
+                // Log telemetry error but don't fail the login
+                Console.WriteLine($"Error logging telemetry: {ex.Message}");
+            }
+
+            return Ok(new
+            {
+                accessToken = response.AccessToken,
+                refreshToken = response.RefreshToken,
+                expiresIn = response.ExpiresIn,
+                user = response.User
+            });
         }
         catch (UnauthorizedAccessException ex)
         {
             // Log failed login attempt
-            await _telemetryService.LogTelemetryAsync(
-                "LoginFailed",
-                loginDto.Telemetry,
-                null,
-                $"Failed login attempt: {loginDto.Email}"
-            );
-            
-            return Unauthorized(new { message = ex.Message });
+            try
+            {
+                await _telemetryService.LogTelemetryAsync(
+                    "LoginFailed",
+                    loginDto?.Telemetry,
+                    null,
+                    $"Failed login attempt: {loginDto?.Email}"
+                );
+            }
+            catch
+            {
+                // Ignore telemetry errors
+            }
+
+            return Unauthorized(new { message = ex.Message ?? "Invalid email or password" });
+        }
+        catch (Exception ex)
+        {
+            // Log unexpected errors
+            Console.WriteLine($"Unexpected error during login: {ex}");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "An error occurred while processing your request" });
         }
     }
 
@@ -264,7 +316,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto forgotPasswordDto)
     {
         await _authService.SendPasswordResetEmailAsync(forgotPasswordDto.Email);
-        
+
         // Log telemetry
         await _telemetryService.LogTelemetryAsync(
             "ForgotPassword",
@@ -272,7 +324,7 @@ public class AuthController : ControllerBase
             null,
             $"Password reset requested: {forgotPasswordDto.Email}"
         );
-        
+
         return Ok(new { message = "Password reset instructions sent to your email" });
     }
 
@@ -306,7 +358,7 @@ public class AuthController : ControllerBase
             {
                 return BadRequest(new { message = "Failed to reset password", errors = result.Errors });
             }
-            
+
             // Log telemetry
             await _telemetryService.LogTelemetryAsync(
                 "ResetPassword",
@@ -314,7 +366,7 @@ public class AuthController : ControllerBase
                 null,
                 $"Password reset completed: {resetPasswordDto.Email}"
             );
-            
+
             return Ok(new { message = "Password reset successfully" });
         }
         catch (ApplicationException ex)
