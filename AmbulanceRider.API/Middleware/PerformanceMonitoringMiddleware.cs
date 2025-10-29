@@ -55,13 +55,16 @@ public class PerformanceMonitoringMiddleware
                 ErrorMessage = exception?.Message
             };
 
+            // Capture the service provider before the async task to avoid disposed context issues
+            var serviceProvider = context.RequestServices;
+            
             // Log to database asynchronously (fire and forget)
             _ = Task.Run(async () =>
             {
                 try
                 {
                     // Use a new scope to avoid DbContext threading issues
-                    using var scope = context.RequestServices.CreateScope();
+                    using var scope = serviceProvider.CreateScope();
                     var scopedDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                     await scopedDbContext.PerformanceLogs.AddAsync(performanceLog);
                     await scopedDbContext.SaveChangesAsync();
