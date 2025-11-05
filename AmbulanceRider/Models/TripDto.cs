@@ -3,6 +3,7 @@ namespace AmbulanceRider.Models;
 public class TripDto
 {
     public int Id { get; set; }
+    public int? TripTypeId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public DateTime ScheduledStartTime { get; set; }

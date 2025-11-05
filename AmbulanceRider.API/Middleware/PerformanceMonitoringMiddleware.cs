@@ -11,11 +11,13 @@ public class PerformanceMonitoringMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<PerformanceMonitoringMiddleware> _logger;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public PerformanceMonitoringMiddleware(RequestDelegate next, ILogger<PerformanceMonitoringMiddleware> logger)
+    public PerformanceMonitoringMiddleware(RequestDelegate next, ILogger<PerformanceMonitoringMiddleware> logger, IServiceScopeFactory serviceScopeFactory)
     {
         _next = next;
         _logger = logger;
+        _serviceScopeFactory = serviceScopeFactory;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -55,16 +57,13 @@ public class PerformanceMonitoringMiddleware
                 ErrorMessage = exception?.Message
             };
 
-            // Capture the service provider before the async task to avoid disposed context issues
-            var serviceProvider = context.RequestServices;
-            
             // Log to database asynchronously (fire and forget)
             _ = Task.Run(async () =>
             {
                 try
                 {
                     // Use a new scope to avoid DbContext threading issues
-                    using var scope = serviceProvider.CreateScope();
+                    using var scope = _serviceScopeFactory.CreateScope();
                     var scopedDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                     await scopedDbContext.PerformanceLogs.AddAsync(performanceLog);
                     await scopedDbContext.SaveChangesAsync();

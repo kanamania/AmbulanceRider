@@ -41,6 +41,8 @@ builder.Services.AddScoped<ApiService>(sp =>
     )
 );
 builder.Services.AddScoped<TelemetryService>();
+// Register the TelemetryDashboardService
+builder.Services.AddScoped<ITelemetryService, TelemetryDashboardService>();
 
 try
 {

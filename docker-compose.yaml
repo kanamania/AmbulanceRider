@@ -28,6 +28,7 @@ services:
       - "5000:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=ambulance_rider;Username=ambulance_rider;Password=c906ca683541d864d013ee28c8b3958be6c1cfd2bc07329d6e99f6c6dab74bf5
     depends_on:
       db:
@@ -46,11 +47,18 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     depends_on:
-      - api
-      - db
+      api:
+        condition: service_healthy
+      db:
+        condition: service_healthy
     networks:
       - ambulance-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   ambulance-network:
