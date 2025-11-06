@@ -4,5 +4,9 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 
+# Environment files
+.env
+.env.local
+
 # SSL Certificates
 certbot/

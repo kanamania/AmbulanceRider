@@ -1,22 +1,43 @@
 # SSL Certificate Quick Start Guide
 
-## Quick Setup (5 Minutes)
+## Development vs Production
 
-### 1. Update Email in Script
+### Development (Default)
+- Web runs on port **8080** (HTTP) and **8443** (HTTPS)
+- Access: `http://localhost:8080`
+- No SSL certificates needed
+
+### Production
+- Web runs on port **80** (HTTP) and **443** (HTTPS)
+- Access: `https://app.globalexpress.co.tz`
+- Requires SSL certificates
+
+## Production Setup (5 Minutes)
+
+### 1. Update Ports for Production
+
+Edit `docker-compose.yaml` lines 46-47:
+```yaml
+ports:
+  - "80:80"      # Change from 8080
+  - "443:443"    # Change from 8443
+```
+
+### 2. Update Email in Script
 
 Edit `init-letsencrypt.ps1`:
 ```powershell
 $email = "your-email@globalexpress.co.tz"  # Line 5
 ```
 
-### 2. Verify DNS
+### 3. Verify DNS
 
 Make sure `app.globalexpress.co.tz` points to your server:
 ```powershell
 nslookup app.globalexpress.co.tz
 ```
 
-### 3. Run the Setup Script
+### 4. Run the Setup Script
 
 ```powershell
 .\init-letsencrypt.ps1
