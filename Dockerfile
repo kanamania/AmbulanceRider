@@ -48,8 +48,8 @@ RUN mkdir -p /var/lib/nginx/tmp \
     && chown -R nginx:nginx /var/lib/nginx \
     && chmod 700 /var/lib/nginx/tmp
 
-# Switch to non-root user
-USER nginx
+# Create directory for Let's Encrypt certificates
+RUN mkdir -p /etc/letsencrypt/live /etc/letsencrypt/archive
 
 # Expose ports 80 and 443
 EXPOSE 80
@@ -59,5 +59,5 @@ EXPOSE 443
 HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=3 \
     CMD curl -f http://localhost/ || exit 1
 
-# Start Nginx
+# Start Nginx as root (required for SSL certificate access)
 CMD ["nginx", "-g", "daemon off;"]
