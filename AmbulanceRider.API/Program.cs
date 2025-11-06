@@ -279,14 +279,14 @@ For issues or questions, contact: support@ambulancerider.com
         {
             Name = "AmbulanceRider Support Team",
             Email = "support@ambulancerider.com",
-            Url = new Uri("https://ambulancerider.com/support")
+            Url = new Uri("https://app.globalexpress.co.tz/support")
         },
         License = new OpenApiLicense
         {
             Name = "Proprietary License",
-            Url = new Uri("https://ambulancerider.com/license")
+            Url = new Uri("https://app.globalexpress.co.tz/license")
         },
-        TermsOfService = new Uri("https://ambulancerider.com/terms")
+        TermsOfService = new Uri("https://app.globalexpress.co.tz/terms")
     });
 
     // Add JWT Authentication to Swagger
