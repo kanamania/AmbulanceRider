@@ -34,6 +34,13 @@ builder.Services.AddDataProtection()
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Add Health Checks
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Database connection string not configured"),
+        name: "database",
+        timeout: TimeSpan.FromSeconds(3),
+        tags: new[] { "db", "sql", "postgresql" });
+
 // Add Repositories
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
@@ -475,7 +482,12 @@ app.MapControllers();
 app.MapHub<AmbulanceRider.API.Hubs.NotificationHub>("/hubs/notifications");
 app.MapHub<AmbulanceRider.API.Hubs.TripHub>("/hubs/trips");
 
-// Add a simple health check endpoint
-app.MapGet("/health", () => Results.Ok("API is running"));
+// Map health check endpoints
+app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/ready");
+app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = _ => false
+});
 
 app.Run();
