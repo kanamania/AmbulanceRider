@@ -43,9 +43,13 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
     depends_on:
       api:
         condition: service_healthy
@@ -59,6 +63,17 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+
+  certbot:
+    container_name: certbot
+    image: certbot/certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - ambulance-network
 
 networks:
   ambulance-network:

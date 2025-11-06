@@ -51,8 +51,9 @@ RUN mkdir -p /var/lib/nginx/tmp \
 # Switch to non-root user
 USER nginx
 
-# Expose port 80
+# Expose ports 80 and 443
 EXPOSE 80
+EXPOSE 443
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
