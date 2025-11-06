@@ -26,11 +26,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Set environment variables
-ENV ASPNETCORE_URLS=http://+:80
+ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Development
 
 # Expose port 80
-EXPOSE 80
+EXPOSE 8080
 
 # Copy the published app
 COPY --from=build /app/publish .
