@@ -186,76 +186,101 @@ public static class DataSeeder
         // Ensure vehicle types exist before seeding vehicles
         if (await context.VehicleTypes.AnyAsync())
         {
-            // Get existing plate numbers
-            var existingPlateNumbers = await GetExistingPlateNumbersAsync(context);
+            // Get vehicle type IDs dynamically
+            var ambulanceTypeId = await context.VehicleTypes
+                .Where(vt => vt.Name == "Ambulance")
+                .Select(vt => vt.Id)
+                .FirstOrDefaultAsync();
+            
+            var bodaBodaTypeId = await context.VehicleTypes
+                .Where(vt => vt.Name == "Boda Boda")
+                .Select(vt => vt.Id)
+                .FirstOrDefaultAsync();
+            
+            var emergencyVanTypeId = await context.VehicleTypes
+                .Where(vt => vt.Name == "Emergency Van")
+                .Select(vt => vt.Id)
+                .FirstOrDefaultAsync();
 
-            var vehicles = new List<Vehicle>
+            // Only proceed if we have the required vehicle types
+            if (ambulanceTypeId > 0 && bodaBodaTypeId > 0)
             {
-                new()
+                // Get existing plate numbers
+                var existingPlateNumbers = await GetExistingPlateNumbersAsync(context);
+
+                var vehicles = new List<Vehicle>
                 {
-                    Name = "Ambulance Unit 1",
-                    PlateNumber = "T 123 ABC",
-                    VehicleTypeId = 1,
-                    Image = "/images/ambulance1.jpg",
-                    CreatedAt = DateTime.UtcNow
-                },
-                new()
+                    new()
+                    {
+                        Name = "Ambulance Unit 1",
+                        PlateNumber = "T 123 ABC",
+                        VehicleTypeId = ambulanceTypeId,
+                        Image = "/images/ambulance1.jpg",
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new()
+                    {
+                        Name = "Ambulance Unit 2",
+                        PlateNumber = "T 456 DEF",
+                        VehicleTypeId = ambulanceTypeId,
+                        Image = "/images/ambulance2.jpg",
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new()
+                    {
+                        Name = "Ambulance Unit 3",
+                        PlateNumber = "T 789 GHI",
+                        VehicleTypeId = ambulanceTypeId,
+                        Image = "/images/ambulance3.jpg",
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new()
+                    {
+                        Name = "Boda Boda 1",
+                        PlateNumber = "MC 111 AAA",
+                        VehicleTypeId = bodaBodaTypeId,
+                        Image = "/images/boda1.jpg",
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new()
+                    {
+                        Name = "Boda Boda 2",
+                        PlateNumber = "MC 222 BBB",
+                        VehicleTypeId = bodaBodaTypeId,
+                        Image = "/images/boda2.jpg",
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new()
+                    {
+                        Name = "Boda Boda 3",
+                        PlateNumber = "MC 333 CCC",
+                        VehicleTypeId = bodaBodaTypeId,
+                        Image = "/images/boda3.jpg",
+                        CreatedAt = DateTime.UtcNow
+                    }
+                };
+
+                // Add Emergency Van if the type exists
+                if (emergencyVanTypeId > 0)
                 {
-                    Name = "Ambulance Unit 2",
-                    PlateNumber = "T 456 DEF",
-                    VehicleTypeId = 1,
-                    Image = "/images/ambulance2.jpg",
-                    CreatedAt = DateTime.UtcNow
-                },
-                new()
-                {
-                    Name = "Ambulance Unit 3",
-                    PlateNumber = "T 789 GHI",
-                    VehicleTypeId = 1,
-                    Image = "/images/ambulance3.jpg",
-                    CreatedAt = DateTime.UtcNow
-                },
-                new()
-                {
-                    Name = "Emergency Van 1",
-                    PlateNumber = "T 321 JKL",
-                    VehicleTypeId = 3,
-                    Image = "/images/van1.jpg",
-                    CreatedAt = DateTime.UtcNow
-                },
-                new()
-                {
-                    Name = "Boda Boda 1",
-                    PlateNumber = "MC 111 AAA",
-                    VehicleTypeId = 2,
-                    Image = "/images/boda1.jpg",
-                    CreatedAt = DateTime.UtcNow
-                },
-                new()
-                {
-                    Name = "Boda Boda 2",
-                    PlateNumber = "MC 222 BBB",
-                    VehicleTypeId = 2,
-                    Image = "/images/boda2.jpg",
-                    CreatedAt = DateTime.UtcNow
-                },
-                new()
-                {
-                    Name = "Boda Boda 3",
-                    PlateNumber = "MC 333 CCC",
-                    VehicleTypeId = 2,
-                    Image = "/images/boda3.jpg",
-                    CreatedAt = DateTime.UtcNow
+                    vehicles.Add(new Vehicle
+                    {
+                        Name = "Emergency Van 1",
+                        PlateNumber = "T 321 JKL",
+                        VehicleTypeId = emergencyVanTypeId,
+                        Image = "/images/van1.jpg",
+                        CreatedAt = DateTime.UtcNow
+                    });
                 }
-            };
 
-            // Filter out vehicles that already exist
-            var newVehicles = vehicles.Where(v => !existingPlateNumbers.Contains(v.PlateNumber)).ToList();
+                // Filter out vehicles that already exist
+                var newVehicles = vehicles.Where(v => !existingPlateNumbers.Contains(v.PlateNumber)).ToList();
 
-            if (newVehicles.Any())
-            {
-                await context.Vehicles.AddRangeAsync(newVehicles);
-                await context.SaveChangesAsync();
+                if (newVehicles.Any())
+                {
+                    await context.Vehicles.AddRangeAsync(newVehicles);
+                    await context.SaveChangesAsync();
+                }
             }
         }
 
@@ -265,7 +290,6 @@ public static class DataSeeder
 
         var locations = new List<Location>
             {
-                // Hospitals
                 new()
                 {
                     Name = "Muhimbili National Hospital",
