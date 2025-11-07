@@ -183,10 +183,13 @@ public static class DataSeeder
         }
 
         // Seed vehicles - check each one individually
-        // Get existing plate numbers
-        var existingPlateNumbers = await GetExistingPlateNumbersAsync(context);
+        // Ensure vehicle types exist before seeding vehicles
+        if (await context.VehicleTypes.AnyAsync())
+        {
+            // Get existing plate numbers
+            var existingPlateNumbers = await GetExistingPlateNumbersAsync(context);
 
-        var vehicles = new List<Vehicle>
+            var vehicles = new List<Vehicle>
             {
                 new()
                 {
@@ -246,13 +249,14 @@ public static class DataSeeder
                 }
             };
 
-        // Filter out vehicles that already exist
-        var newVehicles = vehicles.Where(v => !existingPlateNumbers.Contains(v.PlateNumber)).ToList();
+            // Filter out vehicles that already exist
+            var newVehicles = vehicles.Where(v => !existingPlateNumbers.Contains(v.PlateNumber)).ToList();
 
-        if (newVehicles.Any())
-        {
-            await context.Vehicles.AddRangeAsync(newVehicles);
-            await context.SaveChangesAsync();
+            if (newVehicles.Any())
+            {
+                await context.Vehicles.AddRangeAsync(newVehicles);
+                await context.SaveChangesAsync();
+            }
         }
 
         // Seed locations - check each one individually
