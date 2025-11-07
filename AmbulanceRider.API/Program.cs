@@ -428,21 +428,23 @@ using (var scope = app.Services.CreateScope())
         var userManager = services.GetRequiredService<UserManager<User>>();
         var roleManager = services.GetRequiredService<RoleManager<Role>>();
         var logger = services.GetRequiredService<ILogger<Program>>();
+        var configuration = services.GetRequiredService<IConfiguration>();
         
         // Apply any pending migrations
         logger.LogInformation("Applying database migrations...");
         context.Database.Migrate();
         
-        // Seed initial data if needed (only if no roles exist)
-        if (!await roleManager.Roles.AnyAsync())
+        // Seed initial data if enabled via environment variable
+        var enableSeeding = configuration.GetValue<bool>("EnableSeeding", false);
+        if (enableSeeding)
         {
-            logger.LogInformation("Seeding initial data...");
-            await DataSeeder.SeedData(context, userManager, roleManager);
-            logger.LogInformation("Database seeded successfully.");
+            logger.LogInformation("Seeding is enabled. Checking for data to seed...");
+            await DataSeeder.SeedData(context, userManager, roleManager, configuration);
+            logger.LogInformation("Database seeding completed.");
         }
         else
         {
-            logger.LogInformation("Database already contains data. Skipping seeding.");
+            logger.LogInformation("Seeding is disabled. Set EnableSeeding=true to enable.");
         }
         
         // Seed trip types if needed

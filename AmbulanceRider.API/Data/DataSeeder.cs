@@ -6,18 +6,51 @@ namespace AmbulanceRider.API.Data;
 
 public static class DataSeeder
 {
-    public static async Task SeedData(ApplicationDbContext context, UserManager<User> userManager,
-        RoleManager<Role> roleManager)
+    private static async Task<HashSet<string>> GetExistingEmailsAsync(UserManager<User> userManager)
     {
-        // Check if roles already exist
+        return new HashSet<string>(
+            await userManager.Users.Select(u => u.Email).ToListAsync(),
+            StringComparer.OrdinalIgnoreCase
+        );
+    }
+
+    private static async Task<HashSet<string>> GetExistingPlateNumbersAsync(ApplicationDbContext context)
+    {
+        return new HashSet<string>(
+            await context.Vehicles.Select(v => v.PlateNumber).ToListAsync(),
+            StringComparer.OrdinalIgnoreCase
+        );
+    }
+
+    private static async Task<HashSet<string>> GetExistingLocationNamesAsync(ApplicationDbContext context)
+    {
+        return new HashSet<string>(
+            await context.Locations.Select(l => l.Name).ToListAsync(),
+            StringComparer.OrdinalIgnoreCase
+        );
+    }
+
+    public static async Task SeedData(ApplicationDbContext context, UserManager<User> userManager,
+        RoleManager<Role> roleManager, IConfiguration configuration)
+    {
+        // Check if seeding is enabled via environment variable
+        var enableSeeding = configuration.GetValue<bool>("EnableSeeding", false);
+        if (!enableSeeding)
+        {
+            return;
+        }
+
+        // Seed roles if they don't exist
         if (!await roleManager.Roles.AnyAsync())
         {
-            // Add roles
             var roles = new List<string> { "Admin", "Dispatcher", "Driver", "User" };
             foreach (var roleName in roles)
             {
                 await roleManager.CreateAsync(new Role { Name = roleName });
             }
+
+            // Get existing emails to avoid duplicates
+            var existingEmails = await GetExistingEmailsAsync(userManager);
 
             // Add test users for each role
             var testUsers = new List<(User User, string Password, string Role)>
@@ -32,7 +65,7 @@ public static class DataSeeder
                     PhoneNumber = "+255712345001",
                     EmailConfirmed = true,
                     CreatedAt = DateTime.UtcNow
-                }, "Admin@123", "Admin"),
+                }, "Admin123", "Admin"),
                 
                 (new User
                 {
@@ -125,8 +158,8 @@ public static class DataSeeder
                 }, "User@123", "User")
             };
 
-            // Create all test users
-            foreach (var (user, password, role) in testUsers)
+            // Create users that don't already exist
+            foreach (var (user, password, role) in testUsers.Where(x => !existingEmails.Contains(x.User.Email)))
             {
                 var result = await userManager.CreateAsync(user, password);
                 if (result.Succeeded)
@@ -134,8 +167,11 @@ public static class DataSeeder
                     await userManager.AddToRoleAsync(user, role);
                 }
             }
+        }
 
-            // Add vehicle types
+        // Seed vehicle types if they don't exist
+        if (!await context.VehicleTypes.AnyAsync())
+        {
             var vehicleTypes = new List<VehicleType>
             {
                 new() { Id = 1, Name = "Ambulance" },
@@ -144,9 +180,13 @@ public static class DataSeeder
             };
             await context.VehicleTypes.AddRangeAsync(vehicleTypes);
             await context.SaveChangesAsync();
+        }
 
-            // Add test vehicles
-            var vehicles = new List<Vehicle>
+        // Seed vehicles - check each one individually
+        // Get existing plate numbers
+        var existingPlateNumbers = await GetExistingPlateNumbersAsync(context);
+
+        var vehicles = new List<Vehicle>
             {
                 new()
                 {
@@ -205,11 +245,21 @@ public static class DataSeeder
                     CreatedAt = DateTime.UtcNow
                 }
             };
-            await context.Vehicles.AddRangeAsync(vehicles);
-            await context.SaveChangesAsync();
 
-            // Add locations in Dar es Salaam
-            var locations = new List<Location>
+        // Filter out vehicles that already exist
+        var newVehicles = vehicles.Where(v => !existingPlateNumbers.Contains(v.PlateNumber)).ToList();
+
+        if (newVehicles.Any())
+        {
+            await context.Vehicles.AddRangeAsync(newVehicles);
+            await context.SaveChangesAsync();
+        }
+
+        // Seed locations - check each one individually
+        // Get existing location names
+        var existingLocationNames = await GetExistingLocationNamesAsync(context);
+
+        var locations = new List<Location>
             {
                 // Hospitals
                 new()
@@ -320,7 +370,13 @@ public static class DataSeeder
                     CreatedAt = DateTime.UtcNow
                 }
             };
-            await context.Locations.AddRangeAsync(locations);
+
+        // Filter out locations that already exist
+        var newLocations = locations.Where(l => !existingLocationNames.Contains(l.Name)).ToList();
+
+        if (newLocations.Any())
+        {
+            await context.Locations.AddRangeAsync(newLocations);
             await context.SaveChangesAsync();
         }
     }
