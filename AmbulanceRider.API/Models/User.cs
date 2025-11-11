@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
 
 namespace AmbulanceRider.API.Models;
@@ -12,8 +13,20 @@ public class User : IdentityUser<Guid>
     [StringLength(256)]
     public string? ImageUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    [Column("CreatedBy")]
+    [NotMapped]
+    public User? Creator { get; set; }
+    public Guid CreatedBy { get; set; }
     public DateTime? UpdatedAt { get; set; }
+    [Column("UpdatedBy")]
+    [NotMapped]
+    public User? Updater { get; set; }
+    public Guid? UpdatedBy { get; set; }
+    [Column("DeletedBy")]
+    [NotMapped]
+    public User? Deleter { get; set; }
     public DateTime? DeletedAt { get; set; }
+    public Guid? DeletedBy { get; set; }
     
     // Computed property
     public string FullName => $"{FirstName} {LastName}";
