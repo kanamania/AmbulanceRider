@@ -118,21 +118,21 @@ if (corsSettings?.AllowedOrigins?.Any() == true)
             policy.WithOrigins(corsSettings.AllowedOrigins.ToArray())
                   .AllowAnyMethod()
                   .AllowAnyHeader()
-                  .AllowCredentials()
-                  .SetIsOriginAllowed(_ => true); // Allow SignalR connections
+                  .AllowCredentials();
         });
     });
 }
 else
 {
-    // Fallback to allowing all origins if not configured
+    // Fallback: Allow all origins with credentials support for development
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowAll", policy =>
         {
-            policy.AllowAnyOrigin()
+            policy.SetIsOriginAllowed(_ => true) // Allow any origin
                   .AllowAnyMethod()
-                  .AllowAnyHeader();
+                  .AllowAnyHeader()
+                  .AllowCredentials(); // Required for SignalR
         });
     });
 }
