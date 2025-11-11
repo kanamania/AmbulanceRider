@@ -41,7 +41,7 @@ public class NotificationsController : ControllerBase
         {
             // Get trip details
             var trip = await _context.Trips
-                .Include(t => t.User)
+                .Include(t => t.Creator)
                 .Include(t => t.TripType)
                 .FirstOrDefaultAsync(t => t.Id == request.TripId);
 
@@ -54,14 +54,14 @@ public class NotificationsController : ControllerBase
             await _notificationService.SendNotificationToGroupAsync(
                 "admins",
                 "New Trip Created",
-                $"Trip #{trip.Id} has been created by {trip.User?.UserName ?? "Unknown"}",
+                $"Trip #{trip.Id} has been created by {trip.Creator?.FullName ?? "Unknown"}",
                 new
                 {
                     tripId = trip.Id,
-                    userId = trip.UserId,
-                    fromAddress = trip.FromAddress,
-                    toAddress = trip.ToAddress,
-                    patientName = trip.PatientName,
+                    userId = trip.CreatedBy,
+                    fromAddress = trip.FromLocationName,
+                    toAddress = trip.ToLocationName,
+                    trip.Name,
                     tripType = trip.TripType?.Name,
                     status = trip.Status
                 }
@@ -74,10 +74,10 @@ public class NotificationsController : ControllerBase
                 new
                 {
                     tripId = trip.Id,
-                    userId = trip.UserId,
-                    fromAddress = trip.FromAddress,
-                    toAddress = trip.ToAddress,
-                    patientName = trip.PatientName,
+                    userId = trip.CreatedBy,
+                    fromAddress = trip.FromLocationName,
+                    toAddress = trip.ToLocationName,
+                    trip.Name,
                     tripType = trip.TripType?.Name,
                     status = trip.Status
                 }
@@ -91,10 +91,10 @@ public class NotificationsController : ControllerBase
                 {
                     trip.Id,
                     trip.Status,
-                    trip.FromAddress,
-                    trip.ToAddress,
-                    trip.PatientName,
-                    CreatedAt = trip.CreatedAt
+                    trip.FromLocationName,
+                    trip.ToLocationName,
+                    trip.Name,
+                    trip.CreatedAt
                 }
             );
 
@@ -121,7 +121,7 @@ public class NotificationsController : ControllerBase
         {
             // Get trip details
             var trip = await _context.Trips
-                .Include(t => t.User)
+                .Include(t => t.Creator)
                 .Include(t => t.Vehicle)
                 .Include(t => t.TripType)
                 .FirstOrDefaultAsync(t => t.Id == request.TripId);
@@ -134,17 +134,17 @@ public class NotificationsController : ControllerBase
             var statusMessage = GetStatusMessage(request.Status, trip);
 
             // Notify the trip creator
-            if (trip.User != null)
+            if (trip.Creator != null)
             {
                 await _notificationService.SendNotificationToUserAsync(
-                    trip.UserId.ToString(),
+                    trip.CreatedBy.ToString(),
                     "Trip Status Update",
                     statusMessage,
                     new
                     {
                         tripId = trip.Id,
                         status = request.Status,
-                        vehicleInfo = trip.Vehicle != null ? $"{trip.Vehicle.Make} {trip.Vehicle.Model} - {trip.Vehicle.LicensePlate}" : null
+                        vehicleInfo = trip.Vehicle != null ? $"{trip.Vehicle.Name}" : null
                     }
                 );
             }
@@ -158,7 +158,7 @@ public class NotificationsController : ControllerBase
                 {
                     tripId = trip.Id,
                     status = request.Status,
-                    patientName = trip.PatientName
+                    trip.Name
                 }
             );
 
@@ -170,22 +170,22 @@ public class NotificationsController : ControllerBase
                 {
                     tripId = trip.Id,
                     status = request.Status,
-                    patientName = trip.PatientName
+                    trip.Name
                 }
             );
 
             // Send via TripHub
             await _notificationService.SendTripStatusChangeAsync(
                 trip.Id,
-                trip.Status,
+                trip.Status.ToString(),
                 request.Status,
                 new
                 {
                     trip.Id,
                     NewStatus = request.Status,
                     Message = statusMessage,
-                    trip.PatientName,
-                    VehicleInfo = trip.Vehicle != null ? $"{trip.Vehicle.Make} {trip.Vehicle.Model}" : null
+                    trip.Name,
+                    VehicleInfo = trip.Vehicle != null ? $"{trip.Vehicle.Name}" : null
                 }
             );
 
