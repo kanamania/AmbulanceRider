@@ -2,6 +2,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using AmbulanceRider.API.Data;
+using AmbulanceRider.API.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace AmbulanceRider.API.Services
@@ -18,10 +20,12 @@ namespace AmbulanceRider.API.Services
     public class DataHashService : IDataHashService
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public DataHashService(ApplicationDbContext context)
+        public DataHashService(ApplicationDbContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public async Task<string> GenerateUserHashAsync(string userId)
@@ -110,9 +114,25 @@ namespace AmbulanceRider.API.Services
         public async Task<string> GenerateTripsHashAsync(string userId)
         {
             var userGuid = Guid.Parse(userId);
-            var trips = await _context.Trips
-                .AsNoTracking()
-                .Where(t => t.CreatedBy == userGuid || t.DriverId == userGuid)
+            var user = await _userManager.FindByIdAsync(userId);
+            
+            if (user == null)
+                return string.Empty;
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var isAdminOrDispatcher = roles.Any(r => r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
+                                                      r.Equals("Dispatcher", StringComparison.OrdinalIgnoreCase));
+
+            // Admin and Dispatcher get all trips, Driver and User get only their trips
+            var tripsQuery = _context.Trips.AsNoTracking();
+            
+            if (!isAdminOrDispatcher)
+            {
+                // Filter to only trips created by or assigned to this user
+                tripsQuery = tripsQuery.Where(t => t.CreatedBy == userGuid || t.DriverId == userGuid);
+            }
+
+            var trips = await tripsQuery
                 .OrderByDescending(t => t.UpdatedAt ?? t.CreatedAt)
                 .Select(t => new
                 {

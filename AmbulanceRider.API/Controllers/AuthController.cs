@@ -583,7 +583,9 @@ public class AuthController : ControllerBase
     /// - User/Profile Hash: Based on user's personal information and last update time
     /// - Trip Types Hash: Based on all active trip types and their attributes
     /// - Locations Hash: Based on all active locations
-    /// - Trips Hash: Based on user's trips (created by or assigned to the user)
+    /// - Trips Hash: Role-based access
+    ///   - Admin/Dispatcher: All trips in the system
+    ///   - Driver/User: Only trips created by or assigned to the user
     /// 
     /// **Benefits:**
     /// - Reduces unnecessary API calls and bandwidth
