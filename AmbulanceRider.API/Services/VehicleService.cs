@@ -62,8 +62,11 @@ public class VehicleService : IVehicleService
         if (updateVehicleDto.VehicleTypeId.HasValue)
             vehicle.VehicleTypeId = updateVehicleDto.VehicleTypeId.Value;
         
-        if (updateVehicleDto.Image != null)
+        if (!string.IsNullOrEmpty(updateVehicleDto.ImagePath))
             vehicle.Image = updateVehicleDto.ImagePath;
+        
+        if (updateVehicleDto.RemoveImage)
+            vehicle.Image = null;
 
         vehicle.UpdatedAt = DateTime.UtcNow;
 

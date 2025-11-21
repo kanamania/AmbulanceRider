@@ -3,6 +3,7 @@ using AmbulanceRider.API.DTOs;
 using AmbulanceRider.API.Models;
 using AmbulanceRider.API.Repositories;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using System.IO;
 
 namespace AmbulanceRider.API.Services;
@@ -12,12 +13,18 @@ public class UserService : IUserService
     private readonly IUserRepository _userRepository;
     private readonly ApplicationDbContext _context;
     private readonly UserManager<User> _userManager;
+    private readonly ILogger<UserService> _logger;
 
-    public UserService(IUserRepository userRepository, ApplicationDbContext context, UserManager<User> userManager)
+    public UserService(
+        IUserRepository userRepository, 
+        ApplicationDbContext context, 
+        UserManager<User> userManager,
+        ILogger<UserService> logger)
     {
         _userRepository = userRepository;
         _context = context;
         _userManager = userManager;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
@@ -34,6 +41,16 @@ public class UserService : IUserService
 
     public async Task<UserDto> CreateUserAsync(CreateUserDto createUserDto)
     {
+        // Log password length for debugging (don't log actual password)
+        _logger.LogInformation("Creating user with email: {Email}, Password length: {Length}", 
+            createUserDto.Email, createUserDto.Password?.Length ?? 0);
+
+        // Validate password is not null or empty
+        if (string.IsNullOrWhiteSpace(createUserDto.Password))
+        {
+            throw new InvalidOperationException("Password is required and cannot be empty");
+        }
+
         // Check if user already exists using UserManager
         var existingUser = await _userManager.FindByEmailAsync(createUserDto.Email);
         if (existingUser != null)
@@ -48,21 +65,18 @@ public class UserService : IUserService
             LastName = createUserDto.LastName,
             Email = createUserDto.Email,
             PhoneNumber = createUserDto.PhoneNumber,
+            ImagePath = createUserDto.ImagePath,
+            ImageUrl = createUserDto.ImageUrl,
             CreatedAt = DateTime.UtcNow
         };
-
-        // Handle image properties if provided
-        if (createUserDto.Image != null)
-        {
-            user.ImagePath = createUserDto.ImagePath;
-            user.ImageUrl = createUserDto.ImageUrl;
-        }
 
         // Use UserManager to create user with password (handles normalization and hashing)
         var result = await _userManager.CreateAsync(user, createUserDto.Password);
         if (!result.Succeeded)
         {
-            throw new InvalidOperationException(string.Join(", ", result.Errors.Select(e => e.Description)));
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            _logger.LogError("Failed to create user {Email}. Errors: {Errors}", createUserDto.Email, errors);
+            throw new InvalidOperationException(errors);
         }
 
         // Add roles using role names from IDs
@@ -75,6 +89,7 @@ public class UserService : IUserService
             }
         }
 
+        _logger.LogInformation("Successfully created user {Email} with ID {UserId}", user.Email, user.Id);
         return (await GetUserByIdAsync(user.Id))!;
     }
 

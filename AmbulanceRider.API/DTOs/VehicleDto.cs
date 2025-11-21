@@ -20,7 +20,6 @@ public class CreateVehicleDto
     public string Name { get; set; } = string.Empty;
     public string PlateNumber { get; set; } = string.Empty;
     public int VehicleTypeId { get; set; }
-    public IFormFile? Image { get; set; }
     public string? ImagePath { get; set; }
     public string? ImageUrl { get; set; }
 }
@@ -30,7 +29,6 @@ public class UpdateVehicleDto
     public string? Name { get; set; }
     public string? PlateNumber { get; set; }
     public int? VehicleTypeId { get; set; }
-    public IFormFile? Image { get; set; }
     public bool RemoveImage { get; set; }
     public string? ImagePath { get; set; }
     public string? ImageUrl { get; set; }
