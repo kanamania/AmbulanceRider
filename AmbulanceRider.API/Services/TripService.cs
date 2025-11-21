@@ -88,7 +88,7 @@ public class TripService : ITripService
         {
             Name = createTripDto.Name,
             Description = createTripDto.Description,
-            ScheduledStartTime = createTripDto.ScheduledStartTime,
+            ScheduledStartTime = createTripDto.ScheduledStartTime ?? DateTime.UtcNow,
             FromLatitude = createTripDto.FromLatitude,
             FromLongitude = createTripDto.FromLongitude,
             ToLatitude = createTripDto.ToLatitude,
@@ -175,8 +175,10 @@ public class TripService : ITripService
         if (updateTripDto.Description != null)
             trip.Description = updateTripDto.Description;
 
-        if (updateTripDto.ScheduledStartTime.HasValue)
-            trip.ScheduledStartTime = updateTripDto.ScheduledStartTime.Value;
+        if (updateTripDto.ScheduledStartTimeSpecified)
+        {
+            trip.ScheduledStartTime = updateTripDto.ScheduledStartTime ?? DateTime.UtcNow;
+        }
 
         // Update coordinates if provided
         var coordsChanged = false;

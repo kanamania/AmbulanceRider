@@ -45,7 +45,7 @@ public class CreateTripDto
 {
     public required string Name { get; set; }
     public string? Description { get; set; }
-    public required DateTime ScheduledStartTime { get; set; } = DateTime.Now;
+    public DateTime? ScheduledStartTime { get; set; }
     
     // Coordinates are required
     public required double FromLatitude { get; set; }
@@ -72,7 +72,14 @@ public class UpdateTripDto
 {
     public string? Name { get; set; }
     public string? Description { get; set; }
-    public DateTime? ScheduledStartTime { get; set; }
+    private DateTime? _scheduledStartTime;
+    public DateTime? ScheduledStartTime
+    {
+        get => _scheduledStartTime;
+        set { _scheduledStartTime = value; ScheduledStartTimeSpecified = true; }
+    }
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool ScheduledStartTimeSpecified { get; set; }
     
     // Optional coordinate updates
     public double? FromLatitude { get; set; }
