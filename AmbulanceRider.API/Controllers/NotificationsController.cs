@@ -41,7 +41,6 @@ public class NotificationsController : ControllerBase
         {
             // Get trip details
             var trip = await _context.Trips
-                .Include(t => t.Creator)
                 .Include(t => t.TripType)
                 .FirstOrDefaultAsync(t => t.Id == request.TripId);
 
@@ -50,11 +49,14 @@ public class NotificationsController : ControllerBase
                 return NotFound(new { message = "Trip not found" });
             }
 
+            var creator = await _context.Users.FirstOrDefaultAsync(u => u.Id == trip.CreatedBy);
+            var creatorName = creator != null ? $"{creator.FirstName} {creator.LastName}" : "Unknown";
+
             // Broadcast to admins and dispatchers
             await _notificationService.SendNotificationToGroupAsync(
                 "admins",
                 "New Trip Created",
-                $"Trip #{trip.Id} has been created by {trip.Creator?.FullName ?? "Unknown"}",
+                $"Trip #{trip.Id} has been created by {creatorName}",
                 new
                 {
                     tripId = trip.Id,
@@ -121,7 +123,6 @@ public class NotificationsController : ControllerBase
         {
             // Get trip details
             var trip = await _context.Trips
-                .Include(t => t.Creator)
                 .Include(t => t.Vehicle)
                 .Include(t => t.TripType)
                 .FirstOrDefaultAsync(t => t.Id == request.TripId);
@@ -133,8 +134,8 @@ public class NotificationsController : ControllerBase
 
             var statusMessage = GetStatusMessage(request.Status, trip);
 
-            // Notify the trip creator
-            if (trip.Creator != null)
+            var creatorExists = await _context.Users.AnyAsync(u => u.Id == trip.CreatedBy);
+            if (creatorExists)
             {
                 await _notificationService.SendNotificationToUserAsync(
                     trip.CreatedBy.ToString(),
