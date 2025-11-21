@@ -46,7 +46,7 @@ public class SystemController : ControllerBase
     }
 
     /// <summary>
-    /// Get all system data (trips, locations, trip types, vehicles)
+    /// Get system data with optional filtering (trips, locations, trip types, vehicles)
     /// </summary>
     /// <remarks>
     /// Returns comprehensive system data based on user role:
@@ -63,9 +63,22 @@ public class SystemController : ControllerBase
     /// - All trip types
     /// - All vehicles
     /// 
-    /// This endpoint is useful for initial data loading and synchronization.
+    /// **Filtering:**
+    /// Use query parameters to request only specific data types:
+    /// - `includeTrips=true` - Include trips data
+    /// - `includeLocations=true` - Include locations data
+    /// - `includeTripTypes=true` - Include trip types data
+    /// - `includeVehicles=true` - Include vehicles data
+    /// 
+    /// If no filters are specified, all data is returned.
+    /// 
+    /// This endpoint is useful for initial data loading, synchronization, and partial updates.
     /// </remarks>
-    /// <returns>System data including trips, locations, trip types, and vehicles</returns>
+    /// <param name="includeTrips">Include trips in response</param>
+    /// <param name="includeLocations">Include locations in response</param>
+    /// <param name="includeTripTypes">Include trip types in response</param>
+    /// <param name="includeVehicles">Include vehicles in response</param>
+    /// <returns>System data including requested data types</returns>
     /// <response code="200">Data retrieved successfully</response>
     /// <response code="401">Not authenticated</response>
     /// <response code="500">Server error occurred</response>
@@ -75,12 +88,16 @@ public class SystemController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [SwaggerOperation(
-        Summary = "Get system data",
-        Description = "Retrieve all system data with role-based filtering",
+        Summary = "Get system data with filtering",
+        Description = "Retrieve system data with optional filtering for specific data types",
         OperationId = "System_GetData",
         Tags = new[] { "System" }
     )]
-    public async Task<ActionResult<SystemDataResponseDto>> GetSystemData()
+    public async Task<ActionResult<SystemDataResponseDto>> GetSystemData(
+        [FromQuery] bool? includeTrips = null,
+        [FromQuery] bool? includeLocations = null,
+        [FromQuery] bool? includeTripTypes = null,
+        [FromQuery] bool? includeVehicles = null)
     {
         try
         {
@@ -101,25 +118,45 @@ public class SystemController : ControllerBase
                 r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
                 r.Equals("Dispatcher", StringComparison.OrdinalIgnoreCase));
 
-            // Get trips based on role
-            var trips = await _tripService.GetAllTripsAsync(userId, isAdminOrDispatcher);
-            
-            // Get all locations (available to all authenticated users)
-            var locations = await _locationService.GetAllLocationsAsync();
-            
-            // Get all trip types (available to all authenticated users)
-            var tripTypes = await _tripTypeService.GetAllTripTypesAsync();
-            
-            // Get all vehicles (available to all authenticated users)
-            var vehicles = await _vehicleService.GetAllVehiclesAsync();
+            // If no filters specified, include all data
+            var shouldIncludeTrips = includeTrips ?? true;
+            var shouldIncludeLocations = includeLocations ?? true;
+            var shouldIncludeTripTypes = includeTripTypes ?? true;
+            var shouldIncludeVehicles = includeVehicles ?? true;
 
-            var response = new SystemDataResponseDto
+            var response = new SystemDataResponseDto();
+
+            // Get trips based on role (if requested)
+            if (shouldIncludeTrips)
             {
-                Trips = trips.ToList(),
-                Locations = locations.ToList(),
-                TripTypes = tripTypes.ToList(),
-                Vehicles = vehicles.ToList()
-            };
+                var trips = await _tripService.GetAllTripsAsync(userId, isAdminOrDispatcher);
+                response.Trips = trips.ToList();
+                _logger.LogInformation("Retrieved {Count} trips for user {UserId}", response.Trips.Count, userId);
+            }
+            
+            // Get all locations (if requested)
+            if (shouldIncludeLocations)
+            {
+                var locations = await _locationService.GetAllLocationsAsync();
+                response.Locations = locations.ToList();
+                _logger.LogInformation("Retrieved {Count} locations", response.Locations.Count);
+            }
+            
+            // Get all trip types (if requested)
+            if (shouldIncludeTripTypes)
+            {
+                var tripTypes = await _tripTypeService.GetAllTripTypesAsync();
+                response.TripTypes = tripTypes.ToList();
+                _logger.LogInformation("Retrieved {Count} trip types", response.TripTypes.Count);
+            }
+            
+            // Get all vehicles (if requested)
+            if (shouldIncludeVehicles)
+            {
+                var vehicles = await _vehicleService.GetAllVehiclesAsync();
+                response.Vehicles = vehicles.ToList();
+                _logger.LogInformation("Retrieved {Count} vehicles", response.Vehicles.Count);
+            }
 
             return Ok(response);
         }
