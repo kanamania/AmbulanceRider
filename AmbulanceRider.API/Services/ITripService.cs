@@ -6,6 +6,7 @@ namespace AmbulanceRider.API.Services;
 public interface ITripService
 {
     Task<IEnumerable<TripDto>> GetAllTripsAsync();
+    Task<IEnumerable<TripDto>> GetAllTripsAsync(string userId, bool isAdminOrDispatcher);
     Task<TripDto?> GetTripByIdAsync(int id);
     Task<IEnumerable<TripDto>> GetTripsByStatusAsync(TripStatus status);
     Task<IEnumerable<TripDto>> GetPendingTripsAsync();

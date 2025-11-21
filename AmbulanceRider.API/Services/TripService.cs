@@ -38,6 +38,19 @@ public class TripService : ITripService
         return trips.Select(MapToDto);
     }
 
+    public async Task<IEnumerable<TripDto>> GetAllTripsAsync(string userId, bool isAdminOrDispatcher)
+    {
+        var trips = await _tripRepository.GetAllAsync();
+        
+        if (!isAdminOrDispatcher)
+        {
+            var userGuid = Guid.Parse(userId);
+            trips = trips.Where(t => t.CreatedBy == userGuid || t.DriverId == userGuid).ToList();
+        }
+        
+        return trips.Select(MapToDto);
+    }
+
     public async Task<TripDto?> GetTripByIdAsync(int id)
     {
         var trip = await _tripRepository.GetByIdAsync(id);

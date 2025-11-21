@@ -12,10 +12,11 @@ public class UserRepository : Repository<User>, IUserRepository
 
     public async Task<User?> GetByEmailAsync(string email)
     {
+        var normalizedEmail = email.ToUpperInvariant();
         return await _dbSet
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
-            .FirstOrDefaultAsync(u => u.Email == email);
+            .FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail);
     }
 
     public async Task<User?> GetByIdAsync(Guid id)

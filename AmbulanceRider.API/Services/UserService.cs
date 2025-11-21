@@ -2,6 +2,7 @@ using AmbulanceRider.API.Data;
 using AmbulanceRider.API.DTOs;
 using AmbulanceRider.API.Models;
 using AmbulanceRider.API.Repositories;
+using Microsoft.AspNetCore.Identity;
 using System.IO;
 
 namespace AmbulanceRider.API.Services;
@@ -10,11 +11,13 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly ApplicationDbContext _context;
+    private readonly UserManager<User> _userManager;
 
-    public UserService(IUserRepository userRepository, ApplicationDbContext context)
+    public UserService(IUserRepository userRepository, ApplicationDbContext context, UserManager<User> userManager)
     {
         _userRepository = userRepository;
         _context = context;
+        _userManager = userManager;
     }
 
     public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
@@ -31,7 +34,8 @@ public class UserService : IUserService
 
     public async Task<UserDto> CreateUserAsync(CreateUserDto createUserDto)
     {
-        var existingUser = await _userRepository.GetByEmailAsync(createUserDto.Email);
+        // Check if user already exists using UserManager
+        var existingUser = await _userManager.FindByEmailAsync(createUserDto.Email);
         if (existingUser != null)
         {
             throw new InvalidOperationException("User with this email already exists");
@@ -39,11 +43,11 @@ public class UserService : IUserService
 
         var user = new User
         {
+            UserName = createUserDto.Email, // Required by Identity
             FirstName = createUserDto.FirstName,
             LastName = createUserDto.LastName,
             Email = createUserDto.Email,
             PhoneNumber = createUserDto.PhoneNumber,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password),
             CreatedAt = DateTime.UtcNow
         };
 
@@ -54,20 +58,22 @@ public class UserService : IUserService
             user.ImageUrl = createUserDto.ImageUrl;
         }
 
-        await _userRepository.AddAsync(user);
-
-        // Add roles
-        foreach (var roleId in createUserDto.RoleIds)
+        // Use UserManager to create user with password (handles normalization and hashing)
+        var result = await _userManager.CreateAsync(user, createUserDto.Password);
+        if (!result.Succeeded)
         {
-            var userRole = new UserRole
-            {
-                UserId = user.Id,
-                RoleId = Guid.Parse(roleId.ToString())
-            };
-            _context.UserRoles.Add(userRole);
+            throw new InvalidOperationException(string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
-        await _context.SaveChangesAsync();
+        // Add roles using role names from IDs
+        foreach (var roleId in createUserDto.RoleIds)
+        {
+            var role = await _context.Roles.FindAsync(Guid.Parse(roleId.ToString()));
+            if (role != null)
+            {
+                await _userManager.AddToRoleAsync(user, role.Name!);
+            }
+        }
 
         return (await GetUserByIdAsync(user.Id))!;
     }
@@ -84,19 +90,25 @@ public class UserService : IUserService
             user.LastName = updateUserDto.LastName;
         if (!string.IsNullOrEmpty(updateUserDto.Email) && user.Email != updateUserDto.Email)
         {
-            var existingUser = await _userRepository.GetByEmailAsync(updateUserDto.Email);
+            var existingUser = await _userManager.FindByEmailAsync(updateUserDto.Email);
             if (existingUser != null && existingUser.Id != id)
             {
                 throw new InvalidOperationException("Email is already in use by another user");
             }
 
             user.Email = updateUserDto.Email;
+            user.UserName = updateUserDto.Email; // Update username to match email
+            user.NormalizedEmail = updateUserDto.Email.ToUpperInvariant();
+            user.NormalizedUserName = updateUserDto.Email.ToUpperInvariant();
         }
 
         if (!string.IsNullOrEmpty(updateUserDto.PhoneNumber))
             user.PhoneNumber = updateUserDto.PhoneNumber;
         if (!string.IsNullOrEmpty(updateUserDto.Password))
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(updateUserDto.Password);
+        {
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            await _userManager.ResetPasswordAsync(user, token, updateUserDto.Password);
+        }
 
         // Handle image path/url updates
         if (updateUserDto.ImagePath != null)
@@ -109,18 +121,27 @@ public class UserService : IUserService
         // Update roles if provided
         if (updateUserDto.RoleIds != null && updateUserDto.RoleIds.Any())
         {
-            // Remove existing roles
-            var existingRoles = _context.UserRoles.Where(ur => ur.UserId == user.Id);
-            _context.UserRoles.RemoveRange(existingRoles);
+            // Get current roles
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            
+            // Remove all current roles
+            if (currentRoles.Any())
+            {
+                await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            }
 
             // Add new roles
             foreach (var roleId in updateUserDto.RoleIds)
             {
-                _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = Guid.Parse(roleId.ToString()) });
+                var role = await _context.Roles.FindAsync(Guid.Parse(roleId.ToString()));
+                if (role != null)
+                {
+                    await _userManager.AddToRoleAsync(user, role.Name!);
+                }
             }
         }
 
-        await _context.SaveChangesAsync();
+        await _userManager.UpdateAsync(user);
 
         return (await GetUserByIdAsync(user.Id))!;
     }
