@@ -79,14 +79,10 @@ public class UserService : IUserService
             throw new InvalidOperationException(errors);
         }
 
-        // Add roles using role names from IDs
-        foreach (var roleId in createUserDto.RoleIds)
+        // Add roles
+        foreach (var roleName in createUserDto.Roles)
         {
-            var role = await _context.Roles.FindAsync(Guid.Parse(roleId.ToString()));
-            if (role != null)
-            {
-                await _userManager.AddToRoleAsync(user, role.Name!);
-            }
+            await _userManager.AddToRoleAsync(user, roleName);
         }
 
         _logger.LogInformation("Successfully created user {Email} with ID {UserId}", user.Email, user.Id);
@@ -134,25 +130,21 @@ public class UserService : IUserService
         user.UpdatedAt = DateTime.UtcNow;
 
         // Update roles if provided
-        if (updateUserDto.RoleIds != null && updateUserDto.RoleIds.Any())
+        if (updateUserDto.Roles != null && updateUserDto.Roles.Any())
         {
             // Get current roles
             var currentRoles = await _userManager.GetRolesAsync(user);
             
             // Remove all current roles
-            if (currentRoles.Any())
+            foreach (var role in currentRoles)
             {
-                await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                await _userManager.RemoveFromRoleAsync(user, role);
             }
 
             // Add new roles
-            foreach (var roleId in updateUserDto.RoleIds)
+            foreach (var roleName in updateUserDto.Roles)
             {
-                var role = await _context.Roles.FindAsync(Guid.Parse(roleId.ToString()));
-                if (role != null)
-                {
-                    await _userManager.AddToRoleAsync(user, role.Name!);
-                }
+                await _userManager.AddToRoleAsync(user, roleName);
             }
         }
 

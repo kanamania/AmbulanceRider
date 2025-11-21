@@ -103,7 +103,7 @@
                     LastName = user.LastName,
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
-                    RoleIds = new List<int>()
+                    Roles = new List<string>()
                 };
                 isAdmin = user.Roles.Contains("Admin");
                 isDriver = user.Roles.Contains("Driver");
@@ -125,11 +125,11 @@
     {
         if (model == null) return;
         
-        model.RoleIds = new List<int>();
-        if (isAdmin) model.RoleIds.Add(1);
-        if (isDriver) model.RoleIds.Add(2);
-        if (isDispatcher) model.RoleIds.Add(3);
-        if (isUser) model.RoleIds.Add(4);
+        model.Roles = new List<string>();
+        if (isAdmin) model.Roles.Add("Admin");
+        if (isDriver) model.Roles.Add("Driver");
+        if (isDispatcher) model.Roles.Add("Dispatcher");
+        if (isUser) model.Roles.Add("User");
 
         try
         {

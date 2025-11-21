@@ -38,7 +38,7 @@ public class CreateUserDto
     
     [Required(ErrorMessage = "At least one role is required")]
     [MinLength(1, ErrorMessage = "At least one role is required")]
-    public List<int> RoleIds { get; set; } = new();
+    public List<string> Roles { get; set; } = new();
     
     public string? ImagePath { get; set; }
     public string? ImageUrl { get; set; }
@@ -52,7 +52,7 @@ public class UpdateUserDto
     public string? PhoneNumber { get; set; }
     public string? Password { get; set; }
     public bool RemoveImage { get; set; }
-    public List<int>? RoleIds { get; set; }
+    public List<string>? Roles { get; set; }
     public string? ImagePath { get; set; }
     public string? ImageUrl { get; set; }
 }
