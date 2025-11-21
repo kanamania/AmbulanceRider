@@ -80,9 +80,25 @@ public class UserService : IUserService
         }
 
         // Add roles
-        foreach (var roleName in createUserDto.Roles)
+        _logger.LogInformation("Adding {RoleCount} roles to user {Email}: {Roles}", 
+            createUserDto.Roles?.Count ?? 0, user.Email, string.Join(", ", createUserDto.Roles ?? new List<string>()));
+        
+        if (createUserDto.Roles != null && createUserDto.Roles.Any())
         {
-            await _userManager.AddToRoleAsync(user, roleName);
+            foreach (var roleName in createUserDto.Roles)
+            {
+                var roleResult = await _userManager.AddToRoleAsync(user, roleName);
+                if (!roleResult.Succeeded)
+                {
+                    var roleErrors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                    _logger.LogWarning("Failed to add role {RoleName} to user {Email}. Errors: {Errors}", 
+                        roleName, user.Email, roleErrors);
+                }
+                else
+                {
+                    _logger.LogInformation("Successfully added role {RoleName} to user {Email}", roleName, user.Email);
+                }
+            }
         }
 
         _logger.LogInformation("Successfully created user {Email} with ID {UserId}", user.Email, user.Id);
@@ -132,8 +148,13 @@ public class UserService : IUserService
         // Update roles if provided
         if (updateUserDto.Roles != null && updateUserDto.Roles.Any())
         {
+            _logger.LogInformation("Updating roles for user {Email}. New roles: {Roles}", 
+                user.Email, string.Join(", ", updateUserDto.Roles));
+            
             // Get current roles
             var currentRoles = await _userManager.GetRolesAsync(user);
+            _logger.LogInformation("Current roles for user {Email}: {CurrentRoles}", 
+                user.Email, string.Join(", ", currentRoles));
             
             // Remove all current roles
             foreach (var role in currentRoles)
@@ -144,7 +165,13 @@ public class UserService : IUserService
             // Add new roles
             foreach (var roleName in updateUserDto.Roles)
             {
-                await _userManager.AddToRoleAsync(user, roleName);
+                var roleResult = await _userManager.AddToRoleAsync(user, roleName);
+                if (!roleResult.Succeeded)
+                {
+                    var roleErrors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                    _logger.LogWarning("Failed to add role {RoleName} to user {Email}. Errors: {Errors}", 
+                        roleName, user.Email, roleErrors);
+                }
             }
         }
 
