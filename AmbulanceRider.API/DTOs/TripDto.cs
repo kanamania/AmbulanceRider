@@ -34,13 +34,18 @@ public class TripDto
     public int? TripTypeId { get; set; }
     public TripTypeDto? TripType { get; set; }
     public List<TripAttributeValueDto> AttributeValues { get; set; } = new();
+
+    public string? OptimizedRoute { get; set; }
+    public string? RoutePolyline { get; set; }
+    public double? EstimatedDistance { get; set; }
+    public int? EstimatedDuration { get; set; }
 }
 
 public class CreateTripDto
 {
     public required string Name { get; set; }
     public string? Description { get; set; }
-    public required DateTime ScheduledStartTime { get; set; }
+    public required DateTime ScheduledStartTime { get; set; } = DateTime.Now;
     
     // Coordinates are required
     public required double FromLatitude { get; set; }

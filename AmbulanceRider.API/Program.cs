@@ -6,6 +6,7 @@ using AmbulanceRider.API.Hubs;
 using AmbulanceRider.API.Models;
 using AmbulanceRider.API.Repositories;
 using AmbulanceRider.API.Services;
+using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
@@ -62,7 +63,25 @@ builder.Services.AddHttpClient();
 
 // Add Trip Management Services
 builder.Services.AddScoped<ITripManagementService, TripManagementService>();
-builder.Services.AddScoped<IRouteOptimizationService, MapboxRouteOptimizationService>();
+// Choose routing provider via configuration
+builder.Services.AddScoped<IRouteOptimizationService>(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var provider = config.GetValue<string>("Routing:Provider") ?? "OSRM";
+    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+
+    if (string.Equals(provider, "Mapbox", StringComparison.OrdinalIgnoreCase))
+    {
+        var logger = sp.GetRequiredService<ILogger<MapboxRouteOptimizationService>>();
+        var options = sp.GetRequiredService<IOptions<MapboxSettings>>();
+        return new MapboxRouteOptimizationService(httpClientFactory.CreateClient(), options, logger);
+    }
+    else
+    {
+        var logger = sp.GetRequiredService<ILogger<OsrmRouteOptimizationService>>();
+        return new OsrmRouteOptimizationService(httpClientFactory.CreateClient(), logger);
+    }
+});
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
 // Add Background Services
@@ -70,6 +89,7 @@ builder.Services.AddHostedService<ScheduledTasksService>();
 
 // Add Configuration
 builder.Services.Configure<MapboxSettings>(builder.Configuration.GetSection("Mapbox"));
+builder.Services.Configure<RoutingSettings>(builder.Configuration.GetSection("Routing"));
 builder.Services.Configure<FileStorageSettings>(builder.Configuration.GetSection("FileStorage"));
 
 // Add AutoMapper

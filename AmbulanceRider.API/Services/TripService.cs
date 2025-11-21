@@ -12,6 +12,7 @@ public class TripService : ITripService
     private readonly ITripStatusLogRepository _tripStatusLogRepository;
     private readonly ITripAttributeValueRepository _tripAttributeValueRepository;
     private readonly INotificationService _notificationService;
+    private readonly IRouteOptimizationService _routeOptimizationService;
 
     public TripService(
         ITripRepository tripRepository,
@@ -19,7 +20,8 @@ public class TripService : ITripService
         IUserRepository userRepository,
         ITripStatusLogRepository tripStatusLogRepository,
         ITripAttributeValueRepository tripAttributeValueRepository,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IRouteOptimizationService routeOptimizationService)
     {
         _tripRepository = tripRepository;
         _vehicleRepository = vehicleRepository;
@@ -27,6 +29,7 @@ public class TripService : ITripService
         _tripStatusLogRepository = tripStatusLogRepository;
         _tripAttributeValueRepository = tripAttributeValueRepository;
         _notificationService = notificationService;
+        _routeOptimizationService = routeOptimizationService;
     }
 
     public async Task<IEnumerable<TripDto>> GetAllTripsAsync()
@@ -100,6 +103,37 @@ public class TripService : ITripService
             CreatedBy = createdBy
         };
 
+        try
+        {
+            var routeRequest = new RouteOptimizationRequestDto
+            {
+                Waypoints = new List<RouteWaypointDto>
+                {
+                    new RouteWaypointDto
+                    {
+                        Latitude = createTripDto.FromLatitude,
+                        Longitude = createTripDto.FromLongitude,
+                        Sequence = 0
+                    },
+                    new RouteWaypointDto
+                    {
+                        Latitude = createTripDto.ToLatitude,
+                        Longitude = createTripDto.ToLongitude,
+                        Sequence = 1
+                    }
+                }
+            };
+
+            var optimized = await _routeOptimizationService.GetOptimizedRouteAsync(routeRequest);
+            trip.OptimizedRoute = optimized.Polyline;
+            trip.RoutePolyline = optimized.Polyline;
+            trip.EstimatedDistance = optimized.DistanceMeters;
+            trip.EstimatedDuration = optimized.DurationSeconds;
+        }
+        catch
+        {
+        }
+
         await _tripRepository.AddAsync(trip);
         
         // Add attribute values if provided
@@ -145,17 +179,30 @@ public class TripService : ITripService
             trip.ScheduledStartTime = updateTripDto.ScheduledStartTime.Value;
 
         // Update coordinates if provided
-        if (updateTripDto.FromLatitude.HasValue)
+        var coordsChanged = false;
+        if (updateTripDto.FromLatitude.HasValue && updateTripDto.FromLatitude.Value != trip.FromLatitude)
+        {
             trip.FromLatitude = updateTripDto.FromLatitude.Value;
+            coordsChanged = true;
+        }
         
-        if (updateTripDto.FromLongitude.HasValue)
+        if (updateTripDto.FromLongitude.HasValue && updateTripDto.FromLongitude.Value != trip.FromLongitude)
+        {
             trip.FromLongitude = updateTripDto.FromLongitude.Value;
+            coordsChanged = true;
+        }
         
-        if (updateTripDto.ToLatitude.HasValue)
+        if (updateTripDto.ToLatitude.HasValue && updateTripDto.ToLatitude.Value != trip.ToLatitude)
+        {
             trip.ToLatitude = updateTripDto.ToLatitude.Value;
+            coordsChanged = true;
+        }
         
-        if (updateTripDto.ToLongitude.HasValue)
+        if (updateTripDto.ToLongitude.HasValue && updateTripDto.ToLongitude.Value != trip.ToLongitude)
+        {
             trip.ToLongitude = updateTripDto.ToLongitude.Value;
+            coordsChanged = true;
+        }
         
         if (updateTripDto.FromLocationName != null)
             trip.FromLocationName = updateTripDto.FromLocationName;
@@ -187,6 +234,41 @@ public class TripService : ITripService
                 }
             }
             trip.DriverId = updateTripDto.DriverId.Value;
+        }
+
+        // If coordinates changed, recompute route estimates
+        if (coordsChanged)
+        {
+            try
+            {
+                var routeRequest = new RouteOptimizationRequestDto
+                {
+                    Waypoints = new List<RouteWaypointDto>
+                    {
+                        new RouteWaypointDto
+                        {
+                            Latitude = trip.FromLatitude,
+                            Longitude = trip.FromLongitude,
+                            Sequence = 0
+                        },
+                        new RouteWaypointDto
+                        {
+                            Latitude = trip.ToLatitude,
+                            Longitude = trip.ToLongitude,
+                            Sequence = 1
+                        }
+                    }
+                };
+
+                var optimized = await _routeOptimizationService.GetOptimizedRouteAsync(routeRequest);
+                trip.OptimizedRoute = optimized.Polyline;
+                trip.RoutePolyline = optimized.Polyline;
+                trip.EstimatedDistance = optimized.DistanceMeters;
+                trip.EstimatedDuration = optimized.DurationSeconds;
+            }
+            catch
+            {
+            }
         }
 
         trip.UpdatedAt = DateTime.UtcNow;
@@ -582,7 +664,11 @@ public class TripService : ITripService
             } : null,
             ApprovedAt = trip.ApprovedAt,
             CreatedAt = trip.CreatedAt,
-            TripTypeId = trip.TripTypeId
+            TripTypeId = trip.TripTypeId,
+            OptimizedRoute = trip.OptimizedRoute,
+            RoutePolyline = trip.RoutePolyline,
+            EstimatedDistance = trip.EstimatedDistance,
+            EstimatedDuration = trip.EstimatedDuration
         };
     }
     
