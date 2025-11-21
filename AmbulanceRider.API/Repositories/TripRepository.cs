@@ -16,6 +16,7 @@ public class TripRepository : Repository<Trip>, ITripRepository
             .Include(t => t.Vehicle)
             .Include(t => t.Driver)
             .Include(t => t.Approver)
+            .Include(t => t.TripType)
             .Where(t => t.DeletedAt == null)
             .FirstOrDefaultAsync(t => t.Id == id);
     }
@@ -26,6 +27,7 @@ public class TripRepository : Repository<Trip>, ITripRepository
             .Include(t => t.Vehicle)
             .Include(t => t.Driver)
             .Include(t => t.Approver)
+            .Include(t => t.TripType)
             .Where(t => t.DeletedAt == null)
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync();
@@ -37,6 +39,7 @@ public class TripRepository : Repository<Trip>, ITripRepository
             .Include(t => t.Vehicle)
             .Include(t => t.Driver)
             .Include(t => t.Approver)
+            .Include(t => t.TripType)
             .Where(t => t.DeletedAt == null && t.Status == status)
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync();
@@ -53,6 +56,7 @@ public class TripRepository : Repository<Trip>, ITripRepository
             .Include(t => t.Vehicle)
             .Include(t => t.Driver)
             .Include(t => t.Approver)
+            .Include(t => t.TripType)
             .Where(t => t.DeletedAt == null && t.DriverId == driverId)
             .OrderByDescending(t => t.ScheduledStartTime)
             .ToListAsync();

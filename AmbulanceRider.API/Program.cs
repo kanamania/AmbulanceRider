@@ -232,6 +232,8 @@ builder.Services.AddScoped<ITripTypeService, TripTypeService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ITelemetryService, TelemetryService>();
 builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
+builder.Services.AddScoped<IDataHashService, DataHashService>();
+builder.Services.AddScoped<IDataHashNotificationService, DataHashNotificationService>();
 
 // Add SignalR
 builder.Services.AddSignalR();

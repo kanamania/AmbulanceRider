@@ -1,0 +1,152 @@
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using AmbulanceRider.API.Data;
+using Microsoft.EntityFrameworkCore;
+
+namespace AmbulanceRider.API.Services
+{
+    public interface IDataHashService
+    {
+        Task<string> GenerateUserHashAsync(string userId);
+        Task<string> GenerateProfileHashAsync(string userId);
+        Task<string> GenerateTripTypesHashAsync();
+        Task<string> GenerateLocationsHashAsync();
+        Task<string> GenerateTripsHashAsync(string userId);
+    }
+
+    public class DataHashService : IDataHashService
+    {
+        private readonly ApplicationDbContext _context;
+
+        public DataHashService(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<string> GenerateUserHashAsync(string userId)
+        {
+            var user = await _context.Users
+                .AsNoTracking()
+                .Where(u => u.Id == Guid.Parse(userId))
+                .Select(u => new
+                {
+                    u.Id,
+                    u.FirstName,
+                    u.LastName,
+                    u.Email,
+                    u.PhoneNumber,
+                    u.ImagePath,
+                    u.UpdatedAt
+                })
+                .FirstOrDefaultAsync();
+
+            if (user == null)
+                return string.Empty;
+
+            var json = JsonSerializer.Serialize(user);
+            return ComputeHash(json);
+        }
+
+        public async Task<string> GenerateProfileHashAsync(string userId)
+        {
+            // Same as user hash for now, can be extended with additional profile data
+            return await GenerateUserHashAsync(userId);
+        }
+
+        public async Task<string> GenerateTripTypesHashAsync()
+        {
+            var tripTypes = await _context.TripTypes
+                .AsNoTracking()
+                .Include(t => t.Attributes)
+                .Where(t => t.IsActive)
+                .OrderBy(t => t.Id)
+                .Select(t => new
+                {
+                    t.Id,
+                    t.Name,
+                    t.Description,
+                    t.IsActive,
+                    t.UpdatedAt,
+                    Attributes = t.Attributes
+                        .Where(a => a.IsActive)
+                        .OrderBy(a => a.DisplayOrder)
+                        .Select(a => new
+                        {
+                            a.Id,
+                            a.Name,
+                            a.Label,
+                            a.DataType,
+                            a.IsRequired,
+                            a.DisplayOrder,
+                            a.ValidationRules
+                        })
+                })
+                .ToListAsync();
+
+            var json = JsonSerializer.Serialize(tripTypes);
+            return ComputeHash(json);
+        }
+
+        public async Task<string> GenerateLocationsHashAsync()
+        {
+            var locations = await _context.Locations
+                .AsNoTracking()
+                .OrderBy(l => l.Id)
+                .Select(l => new
+                {
+                    l.Id,
+                    l.Name,
+                    l.Latitude,
+                    l.Longitude,
+                    l.UpdatedAt
+                })
+                .ToListAsync();
+
+            var json = JsonSerializer.Serialize(locations);
+            return ComputeHash(json);
+        }
+
+        public async Task<string> GenerateTripsHashAsync(string userId)
+        {
+            var userGuid = Guid.Parse(userId);
+            var trips = await _context.Trips
+                .AsNoTracking()
+                .Where(t => t.CreatedBy == userGuid || t.DriverId == userGuid)
+                .OrderByDescending(t => t.UpdatedAt ?? t.CreatedAt)
+                .Select(t => new
+                {
+                    t.Id,
+                    t.Name,
+                    t.Status,
+                    t.FromLatitude,
+                    t.FromLongitude,
+                    t.ToLatitude,
+                    t.ToLongitude,
+                    t.FromLocationName,
+                    t.ToLocationName,
+                    t.VehicleId,
+                    t.DriverId,
+                    t.EstimatedDistance,
+                    t.EstimatedDuration,
+                    t.CreatedAt,
+                    t.UpdatedAt,
+                    t.ApprovedAt,
+                    t.ActualStartTime,
+                    t.ActualEndTime
+                })
+                .ToListAsync();
+
+            var json = JsonSerializer.Serialize(trips);
+            return ComputeHash(json);
+        }
+
+        private static string ComputeHash(string input)
+        {
+            using var sha256 = SHA256.Create();
+            var bytes = Encoding.UTF8.GetBytes(input);
+            var hash = sha256.ComputeHash(bytes);
+            return Convert.ToBase64String(hash);
+        }
+    }
+}

@@ -23,11 +23,19 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly ITelemetryService _telemetryService;
+    private readonly IDataHashService _dataHashService;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IAuthService authService, ITelemetryService telemetryService)
+    public AuthController(
+        IAuthService authService, 
+        ITelemetryService telemetryService,
+        IDataHashService dataHashService,
+        ILogger<AuthController> logger)
     {
         _authService = authService;
         _telemetryService = telemetryService;
+        _dataHashService = dataHashService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -558,6 +566,76 @@ public class AuthController : ControllerBase
         catch (ApplicationException ex)
         {
             return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get data hashes for efficient synchronization
+    /// </summary>
+    /// <remarks>
+    /// Returns hash values for user data, profile, trip types, locations, and trips.
+    /// These hashes are used by the frontend for efficient data synchronization.
+    /// The frontend compares these hashes with locally stored hashes to determine
+    /// if fresh data needs to be fetched.
+    /// 
+    /// **How it works:**
+    /// - Each hash is computed using SHA256 of the serialized JSON data
+    /// - User/Profile Hash: Based on user's personal information and last update time
+    /// - Trip Types Hash: Based on all active trip types and their attributes
+    /// - Locations Hash: Based on all active locations
+    /// - Trips Hash: Based on user's trips (created by or assigned to the user)
+    /// 
+    /// **Benefits:**
+    /// - Reduces unnecessary API calls and bandwidth
+    /// - Only fetch data when it actually changed
+    /// - Lightweight compared to transferring full data
+    /// </remarks>
+    /// <returns>Hash values for user, profile, trip types, locations, and trips</returns>
+    /// <response code="200">Hashes retrieved successfully</response>
+    /// <response code="401">Not authenticated</response>
+    /// <response code="500">Server error occurred</response>
+    [Authorize]
+    [HttpGet("data-hashes")]
+    [ProducesResponseType(typeof(DataHashResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [SwaggerOperation(
+        Summary = "Get data hashes",
+        Description = "Retrieve hash values for efficient data synchronization",
+        OperationId = "Auth_GetDataHashes",
+        Tags = new[] { "Authentication" }
+    )]
+    public async Task<ActionResult<DataHashResponseDto>> GetDataHashes()
+    {
+        try
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
+            var userHash = await _dataHashService.GenerateUserHashAsync(userId);
+            var profileHash = await _dataHashService.GenerateProfileHashAsync(userId);
+            var tripTypesHash = await _dataHashService.GenerateTripTypesHashAsync();
+            var locationsHash = await _dataHashService.GenerateLocationsHashAsync();
+            var tripsHash = await _dataHashService.GenerateTripsHashAsync(userId);
+
+            var response = new DataHashResponseDto
+            {
+                UserHash = userHash,
+                ProfileHash = profileHash,
+                TripTypesHash = tripTypesHash,
+                LocationsHash = locationsHash,
+                TripsHash = tripsHash
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating data hashes for user");
+            return StatusCode(500, new { message = "An error occurred while generating data hashes" });
         }
     }
 }

@@ -41,7 +41,7 @@ public class TripService : ITripService
     public async Task<TripDto?> GetTripByIdAsync(int id)
     {
         var trip = await _tripRepository.GetByIdAsync(id);
-        return trip == null ? null : MapToDto(trip);
+        return trip == null ? null : await MapToDtoAsync(trip);
     }
 
     public async Task<IEnumerable<TripDto>> GetTripsByStatusAsync(TripStatus status)
@@ -238,6 +238,24 @@ public class TripService : ITripService
             trip.DriverId = updateTripDto.DriverId.Value;
         }
 
+        if (updateTripDto.TripTypeId.HasValue)
+        {
+            trip.TripTypeId = updateTripDto.TripTypeId.Value;
+        }
+
+        if (updateTripDto.AttributeValues != null)
+        {
+            await _tripAttributeValueRepository.DeleteByTripIdAsync(trip.Id);
+            var newValues = updateTripDto.AttributeValues.Select(av => new TripAttributeValue
+            {
+                TripId = trip.Id,
+                TripTypeAttributeId = av.TripTypeAttributeId,
+                Value = av.Value,
+                CreatedAt = DateTime.UtcNow
+            });
+            await _tripAttributeValueRepository.AddRangeAsync(newValues);
+        }
+
         // If coordinates changed, recompute route estimates
         if (coordsChanged)
         {
@@ -278,7 +296,7 @@ public class TripService : ITripService
         
         // Reload to get navigation properties
         var updatedTrip = await _tripRepository.GetByIdAsync(trip.Id);
-        return MapToDto(updatedTrip!);
+        return await MapToDtoAsync(updatedTrip!);
     }
 
     public async Task<TripDto> ApproveTripAsync(int id, ApproveTripDto approveTripDto, Guid approverId)
@@ -667,6 +685,18 @@ public class TripService : ITripService
             ApprovedAt = trip.ApprovedAt,
             CreatedAt = trip.CreatedAt,
             TripTypeId = trip.TripTypeId,
+            TripType = trip.TripType != null ? new TripTypeDto
+            {
+                Id = trip.TripType.Id,
+                Name = trip.TripType.Name,
+                Description = trip.TripType.Description,
+                Color = trip.TripType.Color,
+                Icon = trip.TripType.Icon,
+                IsActive = trip.TripType.IsActive,
+                DisplayOrder = trip.TripType.DisplayOrder,
+                CreatedAt = trip.TripType.CreatedAt,
+                Attributes = new List<TripTypeAttributeDto>()
+            } : null,
             OptimizedRoute = trip.OptimizedRoute,
             RoutePolyline = trip.RoutePolyline,
             EstimatedDistance = trip.EstimatedDistance,
