@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -20,7 +20,11 @@ namespace AmbulanceRider.API.Migrations
                 type: "character varying(34)",
                 maxLength: 34,
                 nullable: false,
-                defaultValue: "");
+                defaultValue: "UserRole");
+            
+            // Update existing rows to have the discriminator value
+            migrationBuilder.Sql(
+                @"UPDATE ""AspNetUserRoles"" SET ""Discriminator"" = 'UserRole' WHERE ""Discriminator"" = '' OR ""Discriminator"" IS NULL;");
         }
 
         /// <inheritdoc />
