@@ -71,10 +71,11 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.ToTable("roles");
         });
 
-        // Configure UserRole to use Identity's built-in properties
+        // Configure UserRole to use Identity's default table name
         modelBuilder.Entity<UserRole>(entity =>
         {
-            entity.ToTable("user_roles");
+            // Use Identity's default table name to avoid mismatch
+            entity.ToTable("AspNetUserRoles");
             
             entity.HasOne(ur => ur.User)
                 .WithMany(u => u.UserRoles)
