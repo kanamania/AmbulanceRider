@@ -131,6 +131,10 @@
         if (isDispatcher) model.Roles.Add("Dispatcher");
         if (isUser) model.Roles.Add("User");
 
+        // Debug: Log roles being submitted
+        Console.WriteLine($"Submitting user update with {model.Roles.Count} roles: {string.Join(", ", model.Roles)}");
+        Console.WriteLine($"Checkbox states - Admin: {isAdmin}, Driver: {isDriver}, Dispatcher: {isDispatcher}, User: {isUser}");
+
         try
         {
             isSubmitting = true;
@@ -140,6 +144,7 @@
         catch (Exception ex)
         {
             errorMessage = ex.Message;
+            Console.WriteLine($"Error updating user: {ex.Message}");
         }
         finally
         {

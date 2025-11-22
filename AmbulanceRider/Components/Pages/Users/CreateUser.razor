@@ -104,13 +104,17 @@
     private void ToggleRole(string roleName, ChangeEventArgs e)
     {
         var isChecked = (bool)(e.Value ?? false);
+        Console.WriteLine($"ToggleRole: {roleName}, isChecked: {isChecked}");
+        
         if (isChecked && !model.Roles.Contains(roleName))
         {
             model.Roles.Add(roleName);
+            Console.WriteLine($"Added {roleName}. Total roles: {model.Roles.Count} - {string.Join(", ", model.Roles)}");
         }
         else if (!isChecked && model.Roles.Contains(roleName))
         {
             model.Roles.Remove(roleName);
+            Console.WriteLine($"Removed {roleName}. Total roles: {model.Roles.Count} - {string.Join(", ", model.Roles)}");
         }
     }
 
@@ -120,12 +124,17 @@
         {
             isSubmitting = true;
             errorMessage = null;
+            
+            // Debug: Log roles being submitted
+            Console.WriteLine($"Submitting user with {model.Roles.Count} roles: {string.Join(", ", model.Roles)}");
+            
             await ApiService.CreateUserAsync(model);
             Navigation.NavigateTo("/users");
         }
         catch (Exception ex)
         {
             errorMessage = $"Error creating user: {ex.Message}";
+            Console.WriteLine($"Error creating user: {ex.Message}");
         }
         finally
         {
