@@ -25,7 +25,7 @@ EXPOSE 8080
 
 # Install curl for health checks
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-
+RUN dotnet ef database update
 # Copy the published app
 COPY --from=publish /app/publish .
 
