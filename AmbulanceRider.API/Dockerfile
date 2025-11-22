@@ -12,7 +12,7 @@ RUN dotnet restore "AmbulanceRider.API.csproj"
 
 # Copy everything else and build
 COPY . .
-RUN dotnet build "AmbulanceRider.API.csproj" -c Release -o /app/build
+RUN dotnet build "AmbulanceRider.API.csproj" -c Release -o /app/build && dotnet ef database update
 
 # Publish stage
 FROM build AS publish
@@ -25,7 +25,7 @@ EXPOSE 8080
 
 # Install curl for health checks
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-RUN dotnet ef database update
+
 # Copy the published app
 COPY --from=publish /app/publish .
 
