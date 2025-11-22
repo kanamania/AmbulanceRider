@@ -145,16 +145,16 @@ public class UserService : IUserService
 
         user.UpdatedAt = DateTime.UtcNow;
 
-        // Update roles if provided
-        if (updateUserDto.Roles != null && updateUserDto.Roles.Any())
+        // Update roles if provided (null means don't update, empty list means remove all)
+        if (updateUserDto.Roles != null)
         {
             _logger.LogInformation("Updating roles for user {Email}. New roles: {Roles}", 
-                user.Email, string.Join(", ", updateUserDto.Roles));
+                user.Email, updateUserDto.Roles.Any() ? string.Join(", ", updateUserDto.Roles) : "(none)");
             
             // Get current roles
             var currentRoles = await _userManager.GetRolesAsync(user);
             _logger.LogInformation("Current roles for user {Email}: {CurrentRoles}", 
-                user.Email, string.Join(", ", currentRoles));
+                user.Email, currentRoles.Any() ? string.Join(", ", currentRoles) : "(none)");
             
             // Remove all current roles
             foreach (var role in currentRoles)
@@ -162,15 +162,22 @@ public class UserService : IUserService
                 await _userManager.RemoveFromRoleAsync(user, role);
             }
 
-            // Add new roles
-            foreach (var roleName in updateUserDto.Roles)
+            // Add new roles (if any)
+            if (updateUserDto.Roles.Any())
             {
-                var roleResult = await _userManager.AddToRoleAsync(user, roleName);
-                if (!roleResult.Succeeded)
+                foreach (var roleName in updateUserDto.Roles)
                 {
-                    var roleErrors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
-                    _logger.LogWarning("Failed to add role {RoleName} to user {Email}. Errors: {Errors}", 
-                        roleName, user.Email, roleErrors);
+                    var roleResult = await _userManager.AddToRoleAsync(user, roleName);
+                    if (!roleResult.Succeeded)
+                    {
+                        var roleErrors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                        _logger.LogWarning("Failed to add role {RoleName} to user {Email}. Errors: {Errors}", 
+                            roleName, user.Email, roleErrors);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Successfully added role {RoleName} to user {Email}", roleName, user.Email);
+                    }
                 }
             }
         }
