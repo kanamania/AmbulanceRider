@@ -13,7 +13,6 @@ RUN dotnet restore "AmbulanceRider.API.csproj"
 # Copy everything else and build
 COPY . .
 RUN dotnet build "AmbulanceRider.API.csproj" -c Release -o /app/build
-RUN dotnet ef database update
 
 # Publish stage
 FROM build AS publish
