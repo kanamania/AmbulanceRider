@@ -39,7 +39,7 @@ public class UserService : IUserService
         if (user == null)
             return null;
         
-        Console.WriteLine($"[API] Retrieved user {user.Email} with roles: {string.Join(", ", await _userManager.GetRolesAsync(user))}");
+        Console.WriteLine($"[API] Retrieved user {user.Email} with ID {user.Id.ToString()} and roles: {string.Join(", ", await _userManager.GetRolesAsync(user))}");
         
         return new UserDto
         {
