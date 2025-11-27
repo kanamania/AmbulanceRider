@@ -125,6 +125,8 @@
     {
         if (model == null) return;
         
+        Console.WriteLine("[UI] Starting user update process");
+        
         // Sync checkbox states with roles before submission
         model.Roles = new List<string>();
         if (isAdmin) model.Roles.Add("Admin");
@@ -132,15 +134,24 @@
         if (isDispatcher) model.Roles.Add("Dispatcher");
         if (isUser) model.Roles.Add("User");
 
-        // Debug: Log roles being submitted
-        Console.WriteLine($"Submitting user update with {model.Roles.Count} roles: {string.Join(", ", model.Roles)}");
-        Console.WriteLine($"Checkbox states - Admin: {isAdmin}, Driver: {isDriver}, Dispatcher: {isDispatcher}, User: {isUser}");
+        Console.WriteLine($"[UI] Prepared update with roles: {string.Join(", ", model.Roles)}");
+        Console.WriteLine($"[UI] Checkbox states - Admin: {isAdmin}, Driver: {isDriver}, Dispatcher: {isDispatcher}, User: {isUser}");
 
         try
         {
             isSubmitting = true;
-            await ApiService.UpdateUserAsync(Id, model);
-            Navigation.NavigateTo("/users");
+            errorMessage = null;
+            
+            Console.WriteLine("[UI] Calling API to update user");
+            var updatedUser = await ApiService.UpdateUserAsync(Id, model);
+            Console.WriteLine($"[UI] API returned updated user with roles: {string.Join(", ", updatedUser.Roles)}");
+            
+            // Force refresh of user data
+            Console.WriteLine("[UI] Refreshing UI state");
+            await InvokeAsync(StateHasChanged);
+            
+            Console.WriteLine("[UI] Navigating to user details with force load");
+            Navigation.NavigateTo($"/users/{Id}", forceLoad: true);
         }
         catch (Exception ex)
         {

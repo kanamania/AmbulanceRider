@@ -60,9 +60,16 @@ public class ApiService
 
     public async Task<UserDto> UpdateUserAsync(string id, UpdateUserDto user)
     {
+        Console.WriteLine($"[API] Starting user update for ID: {id}");
+        Console.WriteLine($"[API] Roles being submitted: {string.Join(", ", user.Roles ?? new List<string>())}");
+        
         var response = await _httpClient.PutAsJsonAsync($"/api/users/{id}", user);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<UserDto>() ?? throw new Exception("Failed to update user");
+        
+        var result = await response.Content.ReadFromJsonAsync<UserDto>() ?? throw new Exception("Failed to update user");
+        Console.WriteLine($"[API] Update successful. New roles: {string.Join(", ", result.Roles)}");
+        
+        return result;
     }
 
     public async Task DeleteUserAsync(string id)
