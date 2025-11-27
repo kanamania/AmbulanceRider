@@ -14,6 +14,8 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     public new DbSet<User> Users { get; set; }
     public new DbSet<Role> Roles { get; set; }
     public new DbSet<UserRole> UserRoles { get; set; }
+    public DbSet<Company> Companies { get; set; }
+    public DbSet<PricingMatrix> PricingMatrices { get; set; }
     public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<VehicleType> VehicleTypes { get; set; }
     public DbSet<VehicleDriver> VehicleDrivers { get; set; }
@@ -43,12 +45,31 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
                 modelBuilder.Entity(entityType.ClrType).HasQueryFilter(lambda);
             }
 
+        // Company configuration
+        modelBuilder.Entity<Company>(entity =>
+        {
+            entity.ToTable("companies");
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.ContactEmail).HasMaxLength(100);
+            entity.Property(e => e.ContactPhone).HasMaxLength(20);
+            entity.Property(e => e.Address).HasMaxLength(255);
+            
+            entity.HasQueryFilter(e => e.DeletedAt == null);
+        });
+
         // Configure Identity tables with custom names
         modelBuilder.Entity<User>(entity =>
         {
             entity.ToTable("users");
             entity.Property(e => e.FirstName).IsRequired().HasMaxLength(50);
             entity.Property(e => e.LastName).IsRequired().HasMaxLength(50);
+            
+            // Company relationship
+            entity.HasOne(u => u.Company)
+                .WithMany(c => c.Users)
+                .HasForeignKey(u => u.CompanyId)
+                .OnDelete(DeleteBehavior.SetNull);
             
             // Ignore computed property
             entity.Ignore(u => u.FullName);
@@ -102,6 +123,32 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
                 .WithMany(u => u.RefreshTokens)
                 .HasForeignKey(rt => rt.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // PricingMatrix configuration
+        modelBuilder.Entity<PricingMatrix>(entity =>
+        {
+            entity.ToTable("pricing_matrices");
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            
+            // Relationships
+            entity.HasOne(p => p.Company)
+                .WithMany()
+                .HasForeignKey(p => p.CompanyId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(p => p.VehicleType)
+                .WithMany()
+                .HasForeignKey(p => p.VehicleTypeId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(p => p.TripType)
+                .WithMany()
+                .HasForeignKey(p => p.TripTypeId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasQueryFilter(e => e.DeletedAt == null);
         });
 
         // Vehicle configuration

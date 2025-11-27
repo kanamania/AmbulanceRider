@@ -60,6 +60,21 @@ public class Trip : BaseModel
     public double? EstimatedDistance { get; set; } // in meters
     public int? EstimatedDuration { get; set; } // in seconds
     
+    // Dimensions
+    public decimal? Weight { get; set; }
+    public decimal? Height { get; set; }
+    public decimal? Length { get; set; }
+    public decimal? Width { get; set; }
+    
+    // Pricing
+    public decimal? BasePrice { get; set; }
+    public decimal? TaxAmount { get; set; }
+    public decimal? TotalPrice { get; set; }
+    
+    // Pricing Matrix reference
+    public int? PricingMatrixId { get; set; }
+    public virtual PricingMatrix? PricingMatrix { get; set; }
+    
     // Navigation properties
     public virtual Vehicle? Vehicle { get; set; }
     public virtual User? Driver { get; set; }

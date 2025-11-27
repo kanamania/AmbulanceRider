@@ -222,6 +222,7 @@ builder.Services.AddScoped<ITripTypeRepository, TripTypeRepository>();
 builder.Services.AddScoped<ITripTypeAttributeRepository, TripTypeAttributeRepository>();
 builder.Services.AddScoped<ITripAttributeValueRepository, TripAttributeValueRepository>();
 builder.Services.AddScoped<ITelemetryRepository, TelemetryRepository>();
+builder.Services.AddScoped<IPricingMatrixRepository, PricingMatrixRepository>();
 
 // Register Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -235,6 +236,8 @@ builder.Services.AddScoped<ITelemetryService, TelemetryService>();
 builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
 builder.Services.AddScoped<IDataHashService, DataHashService>();
 builder.Services.AddScoped<IDataHashNotificationService, DataHashNotificationService>();
+builder.Services.AddScoped<IPricingService, PricingService>();
+builder.Services.AddScoped<ICompanyStatsService, CompanyStatsService>();
 
 // Add SignalR
 builder.Services.AddSignalR();

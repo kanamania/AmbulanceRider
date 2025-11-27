@@ -1,5 +1,6 @@
 @page "/users/create"
 @using AmbulanceRider.Models
+@using AmbulanceRider.Models // Added using directive for CompanyDto
 @using AmbulanceRider.Services
 @inject ApiService ApiService
 @inject NavigationManager Navigation
@@ -55,6 +56,17 @@
                             <ValidationMessage For="@(() => model.Password)" />
                         </div>
 
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="company">Company</label>
+                            <InputSelect @bind-Value="model.CompanyId" class="w-full px-3 py-2 border rounded">
+                                <option value="">-- Select Company --</option>
+                                @foreach (var company in Companies)
+                                {
+                                    <option value="@company.Id">@company.Name</option>
+                                }
+                            </InputSelect>
+                        </div>
+
                         <div class="mb-3">
                             <label class="form-label">Roles</label>
                             <div>
@@ -100,6 +112,12 @@
     private CreateUserDto model = new() { Roles = new List<string> { "User" } };
     private bool isSubmitting = false;
     private string? errorMessage;
+    private List<CompanyDto> Companies = new List<CompanyDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Companies = await ApiService.GetCompaniesAsync();
+    }
 
     private void ToggleRole(string roleName, ChangeEventArgs e)
     {

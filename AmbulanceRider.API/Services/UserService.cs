@@ -14,17 +14,20 @@ public class UserService : IUserService
     private readonly ApplicationDbContext _context;
     private readonly UserManager<User> _userManager;
     private readonly ILogger<UserService> _logger;
+    private readonly ICompanyRepository _companyRepo;
 
     public UserService(
         IUserRepository userRepository, 
         ApplicationDbContext context, 
         UserManager<User> userManager,
-        ILogger<UserService> logger)
+        ILogger<UserService> logger,
+        ICompanyRepository companyRepo)
     {
         _userRepository = userRepository;
         _context = context;
         _userManager = userManager;
         _logger = logger;
+        _companyRepo = companyRepo;
     }
 
     public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
@@ -246,6 +249,20 @@ public class UserService : IUserService
 
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<CompanyDto>> GetCompaniesAsync()
+    {
+        var companies = await _companyRepo.GetAllAsync();
+        return companies.Select(c => new CompanyDto
+        {
+            Id = c.Id,
+            Name = c.Name,
+            Description = c.Description,
+            ContactEmail = c.ContactEmail,
+            ContactPhone = c.ContactPhone,
+            Address = c.Address
+        }).ToList();
     }
 
     private static UserDto MapToDto(User user)

@@ -4,8 +4,9 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
-@inject ApiService ApiService
+@inject IApiService ApiService
 @inject NavigationManager Navigation
+@inject TelemetryDashboardService DashboardService
 
 <PageTitle>Dashboard - AmbulanceRider</PageTitle>
 
@@ -361,6 +362,7 @@
     private List<UserDto> _users = new();
     private List<LocationDto> _locations = new();
     private List<TripTypeDto> _tripTypes = new();
+    private CompanyStatsDto? CompanyStats { get; set; }
 
     private List<TripDto> _recentTrips => _trips.OrderByDescending(t => t.CreatedAt).Take(10).ToList();
     private int _pendingTrips => _trips.Count(t => t.Status == "Pending");
@@ -369,6 +371,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        CompanyStats = await ApiService.GetCompanyStatsAsync(1); // Default company ID
         await LoadDashboardData();
     }
 

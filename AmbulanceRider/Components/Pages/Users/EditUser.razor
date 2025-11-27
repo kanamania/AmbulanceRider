@@ -49,6 +49,16 @@
                                 <label class="form-label">New Password (leave blank to keep current)</label>
                                 <InputText @bind-Value="model.Password" class="form-control" type="password" />
                             </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="company">Company</label>
+                                <InputSelect @bind-Value="model.CompanyId" class="w-full px-3 py-2 border rounded">
+                                    <option value="">-- Select Company --</option>
+                                    @foreach (var company in Companies)
+                                    {
+                                        <option value="@company.Id">@company.Name</option>
+                                    }
+                                </InputSelect>
+                            </div>
                             <div class="mb-3">
                                 <label class="form-label">Roles</label>
                                 <div>
@@ -89,6 +99,7 @@
     private bool isSubmitting = false;
     private string? errorMessage;
     private bool isAdmin, isDriver, isDispatcher, isUser;
+    private List<CompanyDto> Companies { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -103,6 +114,7 @@
                     LastName = user.LastName,
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
+                    CompanyId = user.CompanyId,
                     Roles = new List<string>()
                 };
                 isAdmin = user.Roles.Contains("Admin");
@@ -110,6 +122,7 @@
                 isDispatcher = user.Roles.Contains("Dispatcher");
                 isUser = user.Roles.Contains("User");
             }
+            Companies = await ApiService.GetCompaniesAsync();
         }
         catch (Exception ex)
         {

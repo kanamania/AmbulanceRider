@@ -34,12 +34,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>
     )
 );
 builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<ApiService>(sp => 
-    new ApiService(
-        sp.GetRequiredService<HttpClient>(),
-        configuration
-    )
-);
+builder.Services.AddScoped<IApiService, ApiService>();
 builder.Services.AddScoped<TelemetryService>();
 // Register the TelemetryDashboardService
 builder.Services.AddScoped<ITelemetryService, TelemetryDashboardService>();

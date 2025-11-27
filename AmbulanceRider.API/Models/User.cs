@@ -28,6 +28,10 @@ public class User : IdentityUser<Guid>
     public DateTime? DeletedAt { get; set; }
     public Guid? DeletedBy { get; set; }
     
+    // Company relationship
+    public int? CompanyId { get; set; }
+    public virtual Company? Company { get; set; }
+    
     // Computed property
     public string FullName => $"{FirstName} {LastName}";
     

@@ -13,6 +13,7 @@ public class TripService : ITripService
     private readonly ITripAttributeValueRepository _tripAttributeValueRepository;
     private readonly INotificationService _notificationService;
     private readonly IRouteOptimizationService _routeOptimizationService;
+    private readonly IPricingMatrixRepository _pricingRepo;
 
     public TripService(
         ITripRepository tripRepository,
@@ -21,7 +22,8 @@ public class TripService : ITripService
         ITripStatusLogRepository tripStatusLogRepository,
         ITripAttributeValueRepository tripAttributeValueRepository,
         INotificationService notificationService,
-        IRouteOptimizationService routeOptimizationService)
+        IRouteOptimizationService routeOptimizationService,
+        IPricingMatrixRepository pricingRepo)
     {
         _tripRepository = tripRepository;
         _vehicleRepository = vehicleRepository;
@@ -30,6 +32,7 @@ public class TripService : ITripService
         _tripAttributeValueRepository = tripAttributeValueRepository;
         _notificationService = notificationService;
         _routeOptimizationService = routeOptimizationService;
+        _pricingRepo = pricingRepo;
     }
 
     public async Task<IEnumerable<TripDto>> GetAllTripsAsync()
@@ -115,6 +118,22 @@ public class TripService : ITripService
             CreatedAt = DateTime.UtcNow,
             CreatedBy = createdBy
         };
+
+        // Calculate pricing
+        var pricing = (await _pricingRepo.GetByDimensionsAsync(
+            createTripDto.Weight, 
+            createTripDto.Height,
+            createTripDto.Length,
+            createTripDto.Width))
+            .FirstOrDefault();
+
+        if (pricing != null)
+        {
+            trip.PricingMatrixId = pricing.Id;
+            trip.BasePrice = pricing.BasePrice;
+            trip.TaxAmount = pricing.BasePrice * pricing.TaxRate;
+            trip.TotalPrice = pricing.TotalPrice;
+        }
 
         try
         {
@@ -713,7 +732,11 @@ public class TripService : ITripService
             OptimizedRoute = trip.OptimizedRoute,
             RoutePolyline = trip.RoutePolyline,
             EstimatedDistance = trip.EstimatedDistance,
-            EstimatedDuration = trip.EstimatedDuration
+            EstimatedDuration = trip.EstimatedDuration,
+            PricingMatrixId = trip.PricingMatrixId,
+            BasePrice = trip.BasePrice,
+            TaxAmount = trip.TaxAmount,
+            TotalPrice = trip.TotalPrice
         };
     }
     

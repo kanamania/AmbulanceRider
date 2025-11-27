@@ -103,6 +103,16 @@
                             }
                         </div>
 
+                        <!-- Dimensions and Pricing -->
+                        <PricingDetails 
+                            @bind-Weight="model.Weight"
+                            @bind-Height="model.Height"
+                            @bind-Length="model.Length"
+                            @bind-Width="model.Width"
+                            @bind-BasePrice="model.BasePrice"
+                            @bind-TaxAmount="model.TaxAmount"
+                            @bind-TotalPrice="model.TotalPrice" />
+
                         <div class="d-flex justify-content-between align-items-center mt-4">
                             <button type="button" class="btn btn-outline-secondary" @onclick="GoBack">
                                 <i class="bi bi-x-circle me-1"></i>Cancel

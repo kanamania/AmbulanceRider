@@ -3,7 +3,7 @@ using AmbulanceRider.Models;
 
 namespace AmbulanceRider.Services;
 
-public class ApiService
+public class ApiService : IApiService
 {
     private readonly HttpClient _httpClient;
 
@@ -264,5 +264,15 @@ public class ApiService
     {
         var response = await _httpClient.DeleteAsync($"/api/triptypes/attributes/{id}");
         response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<CompanyStatsDto?> GetCompanyStatsAsync(int companyId)
+    {
+        return await _httpClient.GetFromJsonAsync<CompanyStatsDto>($"api/dashboard/company-stats/{companyId}");
+    }
+
+    public async Task<List<CompanyDto>?> GetCompaniesAsync()
+    {
+        return await _httpClient.GetFromJsonAsync<List<CompanyDto>?>($"api/companies");
     }
 }

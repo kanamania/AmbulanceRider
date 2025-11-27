@@ -28,6 +28,10 @@ public class TripDto
     public UserDto? Approver { get; set; }
     public DateTime? ApprovedAt { get; set; }
     public DateTime CreatedAt { get; set; }
+    public decimal BasePrice { get; set; }
+    public decimal TaxAmount { get; set; }
+    public decimal TotalPrice { get; set; }
+    public int PricingMatrixId { get; set; }
 }
 
 public class CreateTripDto
@@ -49,6 +53,13 @@ public class CreateTripDto
     public int? VehicleId { get; set; }
     public Guid? DriverId { get; set; }
     public TelemetryDto? Telemetry { get; set; }
+    public decimal Weight { get; set; }
+    public decimal Height { get; set; }
+    public decimal Length { get; set; }
+    public decimal Width { get; set; }
+    public decimal BasePrice { get; set; }
+    public decimal TaxAmount { get; set; }
+    public decimal TotalPrice { get; set; }
 }
 
 public class UpdateTripDto
@@ -72,6 +83,13 @@ public class UpdateTripDto
     
     // Telemetry
     public TelemetryDto? Telemetry { get; set; }
+    public decimal Weight { get; set; }
+    public decimal Height { get; set; }
+    public decimal Length { get; set; }
+    public decimal Width { get; set; }
+    public decimal BasePrice { get; set; }
+    public decimal TaxAmount { get; set; }
+    public decimal TotalPrice { get; set; }
 }
 
 public class ApproveTripDto

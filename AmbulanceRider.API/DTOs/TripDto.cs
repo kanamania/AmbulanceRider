@@ -39,6 +39,10 @@ public class TripDto
     public string? RoutePolyline { get; set; }
     public double? EstimatedDistance { get; set; }
     public int? EstimatedDuration { get; set; }
+    public int? PricingMatrixId { get; set; }
+    public decimal? BasePrice { get; set; }
+    public decimal? TaxAmount { get; set; }
+    public decimal? TotalPrice { get; set; }
 }
 
 public class CreateTripDto
@@ -52,6 +56,12 @@ public class CreateTripDto
     public required double FromLongitude { get; set; }
     public required double ToLatitude { get; set; }
     public required double ToLongitude { get; set; }
+    
+    // Dimensions
+    public decimal Weight { get; set; }
+    public decimal Height { get; set; }
+    public decimal Length { get; set; }
+    public decimal Width { get; set; }
     
     // Optional location names
     public string? FromLocationName { get; set; }

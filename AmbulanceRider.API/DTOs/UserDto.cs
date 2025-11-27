@@ -16,6 +16,10 @@ public class UserDto
     public List<string> Roles { get; set; } = new();
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+    
+    // Company information
+    public int? CompanyId { get; set; }
+    public CompanyDto? Company { get; set; }
 }
 
 public class CreateUserDto
@@ -42,6 +46,9 @@ public class CreateUserDto
     
     public string? ImagePath { get; set; }
     public string? ImageUrl { get; set; }
+    
+    // Company information
+    public int? CompanyId { get; set; }
 }
 
 public class UpdateUserDto
@@ -55,6 +62,9 @@ public class UpdateUserDto
     public List<string>? Roles { get; set; }
     public string? ImagePath { get; set; }
     public string? ImageUrl { get; set; }
+    
+    // Company information
+    public int? CompanyId { get; set; }
 }
 
 public class LoginResponseDto
