@@ -16,6 +16,7 @@ RUN dotnet restore "AmbulanceRider/AmbulanceRider.csproj"
 # Copy everything else and build
 COPY . .
 WORKDIR "/src/AmbulanceRider"
+RUN dotnet build "AmbulanceRider.csproj" -c Release --no-restore
 RUN dotnet publish "AmbulanceRider.csproj" -c Release -o /app/publish --no-restore
 
 # Stage 2: Serve the application from Nginx
