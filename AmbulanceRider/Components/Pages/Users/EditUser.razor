@@ -151,7 +151,9 @@
             await InvokeAsync(StateHasChanged);
             
             Console.WriteLine("[UI] Navigating to user details with force load");
-            Navigation.NavigateTo($"/users/{Id}", forceLoad: true);
+            // Navigation.NavigateTo($"/users/{Id}", forceLoad: true);
+            Navigation.NavigateTo("/users");
+            
         }
         catch (Exception ex)
         {
