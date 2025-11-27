@@ -36,7 +36,24 @@ public class UserService : IUserService
     public async Task<UserDto?> GetUserByIdAsync(Guid id)
     {
         var user = await _userRepository.GetByIdWithRolesAsync(id);
-        return user == null ? null : MapToDto(user);
+        if (user == null)
+            return null;
+        
+        Console.WriteLine($"[API] Retrieved user {user.Email} with roles: {string.Join(", ", await _userManager.GetRolesAsync(user))}");
+        
+        return new UserDto
+        {
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            ImagePath = user.ImagePath,
+            ImageUrl = user.ImageUrl,
+            Roles = (await _userManager.GetRolesAsync(user)).ToList(),
+            CreatedAt = user.CreatedAt,
+            UpdatedAt = user.UpdatedAt
+        };
     }
 
     public async Task<UserDto> CreateUserAsync(CreateUserDto createUserDto)
@@ -184,7 +201,11 @@ public class UserService : IUserService
 
         await _userManager.UpdateAsync(user);
 
-        return (await GetUserByIdAsync(user.Id))!;
+        // Ensure we get fresh roles data
+        var updatedUser = await GetUserByIdAsync(user.Id);
+        Console.WriteLine($"[API] Final user roles before return: {string.Join(", ", updatedUser.Roles)}");
+        
+        return updatedUser ?? throw new Exception("Failed to update user");
     }
 
     public async Task DeleteUserAsync(Guid id)
