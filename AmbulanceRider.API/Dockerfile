@@ -23,8 +23,10 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 EXPOSE 8080
 
-# Install curl for health checks
+# Install curl for health checks and dotnet-ef
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+RUN dotnet tool install --global dotnet-ef --version 9.0.10
+ENV PATH="$PATH:/root/.dotnet/tools"
 
 # Copy the published app
 COPY --from=publish /app/publish .
