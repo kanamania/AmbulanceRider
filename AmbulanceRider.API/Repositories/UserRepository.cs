@@ -37,6 +37,7 @@ public class UserRepository : Repository<User>, IUserRepository
         return await _dbSet
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
+            .AsSplitQuery()
             .ToListAsync();
     }
 }

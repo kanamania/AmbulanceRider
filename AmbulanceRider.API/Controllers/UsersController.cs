@@ -32,7 +32,17 @@ public class UsersController(IUserService userService, IConfiguration configurat
     public async Task<ActionResult<IEnumerable<UserDto>>> GetAll()
     {
         var users = await userService.GetAllUsersAsync();
-        return Ok(users);
+        var usersWithRoles = users.Select(u => new UserDto
+        {
+            Id = u.Id,
+            FirstName = u.FirstName,
+            LastName = u.LastName,
+            Email = u.Email,
+            PhoneNumber = u.PhoneNumber,
+            ImageUrl = u.ImageUrl,
+            Roles = await userService.GetUserRolesAsync(u.Id)
+        });
+        return Ok(usersWithRoles);
     }
 
     /// <summary>

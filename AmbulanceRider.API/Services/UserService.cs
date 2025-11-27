@@ -30,7 +30,27 @@ public class UserService : IUserService
     public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
     {
         var users = await _userRepository.GetAllWithRolesAsync();
-        return users.Select(MapToDto);
+        
+        var userDtos = new List<UserDto>();
+        foreach (var user in users)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            userDtos.Add(new UserDto
+            {
+                Id = user.Id.ToString(),
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                ImagePath = user.ImagePath,
+                ImageUrl = user.ImageUrl,
+                Roles = roles.ToList(),
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt
+            });
+        }
+        
+        return userDtos;
     }
 
     public async Task<UserDto?> GetUserByIdAsync(Guid id)
