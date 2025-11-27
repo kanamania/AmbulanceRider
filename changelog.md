@@ -4,3 +4,4 @@
 
 ### Added
 - Migration to assign Admin role to demo@gmail.com
+- Migration to assign User role to all existing users without roles
