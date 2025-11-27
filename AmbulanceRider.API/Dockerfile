@@ -23,15 +23,15 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 EXPOSE 8080
 
-# Install curl for health checks and dotnet-ef
+# Install curl for health checks
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-RUN dotnet tool install --global dotnet-ef --version 9.0.10
+
+# Copy the published app and dotnet tools
+COPY --from=publish /app/publish .
+COPY --from=build /root/.dotnet/tools /root/.dotnet/tools
 ENV PATH="$PATH:/root/.dotnet/tools"
 
-# Copy the published app
-COPY --from=publish /app/publish .
-
-# Health check (will use the port set by ASPNETCORE_URLS in docker-compose)
+# Health check
 HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=3 \
     CMD curl -f http://localhost:5000/health || exit 1
 
