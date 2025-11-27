@@ -43,7 +43,7 @@ public class UserService : IUserService
         
         return new UserDto
         {
-            Id = user.Id,
+            Id = user.Id.ToString(),
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,
