@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.6] - 2025-12-02T13:27:00+03:00
+
+### Added
+- Introduced CompaniesController with secured GET /api/companies endpoint
+
+### Fixed
+- Updated Blazor components to inject IApiService interface consistently
+- Expanded IApiService contract to cover all ApiService features for DI resolution
+
 ## [0.0.5] - 2025-12-02T12:48:00+03:00
 
 ### Fixed

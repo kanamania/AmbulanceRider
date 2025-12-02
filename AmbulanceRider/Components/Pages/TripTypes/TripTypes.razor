@@ -2,7 +2,7 @@
 @using AmbulanceRider.Models
 @using AmbulanceRider.Services
 @using Microsoft.AspNetCore.Authorization
-@inject ApiService ApiService
+@inject IApiService ApiService
 @inject NavigationManager Navigation
 @attribute [Authorize(Roles = "Admin,Dispatcher")]
 
