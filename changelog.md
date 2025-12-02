@@ -5,6 +5,7 @@
 ### Fixed
 - Fixed 500 Internal Server Error on company dashboard stats endpoint when no trips with prices exist
 - CompanyStatsService now properly handles empty collections when calculating average trip price
+- Fixed DashboardController dependency injection to use ICompanyStatsService interface instead of concrete class
 
 ## [0.0.4] - 2025-12-02T12:35:00+03:00
 

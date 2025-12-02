@@ -10,9 +10,9 @@ namespace AmbulanceRider.API.Controllers;
 [Authorize]
 public class DashboardController : ControllerBase
 {
-    private readonly CompanyStatsService _statsService;
+    private readonly ICompanyStatsService _statsService;
 
-    public DashboardController(CompanyStatsService statsService)
+    public DashboardController(ICompanyStatsService statsService)
     {
         _statsService = statsService;
     }
