@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.3] - 2025-12-02T10:35:00+03:00
+
+### Changed
+- Updated UI branding to use the Global Express logo and icon assets.
+
 ## [0.0.2] - 2025-12-02
 
 ### Fixed
