@@ -1,49 +1,103 @@
+using System.Net;
 using System.Net.Http.Json;
 using AmbulanceRider.Models;
+using Microsoft.AspNetCore.Components;
 
 namespace AmbulanceRider.Services;
 
 public class ApiService : IApiService
 {
     private readonly HttpClient _httpClient;
+    private readonly AuthService _authService;
+    private readonly NavigationManager _navigationManager;
 
-    public ApiService(HttpClient httpClient, IConfiguration configuration)
+    public ApiService(HttpClient httpClient, IConfiguration configuration, AuthService authService, NavigationManager navigationManager)
     {
         _httpClient = httpClient;
+        _authService = authService;
+        _navigationManager = navigationManager;
         // Don't set BaseAddress here - it's already set in Program.cs
         // Just use the configured client
+    }
+
+    private async Task<T> ExecuteAsync<T>(Func<Task<T>> action)
+    {
+        try
+        {
+            return await action();
+        }
+        catch (HttpRequestException ex)
+        {
+            await HandleHttpRequestExceptionAsync(ex);
+            throw;
+        }
+    }
+
+    private async Task ExecuteAsync(Func<Task> action)
+    {
+        try
+        {
+            await action();
+        }
+        catch (HttpRequestException ex)
+        {
+            await HandleHttpRequestExceptionAsync(ex);
+            throw;
+        }
+    }
+
+    private async Task HandleHttpRequestExceptionAsync(HttpRequestException ex)
+    {
+        if (ex.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            await _authService.LogoutAsync();
+            _navigationManager.NavigateTo("/login", true);
+        }
     }
 
     // Generic HTTP methods
     public async Task<T?> GetAsync<T>(string endpoint)
     {
-        return await _httpClient.GetFromJsonAsync<T>($"/api/{endpoint.TrimStart('/')}");
+        return await ExecuteAsync(async () =>
+            await _httpClient.GetFromJsonAsync<T>($"/api/{endpoint.TrimStart('/')}")
+        );
     }
 
     public async Task<T> PostAsync<T>(string endpoint, object data)
     {
-        var response = await _httpClient.PostAsJsonAsync($"/api/{endpoint.TrimStart('/')}", data);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<T>() ?? throw new Exception("Failed to post data");
+        return await ExecuteAsync(async () =>
+        {
+            var response = await _httpClient.PostAsJsonAsync($"/api/{endpoint.TrimStart('/')}", data);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<T>() ?? throw new Exception("Failed to post data");
+        });
     }
 
     public async Task<T> PutAsync<T>(string endpoint, object data)
     {
-        var response = await _httpClient.PutAsJsonAsync($"/api/{endpoint.TrimStart('/')}", data);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<T>() ?? throw new Exception("Failed to put data");
+        return await ExecuteAsync(async () =>
+        {
+            var response = await _httpClient.PutAsJsonAsync($"/api/{endpoint.TrimStart('/')}", data);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<T>() ?? throw new Exception("Failed to put data");
+        });
     }
 
     public async Task DeleteAsync(string endpoint)
     {
-        var response = await _httpClient.DeleteAsync($"/api/{endpoint.TrimStart('/')}");
-        response.EnsureSuccessStatusCode();
+        await ExecuteAsync(async () =>
+        {
+            var response = await _httpClient.DeleteAsync($"/api/{endpoint.TrimStart('/')}");
+            response.EnsureSuccessStatusCode();
+        });
     }
 
     // Users
     public async Task<List<UserDto>> GetUsersAsync()
     {
-        return await _httpClient.GetFromJsonAsync<List<UserDto>>("/api/users") ?? new List<UserDto>();
+        return await ExecuteAsync(async () =>
+            await _httpClient.GetFromJsonAsync<List<UserDto>>("/api/users") ?? new List<UserDto>()
+        );
     }
 
     public async Task<UserDto?> GetUserByIdAsync(string id)
@@ -81,7 +135,9 @@ public class ApiService : IApiService
     // Vehicles
     public async Task<List<VehicleDto>> GetVehiclesAsync()
     {
-        return await _httpClient.GetFromJsonAsync<List<VehicleDto>>("/api/vehicles") ?? new List<VehicleDto>();
+        return await ExecuteAsync(async () =>
+            await _httpClient.GetFromJsonAsync<List<VehicleDto>>("/api/vehicles") ?? new List<VehicleDto>()
+        );
     }
 
     public async Task<List<VehicleTypeDto>> GetVehicleTypesAsync()

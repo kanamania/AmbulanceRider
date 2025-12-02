@@ -3,7 +3,7 @@
 ## [0.0.2] - 2025-12-02
 
 ### Fixed
-- Redirect dashboard users to the login page when API responses return HTTP 401.
+- Redirect signed-out users to the login page when API responses return HTTP 401 across Blazor UI pages.
 
 ## [0.0.1] - 2025-11-27
 

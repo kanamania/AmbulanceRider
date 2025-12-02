@@ -376,9 +376,17 @@
         {
             CompanyStats = await ApiService.GetCompanyStatsAsync(1); // Default company ID
         }
-        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+        catch (HttpRequestException ex)
         {
-            await HandleUnauthorizedAsync();
+            if (ex.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await HandleUnauthorizedAsync();
+                return;
+            }
+
+            _error = $"Failed to load company stats: {ex.Message}";
+            Console.Error.WriteLine($"Company stats error: {ex}");
+            _isLoading = false;
             return;
         }
         catch (Exception ex)
@@ -414,9 +422,16 @@
             _locations = await locationsTask;
             _tripTypes = await tripTypesTask;
         }
-        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+        catch (HttpRequestException ex)
         {
-            await HandleUnauthorizedAsync();
+            if (ex.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await HandleUnauthorizedAsync();
+                return;
+            }
+
+            _error = $"Failed to load dashboard data: {ex.Message}";
+            Console.Error.WriteLine($"Dashboard error: {ex}");
         }
         catch (Exception ex)
         {
