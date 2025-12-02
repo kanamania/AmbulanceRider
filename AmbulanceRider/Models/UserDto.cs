@@ -13,7 +13,7 @@ public class UserDto
     public List<string> Roles { get; set; } = new();
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-    public int CompanyId { get; set; }
+    public int? CompanyId { get; set; }
 }
 
 public class CreateUserDto
