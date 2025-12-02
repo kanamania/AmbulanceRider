@@ -419,8 +419,6 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
         });
 
         // Invoice configuration
-        // Temporarily commented out until proper migration can be created
-        /*
         modelBuilder.Entity<Invoice>(entity =>
         {
             entity.ToTable("invoices");
@@ -475,7 +473,6 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             
             entity.HasQueryFilter(e => e.DeletedAt == null);
         });
-        */
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
