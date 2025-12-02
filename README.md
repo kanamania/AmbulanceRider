@@ -2,10 +2,11 @@
 
 A full-stack web application for managing emergency medical dispatch operations with comprehensive trip management, status workflow, audit trails, real-time tracking, and advanced telemetry.
 
-> **Latest Updates (2025-10-27):** 
+> **Latest Updates (2025-12-02):** 
+> - Dashboard now redirects unauthorized sessions to the login page ✅
 > - Trip Status Change Logging & Audit Trail System ✅
 > - Dynamic Trip Types with Custom Attributes ⭐
-> - Comprehensive Telemetry & Analytics System ⭐ NEW
+> - Comprehensive Telemetry & Analytics System ⭐
 
 📚 **[Complete Documentation Index](./DOCUMENTATION_INDEX.md)** - Navigate all documentation files organized by topic and use case.
 
