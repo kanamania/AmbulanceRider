@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.0.4] - 2025-12-02T11:45:00+03:00
+## [0.0.4] - 2025-12-02T12:05:00+03:00
 
 ### Added
 - Comprehensive invoice system with proforma and final invoice types
@@ -26,6 +26,8 @@
 - Created Blazor UI components for invoice management (list, create, detail)
 - Invoice numbering system with automatic sequential generation
 - Smart company filtering showing only those with unpaid trips
+- Invoice filtering based on trip creation date and creator's company
+- Moved all migrations from Data/Migrations to Migrations folder
 
 ## [0.0.3] - 2025-12-02T10:35:00+03:00
 

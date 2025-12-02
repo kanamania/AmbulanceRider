@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace AmbulanceRider.API.Data.Migrations
+namespace AmbulanceRider.API.Migrations
 {
     /// <inheritdoc />
     public partial class AddPricingMatrixEntity : Migration
