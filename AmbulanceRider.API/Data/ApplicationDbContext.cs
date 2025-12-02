@@ -29,6 +29,8 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<Telemetry> Telemetries { get; set; }
     public DbSet<PerformanceLog> PerformanceLogs { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<Invoice> Invoices { get; set; }
+    public DbSet<InvoiceTrip> InvoiceTrips { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -409,6 +411,62 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.HasIndex(e => e.Action);
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.Timestamp);
+        });
+
+        // Invoice configuration
+        modelBuilder.Entity<Invoice>(entity =>
+        {
+            entity.ToTable("invoices");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.InvoiceNumber).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Type).IsRequired();
+            entity.Property(e => e.Status).IsRequired();
+            entity.Property(e => e.InvoiceDate).IsRequired();
+            entity.Property(e => e.PeriodStart).IsRequired();
+            entity.Property(e => e.PeriodEnd).IsRequired();
+            entity.Property(e => e.SubTotal).IsRequired().HasColumnType("decimal(18,2)");
+            entity.Property(e => e.TaxAmount).IsRequired().HasColumnType("decimal(18,2)");
+            entity.Property(e => e.TotalAmount).IsRequired().HasColumnType("decimal(18,2)");
+            entity.Property(e => e.Notes).HasMaxLength(1000);
+            entity.Property(e => e.PdfPath).HasMaxLength(500);
+            entity.Property(e => e.ExcelPath).HasMaxLength(500);
+            
+            entity.HasOne(i => i.Company)
+                .WithMany()
+                .HasForeignKey(i => i.CompanyId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            entity.HasIndex(e => e.InvoiceNumber).IsUnique();
+            entity.HasIndex(e => e.CompanyId);
+            entity.HasIndex(e => e.InvoiceDate);
+            entity.HasIndex(e => e.Status);
+            
+            entity.HasQueryFilter(e => e.DeletedAt == null);
+        });
+
+        // InvoiceTrip configuration
+        modelBuilder.Entity<InvoiceTrip>(entity =>
+        {
+            entity.ToTable("invoice_trips");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.BasePrice).IsRequired().HasColumnType("decimal(18,2)");
+            entity.Property(e => e.TaxAmount).IsRequired().HasColumnType("decimal(18,2)");
+            entity.Property(e => e.TotalPrice).IsRequired().HasColumnType("decimal(18,2)");
+            
+            entity.HasOne(it => it.Invoice)
+                .WithMany(i => i.InvoiceTrips)
+                .HasForeignKey(it => it.InvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(it => it.Trip)
+                .WithMany()
+                .HasForeignKey(it => it.TripId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            entity.HasIndex(e => e.InvoiceId);
+            entity.HasIndex(e => e.TripId);
+            
+            entity.HasQueryFilter(e => e.DeletedAt == null);
         });
     }
 

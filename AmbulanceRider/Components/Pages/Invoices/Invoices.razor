@@ -1,0 +1,256 @@
+@page "/invoices"
+@using AmbulanceRider.Models
+@using AmbulanceRider.Services
+@inject IApiService ApiService
+@inject NavigationManager NavigationManager
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,Dispatcher")]
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-receipt"></i> Invoices</h2>
+        <button class="btn btn-primary" @onclick="NavigateToCreate">
+            <i class="bi bi-plus-circle"></i> Create Invoice
+        </button>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Company</label>
+                    <select class="form-select" @bind="filterCompanyId">
+                        <option value="">All Companies</option>
+                        @foreach (var company in companies)
+                        {
+                            <option value="@company.Id">@company.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Type</label>
+                    <select class="form-select" @bind="filterType">
+                        <option value="">All Types</option>
+                        <option value="Proforma">Proforma</option>
+                        <option value="Final">Final</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" @bind="filterStatus">
+                        <option value="">All Status</option>
+                        <option value="Draft">Draft</option>
+                        <option value="Sent">Sent</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" class="form-control" @bind="filterStartDate" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">End Date</label>
+                    <input type="date" class="form-control" @bind="filterEndDate" />
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button class="btn btn-secondary w-100" @onclick="LoadInvoices">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (loading)
+    {
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (invoices.Any())
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Type</th>
+                                <th>Company</th>
+                                <th>Period</th>
+                                <th>Trips</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var invoice in invoices)
+                            {
+                                <tr>
+                                    <td><strong>@invoice.InvoiceNumber</strong></td>
+                                    <td>
+                                        <span class="badge bg-@(invoice.Type == "Proforma" ? "info" : "success")">
+                                            @invoice.Type
+                                        </span>
+                                    </td>
+                                    <td>@invoice.CompanyName</td>
+                                    <td>
+                                        <small>
+                                            @invoice.PeriodStart.ToString("dd/MM/yyyy") - @invoice.PeriodEnd.ToString("dd/MM/yyyy")
+                                        </small>
+                                    </td>
+                                    <td>@invoice.TripCount</td>
+                                    <td><strong>KES @invoice.TotalAmount.ToString("N2")</strong></td>
+                                    <td>
+                                        <span class="badge bg-@GetStatusBadgeClass(invoice.Status)">
+                                            @invoice.Status
+                                        </span>
+                                    </td>
+                                    <td>@invoice.InvoiceDate.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" @onclick="() => ViewInvoice(invoice.Id)" title="View">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            @if (invoice.Status != "Paid")
+                                            {
+                                                <button class="btn btn-outline-success" @onclick="() => MarkAsPaid(invoice.Id)" title="Mark as Paid">
+                                                    <i class="bi bi-check-circle"></i>
+                                                </button>
+                                            }
+                                            <button class="btn btn-outline-danger" @onclick="() => DownloadPdf(invoice.Id)" title="Download PDF">
+                                                <i class="bi bi-file-pdf"></i>
+                                            </button>
+                                            <button class="btn btn-outline-success" @onclick="() => DownloadExcel(invoice.Id)" title="Download Excel">
+                                                <i class="bi bi-file-excel"></i>
+                                            </button>
+                                            <button class="btn btn-outline-info" @onclick="() => DownloadBoth(invoice.Id)" title="Download Both">
+                                                <i class="bi bi-download"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No invoices found.
+        </div>
+    }
+</div>
+
+
+@code {
+    private List<InvoiceDto> invoices = new();
+    private List<CompanyDto> companies = new();
+    private bool loading = true;
+
+    private string filterCompanyId = "";
+    private string filterType = "";
+    private string filterStatus = "";
+    private DateTime? filterStartDate;
+    private DateTime? filterEndDate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCompanies();
+        await LoadInvoices();
+    }
+
+    private async Task LoadCompanies()
+    {
+        try
+        {
+            companies = await ApiService.GetCompaniesAsync() ?? new();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading companies: {ex.Message}");
+        }
+    }
+
+    private async Task LoadInvoices()
+    {
+        loading = true;
+        try
+        {
+            invoices = await ApiService.GetInvoicesAsync(new InvoiceFilterDto
+            {
+                CompanyId = string.IsNullOrEmpty(filterCompanyId) ? null : int.Parse(filterCompanyId),
+                Type = string.IsNullOrEmpty(filterType) ? null : filterType,
+                Status = string.IsNullOrEmpty(filterStatus) ? null : filterStatus,
+                StartDate = filterStartDate,
+                EndDate = filterEndDate
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading invoices: {ex.Message}");
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void NavigateToCreate()
+    {
+        NavigationManager.NavigateTo("/invoices/create");
+    }
+
+    private void ViewInvoice(int id)
+    {
+        NavigationManager.NavigateTo($"/invoices/{id}");
+    }
+
+    private async Task MarkAsPaid(int id)
+    {
+        try
+        {
+            await ApiService.MarkInvoiceAsPaidAsync(id, new MarkInvoicePaidDto { PaidDate = DateTime.UtcNow });
+            await LoadInvoices();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error marking invoice as paid: {ex.Message}");
+        }
+    }
+
+    private void DownloadPdf(int id)
+    {
+        NavigationManager.NavigateTo($"/api/invoice/{id}/download/pdf", true);
+    }
+
+    private void DownloadExcel(int id)
+    {
+        NavigationManager.NavigateTo($"/api/invoice/{id}/download/excel", true);
+    }
+
+    private void DownloadBoth(int id)
+    {
+        NavigationManager.NavigateTo($"/api/invoice/{id}/download/both", true);
+    }
+
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Draft" => "secondary",
+            "Sent" => "info",
+            "Paid" => "success",
+            "Cancelled" => "danger",
+            _ => "secondary"
+        };
+    }
+}

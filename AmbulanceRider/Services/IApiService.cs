@@ -13,4 +13,10 @@ public interface IApiService
     Task<List<TripTypeDto>> GetTripTypesAsync();
     Task<List<CompanyDto>?> GetCompaniesAsync();
 
+    // Invoice methods
+    Task<List<InvoiceDto>> GetInvoicesAsync(InvoiceFilterDto filter);
+    Task<InvoiceDto?> GetInvoiceByIdAsync(int id);
+    Task<InvoicePreviewDto> PreviewInvoiceAsync(CreateInvoiceDto dto);
+    Task<InvoiceDto> CreateInvoiceAsync(CreateInvoiceDto dto);
+    Task<InvoiceDto> MarkInvoiceAsPaidAsync(int id, MarkInvoicePaidDto dto);
 }

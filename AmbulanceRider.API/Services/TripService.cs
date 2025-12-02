@@ -689,32 +689,19 @@ public class TripService : ITripService
             {
                 Id = trip.Driver.Id.ToString(),
                 Name = $"{trip.Driver.FirstName} {trip.Driver.LastName}",
-                FirstName = trip.Driver.FirstName,
-                LastName = trip.Driver.LastName,
-                Email = trip.Driver.Email!,
-                PhoneNumber = trip.Driver.PhoneNumber,
-                ImagePath = trip.Driver.ImagePath,
-                ImageUrl = trip.Driver.ImageUrl,
-                Roles = new List<string>(),
-                CreatedAt = trip.Driver.CreatedAt,
-                UpdatedAt = trip.Driver.UpdatedAt
             } : null,
             ApprovedBy = trip.ApprovedBy,
             Approver = trip.Approver != null ? new UserDto
             {
                 Id = trip.Approver.Id.ToString(),
                 Name = $"{trip.Approver.FirstName} {trip.Approver.LastName}",
-                FirstName = trip.Approver.FirstName,
-                LastName = trip.Approver.LastName,
-                Email = trip.Approver.Email!,
-                PhoneNumber = trip.Approver.PhoneNumber,
-                ImagePath = trip.Approver.ImagePath,
-                ImageUrl = trip.Approver.ImageUrl,
-                Roles = new List<string>(),
-                CreatedAt = trip.Approver.CreatedAt,
-                UpdatedAt = trip.Approver.UpdatedAt
             } : null,
             ApprovedAt = trip.ApprovedAt,
+            Creator = trip.Creator != null ? new UserDto
+            {
+                Id = trip.Creator.Id.ToString(),
+                Name = $"{trip.Creator.FirstName} {trip.Creator.LastName}",
+            } : null,
             CreatedAt = trip.CreatedAt,
             TripTypeId = trip.TripTypeId,
             TripType = trip.TripType != null ? new TripTypeDto

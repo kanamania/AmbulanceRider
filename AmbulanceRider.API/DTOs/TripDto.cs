@@ -29,6 +29,7 @@ public class TripDto
     public UserDto? Approver { get; set; }
     public DateTime? ApprovedAt { get; set; }
     public DateTime CreatedAt { get; set; }
+    public UserDto? Creator { get; set; }
     
     // Trip Type
     public int? TripTypeId { get; set; }

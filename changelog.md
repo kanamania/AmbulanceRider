@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.0.4] - 2025-12-02T11:45:00+03:00
+
+### Added
+- Comprehensive invoice system with proforma and final invoice types
+- Dedicated invoice creation page with smart filtering
+- Range selection (This Week, This Month, Custom)
+- Automatic company discovery with unpaid trips
+- Quick summary showing trips count, subtotal, tax, and total per company
+- Invoice generation with PDF and Excel export capabilities
+- Payment tracking with ability to mark invoices as paid
+- Automatic trip payment status update when invoice is marked as paid
+- Invoice filtering by company, type, status, and date range
+- Invoice detail view with complete trip breakdown
+- Download options for PDF, Excel, or both files as ZIP
+- Invoice menu item in navigation for Admin and Dispatcher roles
+- Database migration for Invoice and InvoiceTrip tables
+- IsPaid and PaidDate fields added to Trip model
+
+### Technical Details
+- Added QuestPDF library for professional PDF generation
+- Added ClosedXML library for Excel spreadsheet generation
+- Created InvoiceService with comprehensive business logic
+- Created InvoiceController with RESTful API endpoints
+- Created Blazor UI components for invoice management (list, create, detail)
+- Invoice numbering system with automatic sequential generation
+- Smart company filtering showing only those with unpaid trips
+
 ## [0.0.3] - 2025-12-02T10:35:00+03:00
 
 ### Changed

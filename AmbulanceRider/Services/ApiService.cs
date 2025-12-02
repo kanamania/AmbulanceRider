@@ -331,4 +331,48 @@ public class ApiService : IApiService
     {
         return await _httpClient.GetFromJsonAsync<List<CompanyDto>?>($"api/companies");
     }
+
+    public async Task<List<InvoiceDto>> GetInvoicesAsync(InvoiceFilterDto filter)
+    {
+        var queryParams = new List<string>();
+        if (filter.CompanyId.HasValue)
+            queryParams.Add($"CompanyId={filter.CompanyId}");
+        if (!string.IsNullOrEmpty(filter.Type))
+            queryParams.Add($"Type={filter.Type}");
+        if (!string.IsNullOrEmpty(filter.Status))
+            queryParams.Add($"Status={filter.Status}");
+        if (filter.StartDate.HasValue)
+            queryParams.Add($"StartDate={filter.StartDate.Value:yyyy-MM-dd}");
+        if (filter.EndDate.HasValue)
+            queryParams.Add($"EndDate={filter.EndDate.Value:yyyy-MM-dd}");
+
+        var query = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";
+        return await _httpClient.GetFromJsonAsync<List<InvoiceDto>>($"/api/invoice{query}") ?? new List<InvoiceDto>();
+    }
+
+    public async Task<InvoiceDto?> GetInvoiceByIdAsync(int id)
+    {
+        return await _httpClient.GetFromJsonAsync<InvoiceDto>($"/api/invoice/{id}");
+    }
+
+    public async Task<InvoicePreviewDto> PreviewInvoiceAsync(CreateInvoiceDto dto)
+    {
+        var response = await _httpClient.PostAsJsonAsync("/api/invoice/preview", dto);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<InvoicePreviewDto>() ?? throw new Exception("Failed to preview invoice");
+    }
+
+    public async Task<InvoiceDto> CreateInvoiceAsync(CreateInvoiceDto dto)
+    {
+        var response = await _httpClient.PostAsJsonAsync("/api/invoice", dto);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<InvoiceDto>() ?? throw new Exception("Failed to create invoice");
+    }
+
+    public async Task<InvoiceDto> MarkInvoiceAsPaidAsync(int id, MarkInvoicePaidDto dto)
+    {
+        var response = await _httpClient.PostAsJsonAsync($"/api/invoice/{id}/mark-paid", dto);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<InvoiceDto>() ?? throw new Exception("Failed to mark invoice as paid");
+    }
 }

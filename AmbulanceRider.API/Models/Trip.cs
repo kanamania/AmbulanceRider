@@ -71,6 +71,10 @@ public class Trip : BaseModel
     public decimal? TaxAmount { get; set; }
     public decimal? TotalPrice { get; set; }
     
+    // Payment status
+    public bool IsPaid { get; set; } = false;
+    public DateTime? PaidDate { get; set; }
+    
     // Pricing Matrix reference
     public int? PricingMatrixId { get; set; }
     public virtual PricingMatrix? PricingMatrix { get; set; }

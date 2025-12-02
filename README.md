@@ -3,6 +3,7 @@
 A full-stack web application for managing emergency medical dispatch operations with comprehensive trip management, status workflow, audit trails, real-time tracking, and advanced telemetry.
 
 > **Latest Updates (2025-12-02):** 
+> - Invoice System with PDF & Excel Generation ⭐ NEW
 > - Dashboard now redirects unauthorized sessions to the login page ✅
 > - Trip Status Change Logging & Audit Trail System ✅
 > - Dynamic Trip Types with Custom Attributes ⭐
@@ -69,7 +70,7 @@ A full-stack web application for managing emergency medical dispatch operations 
    - Active/inactive status management
    - Display order configuration
 
-6. **Telemetry & Analytics** ⭐ NEW
+6. **Telemetry & Analytics** ⭐
    - **Device Information** - OS, browser, device type, app version
    - **Account Detection** - Google/Apple account type based on OS
    - **GPS Tracking** - Real-time location data with accuracy
@@ -77,11 +78,24 @@ A full-stack web application for managing emergency medical dispatch operations 
    - **Battery Status** - Level and charging state
    - **Installed Apps** - Browser plugins and PWA apps (limited)
    - **Event Tracking** - Login, register, trip operations
-   - **Timeseries Logging** - Batch telemetry for high-volume data ⭐ NEW
-   - **Time-based Queries** - Query telemetry by date ranges ⭐ NEW
-   - **Route Visualization** - Track location history over time ⭐ NEW
+   - **Timeseries Logging** - Batch telemetry for high-volume data
+   - **Time-based Queries** - Query telemetry by date ranges
+   - **Route Visualization** - Track location history over time
    - **Privacy-Conscious** - Graceful permission handling
    - **Non-Blocking** - Never interrupts main operations
+
+7. **Invoice Management** ⭐ NEW
+   - **Proforma & Final Invoices** - Generate both invoice types
+   - **PDF Generation** - Professional invoices with QuestPDF
+   - **Excel Export** - Detailed spreadsheets with ClosedXML
+   - **Invoice Preview** - Preview before creating
+   - **Payment Tracking** - Mark invoices as paid
+   - **Automatic Trip Updates** - Mark all trips paid when invoice is paid
+   - **Flexible Date Ranges** - Weekly, monthly, or custom periods
+   - **Company Filtering** - Filter by company, type, status, date
+   - **Download Options** - PDF, Excel, or both as ZIP
+   - **Sequential Numbering** - Automatic invoice number generation
+   - **Detailed Breakdown** - Complete trip-level details in invoices
 
 ## 🏗️ Architecture
 
