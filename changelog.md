@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.9] - 2025-12-02T20:44:00+03:00
+
+### Changed
+- Restyled companies administration table to match modern dashboard visuals and align with Tailwind patterns
+
 ## [0.0.8] - 2025-12-02T20:40:00+03:00
 
 ### Fixed
