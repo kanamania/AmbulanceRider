@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.7] - 2025-12-02T13:36:00+03:00
+
+### Added
+- Companies hub page with Tailwind-styled directory and quick access from main navigation
+
+### Changed
+- Moved Trip Types access into Trips page via dedicated Manage Trip Types button to declutter navigation
+
 ## [0.0.6] - 2025-12-02T13:27:00+03:00
 
 ### Added

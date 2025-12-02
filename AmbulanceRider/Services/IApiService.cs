@@ -60,6 +60,10 @@ public interface IApiService
     // Dashboard & analytics
     Task<CompanyStatsDto?> GetCompanyStatsAsync(int companyId);
     Task<List<CompanyDto>?> GetCompaniesAsync();
+    Task<CompanyDto?> GetCompanyByIdAsync(int id);
+    Task<CompanyDto> CreateCompanyAsync(CreateCompanyDto dto);
+    Task<CompanyDto> UpdateCompanyAsync(int id, UpdateCompanyDto dto);
+    Task DeleteCompanyAsync(int id);
 
     // Invoices
     Task<List<InvoiceDto>> GetInvoicesAsync(InvoiceFilterDto filter);

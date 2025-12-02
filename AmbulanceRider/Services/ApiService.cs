@@ -332,6 +332,31 @@ public class ApiService : IApiService
         return await _httpClient.GetFromJsonAsync<List<CompanyDto>?>($"api/companies");
     }
 
+    public async Task<CompanyDto?> GetCompanyByIdAsync(int id)
+    {
+        return await _httpClient.GetFromJsonAsync<CompanyDto>($"api/companies/{id}");
+    }
+
+    public async Task<CompanyDto> CreateCompanyAsync(CreateCompanyDto dto)
+    {
+        var response = await _httpClient.PostAsJsonAsync("api/companies", dto);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<CompanyDto>() ?? throw new InvalidOperationException("Failed to create company");
+    }
+
+    public async Task<CompanyDto> UpdateCompanyAsync(int id, UpdateCompanyDto dto)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"api/companies/{id}", dto);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<CompanyDto>() ?? throw new InvalidOperationException("Failed to update company");
+    }
+
+    public async Task DeleteCompanyAsync(int id)
+    {
+        var response = await _httpClient.DeleteAsync($"api/companies/{id}");
+        response.EnsureSuccessStatusCode();
+    }
+
     public async Task<List<InvoiceDto>> GetInvoicesAsync(InvoiceFilterDto filter)
     {
         var queryParams = new List<string>();

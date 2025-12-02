@@ -43,11 +43,13 @@ public class UserService : IUserService
                 Id = user.Id.ToString(),
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                Email = user.Email,
+                Email = user.Email!,
                 PhoneNumber = user.PhoneNumber,
                 ImagePath = user.ImagePath,
                 ImageUrl = user.ImageUrl,
                 Roles = roles.ToList(),
+                CompanyId = user.CompanyId,
+                Company = new CompanyDto() { Id = (int)user.CompanyId, Name = user.Company!.Name },
                 CreatedAt = user.CreatedAt,
                 UpdatedAt = user.UpdatedAt
             });
@@ -74,6 +76,7 @@ public class UserService : IUserService
             ImagePath = user.ImagePath,
             ImageUrl = user.ImageUrl,
             Roles = (await _userManager.GetRolesAsync(user)).ToList(),
+            Company = new CompanyDto() { Id = (int)user.CompanyId, Name = user.Company!.Name },
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt
         };
@@ -105,6 +108,7 @@ public class UserService : IUserService
             LastName = createUserDto.LastName,
             Email = createUserDto.Email,
             PhoneNumber = createUserDto.PhoneNumber,
+            CompanyId = createUserDto.CompanyId,
             ImagePath = createUserDto.ImagePath,
             ImageUrl = createUserDto.ImageUrl,
             CreatedAt = DateTime.UtcNow
@@ -155,6 +159,8 @@ public class UserService : IUserService
             user.FirstName = updateUserDto.FirstName;
         if (!string.IsNullOrEmpty(updateUserDto.LastName))
             user.LastName = updateUserDto.LastName;
+        if (!string.IsNullOrEmpty(updateUserDto.CompanyId.ToString()))
+            user.CompanyId = updateUserDto.CompanyId;
         if (!string.IsNullOrEmpty(updateUserDto.Email) && user.Email != updateUserDto.Email)
         {
             var existingUser = await _userManager.FindByEmailAsync(updateUserDto.Email);

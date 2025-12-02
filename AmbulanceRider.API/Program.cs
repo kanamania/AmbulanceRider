@@ -226,6 +226,7 @@ builder.Services.AddScoped<IPricingMatrixRepository, PricingMatrixRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 
 // Register Services
+builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
@@ -234,6 +235,7 @@ builder.Services.AddScoped<ITripService, TripService>();
 builder.Services.AddScoped<ITripTypeService, TripTypeService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ITelemetryService, TelemetryService>();
+builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
 builder.Services.AddScoped<IDataHashService, DataHashService>();
 builder.Services.AddScoped<IDataHashNotificationService, DataHashNotificationService>();

@@ -1,0 +1,181 @@
+@page "/companies/edit/{Id:int}"
+@using AmbulanceRider.Models
+@using AmbulanceRider.Services
+@inject IApiService ApiService
+@inject NavigationManager Navigation
+
+<PageTitle>Edit Company</PageTitle>
+
+<div class="px-6 py-8">
+    <div class="max-w-3xl mx-auto space-y-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-semibold text-gray-900 flex items-center gap-2">
+                    <i class="bi bi-building-gear"></i>
+                    Edit Company
+                </h1>
+                <p class="text-sm text-gray-600">Update organization information and contact details.</p>
+            </div>
+            <button class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-gray-500/40" @onclick="NavigateBack">
+                <i class="bi bi-arrow-left"></i>
+                Back to list
+            </button>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="flex justify-center py-20">
+                <div class="h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
+            </div>
+        }
+        else if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700 flex items-start gap-3">
+                <i class="bi bi-exclamation-triangle text-xl"></i>
+                <span>@errorMessage</span>
+            </div>
+        }
+        else if (updateCompanyDto is not null)
+        {
+            <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+                <div class="border-b border-gray-200 px-6 py-4">
+                    <h2 class="text-lg font-semibold text-gray-900">Company details</h2>
+                    <p class="text-sm text-gray-600">Fields marked with * are required.</p>
+                </div>
+                <EditForm Model="updateCompanyDto" OnValidSubmit="HandleSubmit" class="px-6 py-6 space-y-6">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-sm text-red-600" />
+
+                    <div class="grid grid-cols-1 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-gray-700" for="company-name">Company Name *</label>
+                            <InputText id="company-name" class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40" @bind-Value="updateCompanyDto.Name" />
+                            <ValidationMessage For="() => updateCompanyDto.Name" class="text-xs text-red-600" />
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-gray-700" for="company-description">Description</label>
+                            <InputTextArea id="company-description" class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40" @bind-Value="updateCompanyDto.Description" rows="3" placeholder="Short description of the organization" />
+                            <ValidationMessage For="() => updateCompanyDto.Description" class="text-xs text-red-600" />
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium text-gray-700" for="company-email">Contact Email</label>
+                                <InputText id="company-email" type="email" class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40" @bind-Value="updateCompanyDto.ContactEmail" />
+                                <ValidationMessage For="() => updateCompanyDto.ContactEmail" class="text-xs text-red-600" />
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium text-gray-700" for="company-phone">Contact Phone</label>
+                                <InputText id="company-phone" class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40" @bind-Value="updateCompanyDto.ContactPhone" />
+                                <ValidationMessage For="() => updateCompanyDto.ContactPhone" class="text-xs text-red-600" />
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-gray-700" for="company-address">Address</label>
+                            <InputText id="company-address" class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40" @bind-Value="updateCompanyDto.Address" />
+                            <ValidationMessage For="() => updateCompanyDto.Address" class="text-xs text-red-600" />
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-3 pt-2">
+                        <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-gray-500/40" @onclick="NavigateBack" disabled="@isSubmitting">
+                            <i class="bi bi-x-circle"></i>
+                            Cancel
+                        </button>
+                        <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus-visible:ring focus-visible:ring-blue-500/70 disabled:opacity-60" disabled="@isSubmitting">
+                            @if (isSubmitting)
+                            {
+                                <span class="h-4 w-4 animate-spin rounded-full border-2 border-blue-200 border-t-white"></span>
+                                <span>Updating...</span>
+                            }
+                            else
+                            {
+                                <i class="bi bi-save"></i>
+                                <span>Save Changes</span>
+                            }
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private UpdateCompanyDto? updateCompanyDto;
+    private bool isLoading = true;
+    private bool isSubmitting;
+    private string? errorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadCompany();
+    }
+
+    private async Task LoadCompany()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            var company = await ApiService.GetCompanyByIdAsync(Id);
+
+            if (company == null)
+            {
+                errorMessage = "Company not found.";
+                return;
+            }
+
+            updateCompanyDto = new UpdateCompanyDto
+            {
+                Name = company.Name,
+                Description = company.Description,
+                ContactEmail = company.ContactEmail,
+                ContactPhone = company.ContactPhone,
+                Address = company.Address
+            };
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load company: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (updateCompanyDto is null)
+        {
+            return;
+        }
+
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+
+            await ApiService.UpdateCompanyAsync(Id, updateCompanyDto);
+            Navigation.NavigateTo("/companies?status=updated", forceLoad: false);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to update company: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/companies");
+    }
+}

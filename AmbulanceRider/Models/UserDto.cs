@@ -14,6 +14,7 @@ public class UserDto
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public int? CompanyId { get; set; }
+    public CompanyDto? Company { get; set; }
 }
 
 public class CreateUserDto
@@ -25,6 +26,7 @@ public class CreateUserDto
     public string Password { get; set; } = string.Empty;
     public List<string> Roles { get; set; } = new();
     public object CompanyId { get; set; }
+    public CompanyDto? Company { get; set; }
 }
 
 public class UpdateUserDto
@@ -36,4 +38,5 @@ public class UpdateUserDto
     public string? Password { get; set; }
     public List<string>? Roles { get; set; }
     public int? CompanyId { get; set; }
+    public CompanyDto? Company { get; set; }
 }
