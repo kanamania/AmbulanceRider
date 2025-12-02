@@ -61,11 +61,11 @@ public static class DataSeeder
                     UserName = "admin@ambulance.com",
                     FirstName = "John",
                     LastName = "Admin",
-                    Email = "admin@ambulance.com",
+                    Email = "demo@gmail.com",
                     PhoneNumber = "+255712345001",
                     EmailConfirmed = true,
                     CreatedAt = DateTime.UtcNow
-                }, "Admin123", "Admin"),
+                }, "Admin@123", "Admin"),
                 
                 (new User
                 {
