@@ -32,6 +32,7 @@ public class TripDto
     public decimal TaxAmount { get; set; }
     public decimal TotalPrice { get; set; }
     public int PricingMatrixId { get; set; }
+    public UserDto? Creator { get; set; }
 }
 
 public class CreateTripDto
