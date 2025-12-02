@@ -1,11 +1,13 @@
 @page "/"
 @using AmbulanceRider.Services
 @using AmbulanceRider.Models
+@using System.Net
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 @inject IApiService ApiService
 @inject NavigationManager Navigation
+@inject AuthService AuthService
 
 <PageTitle>Dashboard - AmbulanceRider</PageTitle>
 
@@ -370,7 +372,23 @@
 
     protected override async Task OnInitializedAsync()
     {
-        CompanyStats = await ApiService.GetCompanyStatsAsync(1); // Default company ID
+        try
+        {
+            CompanyStats = await ApiService.GetCompanyStatsAsync(1); // Default company ID
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            await HandleUnauthorizedAsync();
+            return;
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to load company stats: {ex.Message}";
+            Console.Error.WriteLine($"Company stats error: {ex}");
+            _isLoading = false;
+            return;
+        }
+
         await LoadDashboardData();
     }
 
@@ -396,6 +414,10 @@
             _locations = await locationsTask;
             _tripTypes = await tripTypesTask;
         }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            await HandleUnauthorizedAsync();
+        }
         catch (Exception ex)
         {
             _error = $"Failed to load dashboard data: {ex.Message}";
@@ -419,5 +441,11 @@
             "Rejected" => "bg-secondary",
             _ => "bg-secondary"
         };
+    }
+
+    private async Task HandleUnauthorizedAsync()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/login", true);
     }
 }
