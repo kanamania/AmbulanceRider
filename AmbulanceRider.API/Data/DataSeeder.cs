@@ -40,6 +40,27 @@ public static class DataSeeder
             return;
         }
 
+        // Ensure default company exists
+        const string defaultCompanyName = "Default Company";
+        var defaultCompany = await context.Companies
+            .FirstOrDefaultAsync(c => c.Name == defaultCompanyName && c.DeletedAt == null);
+
+        if (defaultCompany == null)
+        {
+            defaultCompany = new Company
+            {
+                Name = defaultCompanyName,
+                Description = "Default company",
+                ContactEmail = "contact@globalexpress.co.tz",
+                ContactPhone = "+255700000001",
+                Address = "Dar es Salaam, Tanzania",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await context.Companies.AddAsync(defaultCompany);
+            await context.SaveChangesAsync();
+        }
+
         // Seed roles if they don't exist
         if (!await roleManager.Roles.AnyAsync())
         {
@@ -64,7 +85,8 @@ public static class DataSeeder
                     Email = "demo@gmail.com",
                     PhoneNumber = "+255712345001",
                     EmailConfirmed = true,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    CompanyId = defaultCompany.Id
                 }, "Admin@123", "Admin"),
                 
                 (new User
@@ -75,7 +97,8 @@ public static class DataSeeder
                     Email = "sarah.admin@ambulance.com",
                     PhoneNumber = "+255712345002",
                     EmailConfirmed = true,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    CompanyId = defaultCompany.Id
                 }, "Admin@123", "Admin"),
                 
                 // Driver users
@@ -87,7 +110,8 @@ public static class DataSeeder
                     Email = "driver1@ambulance.com",
                     PhoneNumber = "+255712345101",
                     EmailConfirmed = true,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    CompanyId = defaultCompany.Id
                 }, "Driver@123", "Driver"),
                 
                 (new User
@@ -98,7 +122,8 @@ public static class DataSeeder
                     Email = "driver2@ambulance.com",
                     PhoneNumber = "+255712345102",
                     EmailConfirmed = true,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    CompanyId = defaultCompany.Id
                 }, "Driver@123", "Driver"),
                 
                 (new User
@@ -109,7 +134,8 @@ public static class DataSeeder
                     Email = "driver3@ambulance.com",
                     PhoneNumber = "+255712345103",
                     EmailConfirmed = true,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    CompanyId = defaultCompany.Id
                 }, "Driver@123", "Driver"),
                 
                 (new User
@@ -120,7 +146,8 @@ public static class DataSeeder
                     Email = "driver4@ambulance.com",
                     PhoneNumber = "+255712345104",
                     EmailConfirmed = true,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    CompanyId = defaultCompany.Id
                 }, "Driver@123", "Driver"),
                 
                 // Regular users
@@ -132,7 +159,8 @@ public static class DataSeeder
                     Email = "user1@ambulance.com",
                     PhoneNumber = "+255712345201",
                     EmailConfirmed = true,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    CompanyId = defaultCompany.Id
                 }, "User@123", "User"),
                 
                 (new User
@@ -154,7 +182,8 @@ public static class DataSeeder
                     Email = "user3@ambulance.com",
                     PhoneNumber = "+255712345203",
                     EmailConfirmed = true,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    CompanyId = defaultCompany.Id
                 }, "User@123", "User")
             };
 
@@ -167,6 +196,31 @@ public static class DataSeeder
                     await userManager.AddToRoleAsync(user, role);
                 }
             }
+        }
+
+        // Ensure seeded users are linked to the default company
+        var seededUserEmails = new[]
+        {
+            "admin@ambulance.com",
+            "sarah.admin@ambulance.com",
+            "driver1@ambulance.com",
+            "driver2@ambulance.com",
+            "driver3@ambulance.com",
+            "driver4@ambulance.com",
+            "user1@ambulance.com",
+            "user2@ambulance.com",
+            "user3@ambulance.com",
+            "demo@gmail.com"
+        };
+
+        var usersNeedingCompany = await userManager.Users
+            .Where(u => seededUserEmails.Contains(u.Email) && u.CompanyId != defaultCompany.Id)
+            .ToListAsync();
+
+        foreach (var seededUser in usersNeedingCompany)
+        {
+            seededUser.CompanyId = defaultCompany.Id;
+            await userManager.UpdateAsync(seededUser);
         }
 
         // Seed vehicle types if they don't exist
