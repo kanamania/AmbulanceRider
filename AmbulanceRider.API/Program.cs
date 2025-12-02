@@ -223,6 +223,7 @@ builder.Services.AddScoped<ITripTypeAttributeRepository, TripTypeAttributeReposi
 builder.Services.AddScoped<ITripAttributeValueRepository, TripAttributeValueRepository>();
 builder.Services.AddScoped<ITelemetryRepository, TelemetryRepository>();
 builder.Services.AddScoped<IPricingMatrixRepository, PricingMatrixRepository>();
+builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 
 // Register Services
 builder.Services.AddScoped<IAuthService, AuthService>();
