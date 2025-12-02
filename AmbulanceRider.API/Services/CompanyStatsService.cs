@@ -22,23 +22,26 @@ public class CompanyStatsService : ICompanyStatsService
 
     public async Task<CompanyStatsDto> GetCompanyStatsAsync(int companyId)
     {
+        var allTrips = (await _tripRepo.GetAllAsync()).ToList();
+        var tripsWithPrice = allTrips.Where(t => t.TotalPrice.HasValue).ToList();
+        
         var stats = new CompanyStatsDto
         {
             TotalUsers = (await _userRepo.GetAllAsync()).Count(u => u.CompanyId == companyId),
-            ActiveTrips = (await _tripRepo.GetAllAsync())
+            ActiveTrips = allTrips
                 .Count(t => t.Status == TripStatus.Approved || t.Status == TripStatus.InProgress),
-            CompletedTripsThisMonth = (await _tripRepo.GetAllAsync())
+            CompletedTripsThisMonth = allTrips
                 .Count(t => t.Status == TripStatus.Completed && 
                     t.ActualEndTime.HasValue && 
                     t.ActualEndTime.Value.Month == DateTime.UtcNow.Month),
-            RevenueThisMonth = (await _tripRepo.GetAllAsync())
+            RevenueThisMonth = allTrips
                 .Where(t => t.Status == TripStatus.Completed && 
                     t.ActualEndTime.HasValue && 
                     t.ActualEndTime.Value.Month == DateTime.UtcNow.Month)
                 .Sum(t => t.TotalPrice ?? 0),
-            AverageTripPrice = (await _tripRepo.GetAllAsync())
-                .Where(t => t.TotalPrice.HasValue)
-                .Average(t => t.TotalPrice ?? 0)
+            AverageTripPrice = tripsWithPrice.Any() 
+                ? tripsWithPrice.Average(t => t.TotalPrice!.Value)
+                : 0
         };
 
         return stats;
