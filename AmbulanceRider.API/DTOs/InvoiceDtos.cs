@@ -26,6 +26,7 @@ public class InvoiceTripDto
     public int Id { get; set; }
     public int TripId { get; set; }
     public string TripName { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
     public DateTime ScheduledStartTime { get; set; }
     public DateTime? ActualStartTime { get; set; }
     public DateTime? ActualEndTime { get; set; }

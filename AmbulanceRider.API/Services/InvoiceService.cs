@@ -83,18 +83,20 @@ public class InvoiceService
         var trips = await _context.Trips
             .Include(t => t.Vehicle)
             .Include(t => t.Driver)
-            .Where(t => t.Creator!.CompanyId == companyId &&
-                       t.Status == TripStatus.Completed &&
-                       !t.IsPaid &&
-                       t.ActualEndTime >= periodStart &&
-                       t.ActualEndTime <= periodEnd)
-            .OrderBy(t => t.ActualEndTime)
+            .Where(t =>
+                t.Status == TripStatus.Completed &&
+                !t.IsPaid &&
+                t.CreatedAt >= periodStart &&
+                t.CreatedAt <= periodEnd &&
+                _context.Users.Any(u => u.Id == t.CreatedBy && u.CompanyId == companyId))
+            .OrderBy(t => t.CreatedAt)
             .ToListAsync();
 
         var tripDtos = trips.Select(t => new InvoiceTripDto
         {
             TripId = t.Id,
             TripName = t.Name,
+            CreatedAt = t.CreatedAt,
             ScheduledStartTime = t.ScheduledStartTime,
             ActualStartTime = t.ActualStartTime,
             ActualEndTime = t.ActualEndTime,
@@ -135,11 +137,12 @@ public class InvoiceService
         var trips = await _context.Trips
             .Include(t => t.Vehicle)
             .Include(t => t.Driver)
-            .Where(t => t.Creator!.CompanyId == dto.CompanyId &&
-                       t.Status == TripStatus.Completed &&
-                       !t.IsPaid &&
-                       t.ActualEndTime >= dto.PeriodStart &&
-                       t.ActualEndTime <= dto.PeriodEnd)
+            .Where(t =>
+                t.Status == TripStatus.Completed &&
+                !t.IsPaid &&
+                t.CreatedAt >= dto.PeriodStart &&
+                t.CreatedAt <= dto.PeriodEnd &&
+                _context.Users.Any(u => u.Id == t.CreatedBy && u.CompanyId == dto.CompanyId))
             .ToListAsync();
 
         if (!trips.Any())
