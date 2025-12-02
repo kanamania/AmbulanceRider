@@ -80,7 +80,6 @@ public class TripRepository : Repository<Trip>, ITripRepository
         return await _dbSet
             .Include(t => t.Vehicle)
             .Include(t => t.Driver)
-            .Include(t => t.Creator)
             .Where(t => t.DeletedAt == null 
                 && t.Status == TripStatus.Approved 
                 && t.ScheduledStartTime >= startTime 

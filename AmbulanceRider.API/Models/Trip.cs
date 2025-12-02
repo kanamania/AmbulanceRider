@@ -79,6 +79,7 @@ public class Trip : BaseModel
     public virtual Vehicle? Vehicle { get; set; }
     public virtual User? Driver { get; set; }
     public virtual User? Approver { get; set; }
+    public new virtual User? Creator { get; set; }
     public virtual TripType? TripType { get; set; }
     public virtual ICollection<TripAttributeValue> AttributeValues { get; set; } = new List<TripAttributeValue>();
     public bool IsPaid { get; set; } = false;

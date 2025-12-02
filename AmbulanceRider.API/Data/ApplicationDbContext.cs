@@ -229,6 +229,11 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
                 .WithMany()
                 .HasForeignKey(t => t.ApprovedBy)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(t => t.Creator)
+                .WithMany()
+                .HasForeignKey(t => t.CreatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
                 
             entity.HasOne(t => t.TripType)
                 .WithMany(tt => tt.Trips)
