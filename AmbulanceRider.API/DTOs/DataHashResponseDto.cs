@@ -7,5 +7,6 @@ namespace AmbulanceRider.API.DTOs
         public string TripTypesHash { get; set; } = string.Empty;
         public string LocationsHash { get; set; } = string.Empty;
         public string TripsHash { get; set; } = string.Empty;
+        public string  DriversHash { get; set; } = String.Empty;
     }
 }

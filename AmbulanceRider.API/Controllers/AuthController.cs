@@ -621,6 +621,7 @@ public class AuthController : ControllerBase
             var profileHash = await _dataHashService.GenerateProfileHashAsync(userId);
             var tripTypesHash = await _dataHashService.GenerateTripTypesHashAsync();
             var locationsHash = await _dataHashService.GenerateLocationsHashAsync();
+            var driversHash = await _dataHashService.GenerateDriversHashAsync();
             var tripsHash = await _dataHashService.GenerateTripsHashAsync(userId);
 
             var response = new DataHashResponseDto
@@ -629,6 +630,7 @@ public class AuthController : ControllerBase
                 ProfileHash = profileHash,
                 TripTypesHash = tripTypesHash,
                 LocationsHash = locationsHash,
+                DriversHash = driversHash,
                 TripsHash = tripsHash
             };
 

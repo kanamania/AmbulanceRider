@@ -80,6 +80,13 @@ public class TripService : ITripService
 
     public async Task<TripDto> CreateTripAsync(CreateTripDto createTripDto, Guid createdBy)
     {
+        // Ensure the creator exists
+        var creator = await _userRepository.GetByIdAsync(createdBy);
+        if (creator == null)
+        {
+            throw new UnauthorizedAccessException("Creator user account not found");
+        }
+
         // Validate vehicle if provided
         if (createTripDto.VehicleId.HasValue)
         {
@@ -116,7 +123,8 @@ public class TripService : ITripService
             TripTypeId = createTripDto.TripTypeId,
             Status = TripStatus.Pending,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = createdBy
+            CreatedBy = createdBy,
+            Creator = creator
         };
 
         // Calculate pricing
@@ -360,6 +368,7 @@ public class TripService : ITripService
             
             trip.Status = TripStatus.Approved;
             trip.VehicleId = approveTripDto.VehicleId.Value;
+            trip.DriverId = approveTripDto.DriverId;
             trip.ApprovedBy = approverId;
             trip.ApprovedAt = DateTime.UtcNow;
             trip.RejectionReason = null;

@@ -123,6 +123,7 @@ public class ApproveTripDto
     
     // Telemetry
     public TelemetryDto? Telemetry { get; set; }
+    public Guid DriverId { get; set; }
 }
 
 public class StartTripDto

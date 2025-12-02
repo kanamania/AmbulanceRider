@@ -15,6 +15,7 @@ namespace AmbulanceRider.API.Services
         Task<string> GenerateTripTypesHashAsync();
         Task<string> GenerateLocationsHashAsync();
         Task<string> GenerateTripsHashAsync(string userId);
+        Task<string> GenerateDriversHashAsync();
     }
 
     public class DataHashService : IDataHashService
@@ -104,6 +105,26 @@ namespace AmbulanceRider.API.Services
                     l.Latitude,
                     l.Longitude,
                     l.UpdatedAt
+                })
+                .ToListAsync();
+
+            var json = JsonSerializer.Serialize(locations);
+            return ComputeHash(json);
+        }
+        public async Task<string> GenerateDriversHashAsync()
+        {
+            var locations = await _context.Users
+                .AsNoTracking()
+                .OrderBy(l => l.Id)
+                .Select(l => new
+                {
+                    l.Id,
+                    l.FirstName,
+                    l.LastName,
+                    l.Email,
+                    l.PhoneNumber,
+                    l.ImagePath,
+                    l.ImageUrl
                 })
                 .ToListAsync();
 

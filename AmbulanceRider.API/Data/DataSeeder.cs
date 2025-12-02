@@ -201,7 +201,7 @@ public static class DataSeeder
         // Ensure seeded users are linked to the default company
         var seededUserEmails = new[]
         {
-            "admin@ambulance.com",
+            "demo@gmail.com",
             "sarah.admin@ambulance.com",
             "driver1@ambulance.com",
             "driver2@ambulance.com",
@@ -290,6 +290,14 @@ public static class DataSeeder
                     },
                     new()
                     {
+                        Name = "Ambulance Unit 4",
+                        PlateNumber = "T 114 ABC",
+                        VehicleTypeId = ambulanceTypeId,
+                        Image = "/images/ambulance4.jpg",
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new()
+                    {
                         Name = "Boda Boda 1",
                         PlateNumber = "MC 111 AAA",
                         VehicleTypeId = bodaBodaTypeId,
@@ -333,6 +341,87 @@ public static class DataSeeder
                 if (newVehicles.Any())
                 {
                     await context.Vehicles.AddRangeAsync(newVehicles);
+                    await context.SaveChangesAsync();
+                }
+
+                // Seed driver assignments to vehicles
+                var vehicleDriverSeeds = new List<(string PlateNumber, string[] DriverEmails)>
+                {
+                    ("T 123 ABC", new[] { "driver1@ambulance.com" }),
+                    ("T 114 ABC", new[] { "driver2@ambulance.com" }),
+                    ("T 456 DEF", new[] { "driver3@ambulance.com" }),
+                    ("T 789 GHI", new[] { "driver4@ambulance.com" }),
+                    ("MC 111 AAA", new[] { "driver2@ambulance.com" }),
+                    ("MC 222 BBB", new[] { "driver3@ambulance.com" }),
+                    ("MC 333 CCC", new[] { "driver1@ambulance.com" })
+                };
+
+                var platesToSeed = vehicleDriverSeeds
+                    .Select(vds => vds.PlateNumber)
+                    .Distinct()
+                    .ToList();
+
+                var driverEmailsToSeed = vehicleDriverSeeds
+                    .SelectMany(vds => vds.DriverEmails)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                var vehiclesByPlate = await context.Vehicles
+                    .Where(v => platesToSeed.Contains(v.PlateNumber))
+                    .ToDictionaryAsync(v => v.PlateNumber, v => v);
+
+                var driversByEmail = await userManager.Users
+                    .Where(u => u.Email != null && driverEmailsToSeed.Contains(u.Email))
+                    .ToDictionaryAsync(u => u.Email!, u => u, StringComparer.OrdinalIgnoreCase);
+
+                var vehicleIds = vehiclesByPlate.Values.Select(v => v.Id).ToList();
+                var driverIds = driversByEmail.Values.Select(d => d.Id).ToList();
+
+                var existingAssignments = await context.VehicleDrivers
+                    .Where(vd => vehicleIds.Contains(vd.VehicleId) && driverIds.Contains(vd.UserId))
+                    .Select(vd => new { vd.VehicleId, vd.UserId })
+                    .ToListAsync();
+
+                var existingSet = new HashSet<(int VehicleId, Guid UserId)>(
+                    existingAssignments.Select(ea => (ea.VehicleId, ea.UserId))
+                );
+
+                var assignmentsToAdd = new List<VehicleDriver>();
+
+                foreach (var seed in vehicleDriverSeeds)
+                {
+                    if (!vehiclesByPlate.TryGetValue(seed.PlateNumber, out var vehicle))
+                    {
+                        continue;
+                    }
+
+                    foreach (var driverEmail in seed.DriverEmails)
+                    {
+                        if (!driversByEmail.TryGetValue(driverEmail, out var driver))
+                        {
+                            continue;
+                        }
+
+                        var key = (vehicle.Id, driver.Id);
+                        if (existingSet.Contains(key))
+                        {
+                            continue;
+                        }
+
+                        assignmentsToAdd.Add(new VehicleDriver
+                        {
+                            VehicleId = vehicle.Id,
+                            UserId = driver.Id,
+                            CreatedAt = DateTime.UtcNow,
+                            CreatedBy = Guid.Empty
+                        });
+                        existingSet.Add(key);
+                    }
+                }
+
+                if (assignmentsToAdd.Any())
+                {
+                    await context.VehicleDrivers.AddRangeAsync(assignmentsToAdd);
                     await context.SaveChangesAsync();
                 }
             }

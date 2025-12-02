@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.10] - 2025-12-02T21:11:00+03:00
+
+### Added
+- Seeded baseline driver-to-vehicle assignments to support trip auto-fill scenarios
+
 ## [0.0.9] - 2025-12-02T20:44:00+03:00
 
 ### Changed
