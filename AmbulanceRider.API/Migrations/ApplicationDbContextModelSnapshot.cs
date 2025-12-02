@@ -207,13 +207,13 @@ namespace AmbulanceRider.API.Migrations
                         .HasColumnType("integer");
 
                     b.Property<decimal>("SubTotal")
-                        .HasColumnType("numeric");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TaxAmount")
-                        .HasColumnType("numeric");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TotalAmount")
-                        .HasColumnType("numeric");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");
@@ -228,7 +228,14 @@ namespace AmbulanceRider.API.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.ToTable("Invoices");
+                    b.HasIndex("InvoiceDate");
+
+                    b.HasIndex("InvoiceNumber")
+                        .IsUnique();
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("invoices", (string)null);
                 });
 
             modelBuilder.Entity("AmbulanceRider.API.Models.InvoiceTrip", b =>
@@ -240,7 +247,7 @@ namespace AmbulanceRider.API.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("BasePrice")
-                        .HasColumnType("numeric");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -258,10 +265,10 @@ namespace AmbulanceRider.API.Migrations
                         .HasColumnType("integer");
 
                     b.Property<decimal>("TaxAmount")
-                        .HasColumnType("numeric");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TotalPrice")
-                        .HasColumnType("numeric");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("TripId")
                         .HasColumnType("integer");
@@ -278,7 +285,7 @@ namespace AmbulanceRider.API.Migrations
 
                     b.HasIndex("TripId");
 
-                    b.ToTable("InvoiceTrips");
+                    b.ToTable("invoice_trips", (string)null);
                 });
 
             modelBuilder.Entity("AmbulanceRider.API.Models.Location", b =>
@@ -1437,7 +1444,7 @@ namespace AmbulanceRider.API.Migrations
                     b.HasOne("AmbulanceRider.API.Models.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Company");
@@ -1454,7 +1461,7 @@ namespace AmbulanceRider.API.Migrations
                     b.HasOne("AmbulanceRider.API.Models.Trip", "Trip")
                         .WithMany()
                         .HasForeignKey("TripId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Invoice");
