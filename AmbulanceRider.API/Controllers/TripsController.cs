@@ -120,6 +120,10 @@ public class TripsController : ControllerBase
             
             return CreatedAtAction(nameof(GetById), new { id = trip.Id }, trip);
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
         catch (KeyNotFoundException ex)
         {
             return BadRequest(new { message = ex.Message });
