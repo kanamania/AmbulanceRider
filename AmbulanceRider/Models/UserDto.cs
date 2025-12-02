@@ -35,5 +35,5 @@ public class UpdateUserDto
     public string? PhoneNumber { get; set; }
     public string? Password { get; set; }
     public List<string>? Roles { get; set; }
-    public int CompanyId { get; set; }
+    public int? CompanyId { get; set; }
 }
