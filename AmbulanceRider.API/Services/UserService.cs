@@ -49,7 +49,17 @@ public class UserService : IUserService
                 ImageUrl = user.ImageUrl,
                 Roles = roles.ToList(),
                 CompanyId = user.CompanyId,
-                Company = new CompanyDto() { Id = (int)user.CompanyId, Name = user.Company!.Name },
+                Company = user.Company == null
+                    ? null
+                    : new CompanyDto
+                    {
+                        Id = user.Company.Id,
+                        Name = user.Company.Name,
+                        Description = user.Company.Description,
+                        ContactEmail = user.Company.ContactEmail,
+                        ContactPhone = user.Company.ContactPhone,
+                        Address = user.Company.Address
+                    },
                 CreatedAt = user.CreatedAt,
                 UpdatedAt = user.UpdatedAt
             });
@@ -76,7 +86,18 @@ public class UserService : IUserService
             ImagePath = user.ImagePath,
             ImageUrl = user.ImageUrl,
             Roles = (await _userManager.GetRolesAsync(user)).ToList(),
-            Company = new CompanyDto() { Id = (int)user.CompanyId, Name = user.Company!.Name },
+            CompanyId = user.CompanyId,
+            Company = user.Company == null
+                ? null
+                : new CompanyDto
+                {
+                    Id = user.Company.Id,
+                    Name = user.Company.Name,
+                    Description = user.Company.Description,
+                    ContactEmail = user.Company.ContactEmail,
+                    ContactPhone = user.Company.ContactPhone,
+                    Address = user.Company.Address
+                },
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt
         };

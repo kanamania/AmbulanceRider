@@ -27,6 +27,7 @@ public class UserRepository : Repository<User>, IUserRepository
     public async Task<User?> GetByIdWithRolesAsync(Guid id)
     {
         return await _dbSet
+            .Include(u => u.Company)
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.Id == id);
@@ -35,6 +36,7 @@ public class UserRepository : Repository<User>, IUserRepository
     public async Task<IEnumerable<User>> GetAllWithRolesAsync()
     {
         return await _dbSet
+            .Include(u => u.Company)
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
             .AsSplitQuery()

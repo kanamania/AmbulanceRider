@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.8] - 2025-12-02T20:40:00+03:00
+
+### Fixed
+- Prevented null reference when listing users without associated companies by eager loading company data and guarding DTO mapping
+
 ## [0.0.7] - 2025-12-02T13:36:00+03:00
 
 ### Added
