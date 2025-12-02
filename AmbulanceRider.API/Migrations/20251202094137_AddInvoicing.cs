@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AmbulanceRider.API.Migrations
 {
     /// <inheritdoc />
-    public partial class AddInvoiceSystem : Migration
+    public partial class AddInvoicing : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -26,7 +26,7 @@ namespace AmbulanceRider.API.Migrations
                 nullable: true);
 
             migrationBuilder.CreateTable(
-                name: "invoices",
+                name: "Invoices",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -37,9 +37,9 @@ namespace AmbulanceRider.API.Migrations
                     InvoiceDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     PeriodStart = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     PeriodEnd = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    SubTotal = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    TaxAmount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    TotalAmount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    SubTotal = table.Column<decimal>(type: "numeric", nullable: false),
+                    TaxAmount = table.Column<decimal>(type: "numeric", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "numeric", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     PaidDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     SentDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -55,26 +55,26 @@ namespace AmbulanceRider.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_invoices", x => x.Id);
+                    table.PrimaryKey("PK_Invoices", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_invoices_companies_CompanyId",
+                        name: "FK_Invoices_companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "companies",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "invoice_trips",
+                name: "InvoiceTrips",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     InvoiceId = table.Column<int>(type: "integer", nullable: false),
                     TripId = table.Column<int>(type: "integer", nullable: false),
-                    BasePrice = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    TaxAmount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    TotalPrice = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    BasePrice = table.Column<decimal>(type: "numeric", nullable: false),
+                    TaxAmount = table.Column<decimal>(type: "numeric", nullable: false),
+                    TotalPrice = table.Column<decimal>(type: "numeric", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -84,50 +84,34 @@ namespace AmbulanceRider.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_invoice_trips", x => x.Id);
+                    table.PrimaryKey("PK_InvoiceTrips", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_invoice_trips_invoices_InvoiceId",
+                        name: "FK_InvoiceTrips_Invoices_InvoiceId",
                         column: x => x.InvoiceId,
-                        principalTable: "invoices",
+                        principalTable: "Invoices",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_invoice_trips_trips_TripId",
+                        name: "FK_InvoiceTrips_trips_TripId",
                         column: x => x.TripId,
                         principalTable: "trips",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_invoices_CompanyId",
-                table: "invoices",
+                name: "IX_Invoices_CompanyId",
+                table: "Invoices",
                 column: "CompanyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_invoices_InvoiceDate",
-                table: "invoices",
-                column: "InvoiceDate");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_invoices_InvoiceNumber",
-                table: "invoices",
-                column: "InvoiceNumber",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_invoices_Status",
-                table: "invoices",
-                column: "Status");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_invoice_trips_InvoiceId",
-                table: "invoice_trips",
+                name: "IX_InvoiceTrips_InvoiceId",
+                table: "InvoiceTrips",
                 column: "InvoiceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_invoice_trips_TripId",
-                table: "invoice_trips",
+                name: "IX_InvoiceTrips_TripId",
+                table: "InvoiceTrips",
                 column: "TripId");
         }
 
@@ -135,10 +119,10 @@ namespace AmbulanceRider.API.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "invoice_trips");
+                name: "InvoiceTrips");
 
             migrationBuilder.DropTable(
-                name: "invoices");
+                name: "Invoices");
 
             migrationBuilder.DropColumn(
                 name: "IsPaid",

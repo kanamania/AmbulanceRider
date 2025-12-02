@@ -1,9 +1,13 @@
 # Changelog
 
-## [0.0.4] - 2025-12-02T12:05:00+03:00
+## [0.0.4] - 2025-12-02T12:35:00+03:00
 
-### Added
-- Comprehensive invoice system with proforma and final invoice types
+### Changed
+- Invoice system temporarily disabled pending proper migration setup (requires dotnet-ef tools)
+- Trip IsPaid and PaidDate fields temporarily removed
+
+### Added (Pending Migration)
+- Comprehensive invoice system with proforma and final invoice types (code ready, migration pending)
 - Dedicated invoice creation page with smart filtering
 - Range selection (This Week, This Month, Custom)
 - Automatic company discovery with unpaid trips

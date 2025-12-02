@@ -71,10 +71,6 @@ public class Trip : BaseModel
     public decimal? TaxAmount { get; set; }
     public decimal? TotalPrice { get; set; }
     
-    // Payment status
-    public bool IsPaid { get; set; } = false;
-    public DateTime? PaidDate { get; set; }
-    
     // Pricing Matrix reference
     public int? PricingMatrixId { get; set; }
     public virtual PricingMatrix? PricingMatrix { get; set; }
@@ -85,6 +81,8 @@ public class Trip : BaseModel
     public virtual User? Approver { get; set; }
     public virtual TripType? TripType { get; set; }
     public virtual ICollection<TripAttributeValue> AttributeValues { get; set; } = new List<TripAttributeValue>();
+    public bool IsPaid { get; set; } = false;
+    public DateTime? PaidDate { get; set; } = null;
 }
 
 public enum TripStatus
