@@ -108,7 +108,7 @@
                         </div>
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Total Price (calculated)</label>
-                            <input type="text" class="form-control" value="@((model.BasePrice * (1 + model.TaxRate)).ToString("C"))" readonly/>
+                            <input type="text" class="form-control" value="@((model.BasePrice * (1 + model.TaxRate)).ToString("N2")) TZS" readonly/>
                         </div>
                     </div>
 

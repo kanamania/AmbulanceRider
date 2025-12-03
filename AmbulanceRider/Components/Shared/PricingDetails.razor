@@ -25,15 +25,15 @@
     <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
             <label class="block text-gray-700 text-sm font-bold mb-2">Base Price</label>
-            <p class="text-lg">@BasePrice.ToString("C")</p>
+            <p class="text-lg">@BasePrice.ToString("N2") TZS</p>
         </div>
         <div>
             <label class="block text-gray-700 text-sm font-bold mb-2">Tax</label>
-            <p class="text-lg">@TaxAmount.ToString("C")</p>
+            <p class="text-lg">@TaxAmount.ToString("N2") TZS</p>
         </div>
         <div>
             <label class="block text-gray-700 text-sm font-bold mb-2">Total Price</label>
-            <p class="text-lg font-bold">@TotalPrice.ToString("C")</p>
+            <p class="text-lg font-bold">@TotalPrice.ToString("N2") TZS</p>
         </div>
     </div>
 </div>
