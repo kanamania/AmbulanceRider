@@ -10,16 +10,8 @@
         var user = authState.User;
 
         if (!user.Identity!.IsAuthenticated)
-        {
-            var returnUrl = Navigation.ToBaseRelativePath(Navigation.Uri);
-            if (string.IsNullOrEmpty(returnUrl))
-            {
-                Navigation.NavigateTo("login", true);
-            }
-            else
-            {
-                Navigation.NavigateTo($"login?returnUrl={Uri.EscapeDataString(returnUrl)}", true);
-            }
+        { 
+            Navigation.NavigateTo($"login", true);
         }
     }
 
