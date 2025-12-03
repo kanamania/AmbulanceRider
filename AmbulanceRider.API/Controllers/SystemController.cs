@@ -78,6 +78,7 @@ public class SystemController : ControllerBase
     /// <param name="includeLocations">Include locations in response</param>
     /// <param name="includeTripTypes">Include trip types in response</param>
     /// <param name="includeVehicles">Include vehicles in response</param>
+    /// <param name="includeDrivers">Include drivers in response</param>
     /// <returns>System data including requested data types</returns>
     /// <response code="200">Data retrieved successfully</response>
     /// <response code="401">Not authenticated</response>
@@ -97,7 +98,8 @@ public class SystemController : ControllerBase
         [FromQuery] bool? includeTrips = null,
         [FromQuery] bool? includeLocations = null,
         [FromQuery] bool? includeTripTypes = null,
-        [FromQuery] bool? includeVehicles = null)
+        [FromQuery] bool? includeVehicles = null,
+        [FromQuery] bool? includeDrivers = null)
     {
         try
         {
@@ -123,6 +125,7 @@ public class SystemController : ControllerBase
             var shouldIncludeLocations = includeLocations ?? true;
             var shouldIncludeTripTypes = includeTripTypes ?? true;
             var shouldIncludeVehicles = includeVehicles ?? true;
+            var shouldIncludeDrivers = includeDrivers ?? true;
 
             var response = new SystemDataResponseDto();
 
@@ -156,6 +159,24 @@ public class SystemController : ControllerBase
                 var vehicles = await _vehicleService.GetAllVehiclesAsync();
                 response.Vehicles = vehicles.ToList();
                 _logger.LogInformation("Retrieved {Count} vehicles", response.Vehicles.Count);
+            }
+
+            // Get all drivers (if requested)
+            if (shouldIncludeDrivers)
+            {
+                var drivers = await _userManager.GetUsersInRoleAsync("Driver");
+                response.Drivers = drivers.Select(u => new UserDto
+                {
+                    Id = u.Id.ToString(),
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Name = u.FirstName + " " + u.LastName,
+                    Email = u.Email!,
+                    PhoneNumber = u.PhoneNumber,
+                    ImagePath = u.ImagePath,
+                    ImageUrl = u.ImageUrl
+                }).ToList();
+                _logger.LogInformation("Retrieved {Count} drivers", response.Drivers.Count);
             }
 
             return Ok(response);

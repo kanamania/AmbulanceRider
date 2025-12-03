@@ -6,5 +6,6 @@ namespace AmbulanceRider.API.DTOs
         public List<LocationDto> Locations { get; set; } = new();
         public List<TripTypeDto> TripTypes { get; set; } = new();
         public List<VehicleDto> Vehicles { get; set; } = new();
+        public List<UserDto> Drivers { get; set; } = new();
     }
 }
