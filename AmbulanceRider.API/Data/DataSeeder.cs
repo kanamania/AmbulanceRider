@@ -61,6 +61,47 @@ public static class DataSeeder
             await context.SaveChangesAsync();
         }
 
+        // Ensure regions exist for pricing matrices
+        var defaultRegion = await context.Regions
+            .FirstOrDefaultAsync(r => r.Code == "DEFAULT" && r.DeletedAt == null);
+
+        if (defaultRegion == null)
+        {
+            defaultRegion = new Region
+            {
+                Name = "Default Region",
+                Description = "Fallback region for pricing without a specific region",
+                Code = "DEFAULT",
+                IsDefault = true,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = Guid.Empty
+            };
+
+            await context.Regions.AddAsync(defaultRegion);
+            await context.SaveChangesAsync();
+        }
+
+        var darEsSalaamRegion = await context.Regions
+            .FirstOrDefaultAsync(r => r.Code == "DAR" && r.DeletedAt == null);
+
+        if (darEsSalaamRegion == null)
+        {
+            darEsSalaamRegion = new Region
+            {
+                Name = "Dar es Salaam",
+                Description = "Dar es Salaam metropolitan service area",
+                Code = "DAR",
+                IsDefault = false,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = Guid.Empty
+            };
+
+            await context.Regions.AddAsync(darEsSalaamRegion);
+            await context.SaveChangesAsync();
+        }
+
         // Seed roles if they don't exist
         if (!await roleManager.Roles.AnyAsync())
         {
@@ -221,6 +262,190 @@ public static class DataSeeder
         {
             seededUser.CompanyId = defaultCompany.Id;
             await userManager.UpdateAsync(seededUser);
+        }
+
+        // Seed pricing matrices for default and Dar es Salaam regions
+        var pricingSeeds = new List<PricingMatrix>
+        {
+            new()
+            {
+                Name = "Small Parcel/Box",
+                Description = "Dar es Salaam delivery for parcels (28x34x37)",
+                MinWeight = 0m,
+                MaxWeight = 200m,
+                MinHeight = 0.28m,
+                MaxHeight = 0.37m,
+                MinLength = 0.28m,
+                MaxLength = 0.34m,
+                MinWidth = 0.34m,
+                MaxWidth = 0.37m,
+                BasePrice = 4000m,
+                TaxRate = 0.18m,
+                RegionId = darEsSalaamRegion.Id,
+                IsDefault = false,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = Guid.Empty
+            },
+            new()
+            {
+                Name = "Medium Box",
+                Description = "Dar es Salaam delivery for parcels (30x47x49)",
+                MinWeight = 0m,
+                MaxWeight = 200m,
+                MinHeight = 0.30m,
+                MaxHeight = 0.49m,
+                MinLength = 0.30m,
+                MaxLength = 0.47m,
+                MinWidth = 0.47m,
+                MaxWidth = 0.49m,
+                BasePrice = 31000m,
+                TaxRate = 0.18m,
+                RegionId = darEsSalaamRegion.Id,
+                IsDefault = false,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = Guid.Empty
+            },
+            new()
+            {
+                Name = "Large Box",
+                Description = "Dar es Salaam delivery for parcels (38x47x65)",
+                MinWeight = 0m,
+                MaxWeight = 200m,
+                MinHeight = 0.38m,
+                MaxHeight = 0.65m,
+                MinLength = 0.38m,
+                MaxLength = 0.47m,
+                MinWidth = 0.47m,
+                MaxWidth = 0.65m,
+                BasePrice = 40000m,
+                TaxRate = 0.18m,
+                RegionId = darEsSalaamRegion.Id,
+                IsDefault = false,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = Guid.Empty
+            },
+            new()
+            {
+                Name = "Extra Large Box",
+                Description = "Dar es Salaam delivery for parcels (60x61x70)",
+                MinWeight = 0m,
+                MaxWeight = 200m,
+                MinHeight = 0.60m,
+                MaxHeight = 0.70m,
+                MinLength = 0.60m,
+                MaxLength = 0.61m,
+                MinWidth = 0.61m,
+                MaxWidth = 0.70m,
+                BasePrice = 56000m,
+                TaxRate = 0.18m,
+                RegionId = darEsSalaamRegion.Id,
+                IsDefault = false,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = Guid.Empty
+            },
+            new()
+            {
+                Name = "Small Parcel/Box",
+                Description = "Default pricing for parcels (28x34x37)",
+                MinWeight = 0m,
+                MaxWeight = 200m,
+                MinHeight = 0.28m,
+                MaxHeight = 0.37m,
+                MinLength = 0.28m,
+                MaxLength = 0.34m,
+                MinWidth = 0.34m,
+                MaxWidth = 0.37m,
+                BasePrice = 25000m,
+                TaxRate = 0.18m,
+                RegionId = null,
+                IsDefault = true,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = Guid.Empty
+            },
+            new()
+            {
+                Name = "Medium Box",
+                Description = "Default pricing for parcels (30x47x49)",
+                MinWeight = 0m,
+                MaxWeight = 200m,
+                MinHeight = 0.30m,
+                MaxHeight = 0.49m,
+                MinLength = 0.30m,
+                MaxLength = 0.47m,
+                MinWidth = 0.47m,
+                MaxWidth = 0.49m,
+                BasePrice = 31000m,
+                TaxRate = 0.18m,
+                RegionId = null,
+                IsDefault = true,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = Guid.Empty
+            },
+            new()
+            {
+                Name = "Large Box",
+                Description = "Default pricing for parcels (38x47x65)",
+                MinWeight = 0m,
+                MaxWeight = 200m,
+                MinHeight = 0.38m,
+                MaxHeight = 0.65m,
+                MinLength = 0.38m,
+                MaxLength = 0.47m,
+                MinWidth = 0.47m,
+                MaxWidth = 0.65m,
+                BasePrice = 40000m,
+                TaxRate = 0.18m,
+                RegionId = null,
+                IsDefault = true,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = Guid.Empty
+            },
+            new()
+            {
+                Name = "Extra Large Box",
+                Description = "Default pricing for parcels (60x61x70)",
+                MinWeight = 0m,
+                MaxWeight = 200m,
+                MinHeight = 0.60m,
+                MaxHeight = 0.70m,
+                MinLength = 0.60m,
+                MaxLength = 0.61m,
+                MinWidth = 0.61m,
+                MaxWidth = 0.70m,
+                BasePrice = 56000m,
+                TaxRate = 0.18m,
+                RegionId = null,
+                IsDefault = true,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = Guid.Empty
+            }
+        };
+
+        var newPricingMatrices = new List<PricingMatrix>();
+
+        foreach (var seed in pricingSeeds)
+        {
+            var exists = await context.PricingMatrices
+                .AnyAsync(pm => pm.Name == seed.Name
+                    && pm.RegionId == seed.RegionId
+                    && pm.IsDefault == seed.IsDefault
+                    && pm.MaxWeight == seed.MaxWeight
+                    && pm.BasePrice == seed.BasePrice
+                    && pm.DeletedAt == null);
+
+            if (!exists)
+            {
+                newPricingMatrices.Add(seed);
+            }
+        }
+
+        if (!await context.PricingMatrices.AnyAsync())
+        {
+            if (newPricingMatrices.Any())
+            {
+                await context.PricingMatrices.AddRangeAsync(newPricingMatrices);
+                await context.SaveChangesAsync();
+            }
         }
 
         // Seed vehicle types if they don't exist

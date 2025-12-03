@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.15] - 2025-12-04T01:38:00+03:00
+
+### Added
+- Pricing matrix seeding for Dar es Salaam region and default pricing with exact dimensions and pricing values
+  - Small Parcel/Box (28x34x37)
+  - Medium Box (30x47x49)
+  - Large Box (38x47x65)
+  - Extra Large Box (60x61x70)
+
 ## [0.0.14] - 2025-12-04T01:15:00+03:00
 
 ### Added
