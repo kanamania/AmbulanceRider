@@ -4,9 +4,10 @@
 @inject NavigationManager NavigationManager
 
 <style>
-    .nav-item a.active {
-        color: #c52227 !important;
-        font-weight: 500;
+    .nav-item a.active, 
+    .active {
+        background-color: #c52227 !important;
+        color: white !important;
     }
     .dropdown-item.active {
         background-color: #c52227 !important;
@@ -49,8 +50,8 @@
                                     <i class="bi bi-receipt me-1"></i> Invoices
                                 </NavLink>
                             </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <li class="nav-item dropdown @(IsSettingsActive() ? "active" : "")">
+                                <a class="nav-link dropdown-toggle @(IsSettingsActive() ? "show active" : "")" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="@IsSettingsActive()">
                                     <i class="bi bi-gear me-1"></i> Settings
                                 </a>
                                 <ul class="dropdown-menu">
@@ -122,4 +123,12 @@
         NavigationManager.NavigateTo("/", true);
     }
 
+    private bool IsSettingsActive()
+    {
+        var path = NavigationManager.Uri;
+        return path.Contains("/vehicles") || 
+               path.Contains("/locations") || 
+               path.Contains("/pricing") || 
+               path.Contains("/telemetry");
+    }
 }
