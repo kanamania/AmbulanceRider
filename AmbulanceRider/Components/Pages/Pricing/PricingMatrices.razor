@@ -1,0 +1,573 @@
+@page "/pricing"
+@using AmbulanceRider.Models
+@using AmbulanceRider.Services
+@using Microsoft.AspNetCore.WebUtilities
+@inject IApiService ApiService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+
+<PageTitle>Pricing Matrices</PageTitle>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="flex items-center gap-2 text-2xl font-semibold text-slate-900">
+                <i class="bi bi-currency-dollar"></i>
+                Pricing Matrices
+            </h1>
+            <p class="text-sm text-slate-600">Manage pricing rules based on dimensions and attributes.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary" @onclick="ToggleRegionsModal">
+                <i class="bi bi-geo-alt me-1"></i> Manage Regions
+            </button>
+            <button class="btn btn-primary create-btn" @onclick="NavigateToCreate">
+                <i class="bi bi-plus-circle me-1"></i> Add New Pricing Matrix
+            </button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle me-2"></i>@successMessage
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
+        </div>
+    }
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (pricingMatrices.Count == 0)
+    {
+        <div class="rounded-2xl border border-dashed border-slate-200 bg-white px-8 py-12 text-center shadow-sm">
+            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                <i class="bi bi-currency-dollar"></i>
+            </div>
+            <h2 class="mt-4 text-lg font-semibold text-slate-900">No pricing matrices yet</h2>
+            <p class="mt-2 text-sm text-slate-600">Get started by creating your first pricing matrix.</p>
+            <button
+                class="mt-6 inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                @onclick="NavigateToCreate">
+                <i class="bi bi-plus-circle"></i>
+                Create Pricing Matrix
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Name</th>
+                            <th scope="col" class="px-6 py-3">Region</th>
+                            <th scope="col" class="px-6 py-3">Dimensions (W×H×L×W)</th>
+                            <th scope="col" class="px-6 py-3">Base Price</th>
+                            <th scope="col" class="px-6 py-3">Tax Rate</th>
+                            <th scope="col" class="px-6 py-3">Total Price</th>
+                            <th scope="col" class="px-6 py-3">Company</th>
+                            <th scope="col" class="px-6 py-3">Vehicle Type</th>
+                            <th scope="col" class="px-6 py-3">Trip Type</th>
+                            <th scope="col" class="px-6 py-3 text-right">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-slate-700">
+                        @foreach (var matrix in pricingMatrices)
+                        {
+                            <tr class="transition hover:bg-slate-50">
+                                <td class="px-6 py-4 font-semibold text-slate-900">
+                                    @matrix.Name
+                                    @if (matrix.IsDefault)
+                                    {
+                                        <span class="badge bg-primary ms-2">Default</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(matrix.Description))
+                                    {
+                                        <br/>
+                                        <span class="text-xs text-slate-500">@matrix.Description</span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 text-slate-600">
+                                    @if (matrix.Region != null)
+                                    {
+                                        <span>@matrix.Region.Name</span>
+                                        @if (matrix.Region.IsDefault)
+                                        {
+                                            <span class="badge bg-secondary ms-1">Default</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-slate-400">No Region</span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 text-sm text-slate-600">
+                                    <div>Weight: @matrix.MinWeight - @matrix.MaxWeight kg</div>
+                                    <div>Height: @matrix.MinHeight - @matrix.MaxHeight m</div>
+                                    <div>Length: @matrix.MinLength - @matrix.MaxLength m</div>
+                                    <div>Width: @matrix.MinWidth - @matrix.MaxWidth m</div>
+                                </td>
+                                <td class="px-6 py-4 text-slate-600">@matrix.BasePrice.ToString("C")</td>
+                                <td class="px-6 py-4 text-slate-600">@((matrix.TaxRate * 100).ToString("F2"))%</td>
+                                <td class="px-6 py-4 font-semibold text-slate-900">@matrix.TotalPrice.ToString("C")</td>
+                                <td class="px-6 py-4 text-slate-600">@(matrix.Company?.Name ?? "All")</td>
+                                <td class="px-6 py-4 text-slate-600">@(matrix.VehicleType?.Name ?? "All")</td>
+                                <td class="px-6 py-4 text-slate-600">@(matrix.TripType?.Name ?? "All")</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <button
+                                            class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-blue-200 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                            title="Edit" @onclick="() => NavigateToEdit(matrix.Id)">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button
+                                            class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-200 bg-white text-red-500 transition hover:border-red-300 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                                            title="@(matrix.IsDefault ? "Cannot delete default pricing" : "Delete")" 
+                                            @onclick="() => ConfirmDelete(matrix.Id)"
+                                            disabled="@(deletingMatrixIds.Contains(matrix.Id) || matrix.IsDefault)">
+                                            @if (deletingMatrixIds.Contains(matrix.Id))
+                                            {
+                                                <span class="h-4 w-4 animate-spin rounded-full border-2 border-red-200 border-t-red-500"></span>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-trash"></i>
+                                            }
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Regions Management Modal -->
+    @if (showRegionsModal)
+    {
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-geo-alt me-2"></i>Manage Regions
+                        </h5>
+                        <button type="button" class="btn-close" @onclick="ToggleRegionsModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        @if (!string.IsNullOrEmpty(regionErrorMessage))
+                        {
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle me-2"></i>@regionErrorMessage
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(regionSuccessMessage))
+                        {
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle me-2"></i>@regionSuccessMessage
+                            </div>
+                        }
+
+                        <!-- Add/Edit Region Form -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <strong>@(editingRegion != null ? "Edit Region" : "Add New Region")</strong>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 mb-2">
+                                        <label class="form-label">Name *</label>
+                                        <input type="text" class="form-control" @bind="regionForm.Name" placeholder="e.g., North Region"/>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <label class="form-label">Code *</label>
+                                        <input type="text" class="form-control" @bind="regionForm.Code" placeholder="e.g., NR"/>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <label class="form-label">Status</label>
+                                        <select class="form-select" @bind="regionForm.IsActive">
+                                            <option value="true">Active</option>
+                                            <option value="false">Inactive</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label">Description</label>
+                                    <input type="text" class="form-control" @bind="regionForm.Description" placeholder="Optional description"/>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary btn-sm" @onclick="SaveRegion" disabled="@isSavingRegion">
+                                        @if (isSavingRegion)
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-1"></span>
+                                        }
+                                        <i class="bi bi-check-circle me-1"></i> @(editingRegion != null ? "Update" : "Add")
+                                    </button>
+                                    @if (editingRegion != null)
+                                    {
+                                        <button class="btn btn-secondary btn-sm" @onclick="CancelEditRegion">
+                                            <i class="bi bi-x-circle me-1"></i> Cancel
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Regions List -->
+                        <div class="card">
+                            <div class="card-header">
+                                <strong>Existing Regions</strong>
+                            </div>
+                            <div class="card-body p-0">
+                                @if (isLoadingRegions)
+                                {
+                                    <div class="text-center py-3">
+                                        <div class="spinner-border spinner-border-sm text-primary"></div>
+                                    </div>
+                                }
+                                else if (regions.Count == 0)
+                                {
+                                    <div class="text-center py-3 text-muted">
+                                        <i class="bi bi-inbox"></i> No regions yet
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover mb-0">
+                                            <thead class="table-light">
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Code</th>
+                                                <th>Description</th>
+                                                <th>Status</th>
+                                                <th class="text-end">Actions</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            @foreach (var region in regions)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        @region.Name
+                                                        @if (region.IsDefault)
+                                                        {
+                                                            <span class="badge bg-primary ms-1">Default</span>
+                                                        }
+                                                    </td>
+                                                    <td><code>@region.Code</code></td>
+                                                    <td class="text-muted">@(region.Description ?? "-")</td>
+                                                    <td>
+                                                        @if (region.IsActive)
+                                                        {
+                                                            <span class="badge bg-success">Active</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-secondary">Inactive</span>
+                                                        }
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => EditRegion(region)" title="Edit">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger" 
+                                                                @onclick="() => DeleteRegion(region.Id)" 
+                                                                disabled="@(region.IsDefault || deletingRegionIds.Contains(region.Id))"
+                                                                title="@(region.IsDefault ? "Cannot delete default region" : "Delete")">
+                                                            @if (deletingRegionIds.Contains(region.Id))
+                                                            {
+                                                                <span class="spinner-border spinner-border-sm"></span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <i class="bi bi-trash"></i>
+                                                            }
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="ToggleRegionsModal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<PricingMatrixDto> pricingMatrices = new();
+    private bool isLoading = true;
+    private string? errorMessage;
+    private string? successMessage;
+    private readonly HashSet<int> deletingMatrixIds = new();
+
+    // Regions management
+    private bool showRegionsModal = false;
+    private List<RegionDto> regions = new();
+    private bool isLoadingRegions = false;
+    private bool isSavingRegion = false;
+    private string? regionErrorMessage;
+    private string? regionSuccessMessage;
+    private RegionDto? editingRegion = null;
+    private CreateRegionDto regionForm = new();
+    private readonly HashSet<int> deletingRegionIds = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("status", out var status))
+        {
+            successMessage = status.ToString() switch
+            {
+                "created" => "Pricing matrix created successfully.",
+                "updated" => "Pricing matrix updated successfully.",
+                _ => successMessage
+            };
+
+            if (!string.IsNullOrEmpty(successMessage))
+            {
+                Navigation.NavigateTo("/pricing", replace: true);
+            }
+        }
+
+        await LoadPricingMatrices(!string.IsNullOrEmpty(successMessage));
+    }
+
+    private async Task LoadPricingMatrices(bool preserveSuccessMessage = false)
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            if (!preserveSuccessMessage)
+            {
+                successMessage = null;
+            }
+
+            pricingMatrices = await ApiService.GetPricingMatricesAsync() ?? new List<PricingMatrixDto>();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load pricing matrices: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void NavigateToCreate()
+    {
+        Navigation.NavigateTo("/pricing/create");
+    }
+
+    private void NavigateToEdit(int id)
+    {
+        Navigation.NavigateTo($"/pricing/edit/{id}");
+    }
+
+    private async Task ConfirmDelete(int id)
+    {
+        var confirm = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this pricing matrix?");
+        if (!confirm)
+        {
+            return;
+        }
+
+        await DeletePricingMatrix(id);
+    }
+
+    private async Task DeletePricingMatrix(int id)
+    {
+        if (deletingMatrixIds.Contains(id))
+        {
+            return;
+        }
+
+        deletingMatrixIds.Add(id);
+        StateHasChanged();
+
+        try
+        {
+            errorMessage = null;
+            successMessage = null;
+            await ApiService.DeletePricingMatrixAsync(id);
+            successMessage = "Pricing matrix deleted successfully.";
+            await LoadPricingMatrices(true);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to delete pricing matrix: {ex.Message}";
+        }
+        finally
+        {
+            deletingMatrixIds.Remove(id);
+            StateHasChanged();
+        }
+    }
+
+    // Regions Management Methods
+    private async Task ToggleRegionsModal()
+    {
+        showRegionsModal = !showRegionsModal;
+        if (showRegionsModal)
+        {
+            await LoadRegions();
+        }
+        else
+        {
+            CancelEditRegion();
+        }
+    }
+
+    private async Task LoadRegions()
+    {
+        try
+        {
+            isLoadingRegions = true;
+            regionErrorMessage = null;
+            regionSuccessMessage = null;
+            regions = await ApiService.GetRegionsAsync() ?? new List<RegionDto>();
+        }
+        catch (Exception ex)
+        {
+            regionErrorMessage = $"Failed to load regions: {ex.Message}";
+        }
+        finally
+        {
+            isLoadingRegions = false;
+        }
+    }
+
+    private void EditRegion(RegionDto region)
+    {
+        editingRegion = region;
+        regionForm = new CreateRegionDto
+        {
+            Name = region.Name,
+            Code = region.Code,
+            Description = region.Description,
+            IsActive = region.IsActive
+        };
+        regionErrorMessage = null;
+        regionSuccessMessage = null;
+    }
+
+    private void CancelEditRegion()
+    {
+        editingRegion = null;
+        regionForm = new CreateRegionDto { IsActive = true };
+        regionErrorMessage = null;
+        regionSuccessMessage = null;
+    }
+
+    private async Task SaveRegion()
+    {
+        if (string.IsNullOrWhiteSpace(regionForm.Name) || string.IsNullOrWhiteSpace(regionForm.Code))
+        {
+            regionErrorMessage = "Name and Code are required.";
+            return;
+        }
+
+        try
+        {
+            isSavingRegion = true;
+            regionErrorMessage = null;
+            regionSuccessMessage = null;
+
+            if (editingRegion != null)
+            {
+                var updateDto = new UpdateRegionDto
+                {
+                    Name = regionForm.Name,
+                    Code = regionForm.Code,
+                    Description = regionForm.Description,
+                    IsActive = regionForm.IsActive
+                };
+                await ApiService.UpdateRegionAsync(editingRegion.Id, updateDto);
+                regionSuccessMessage = "Region updated successfully.";
+            }
+            else
+            {
+                await ApiService.CreateRegionAsync(regionForm);
+                regionSuccessMessage = "Region created successfully.";
+            }
+
+            CancelEditRegion();
+            await LoadRegions();
+        }
+        catch (Exception ex)
+        {
+            regionErrorMessage = $"Failed to save region: {ex.Message}";
+        }
+        finally
+        {
+            isSavingRegion = false;
+        }
+    }
+
+    private async Task DeleteRegion(int id)
+    {
+        var confirm = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this region?");
+        if (!confirm)
+        {
+            return;
+        }
+
+        if (deletingRegionIds.Contains(id))
+        {
+            return;
+        }
+
+        deletingRegionIds.Add(id);
+        StateHasChanged();
+
+        try
+        {
+            regionErrorMessage = null;
+            regionSuccessMessage = null;
+            await ApiService.DeleteRegionAsync(id);
+            regionSuccessMessage = "Region deleted successfully.";
+            await LoadRegions();
+        }
+        catch (Exception ex)
+        {
+            regionErrorMessage = $"Failed to delete region: {ex.Message}";
+        }
+        finally
+        {
+            deletingRegionIds.Remove(id);
+            StateHasChanged();
+        }
+    }
+}

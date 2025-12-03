@@ -28,10 +28,10 @@ public class TripDto
     public UserDto? Approver { get; set; }
     public DateTime? ApprovedAt { get; set; }
     public DateTime CreatedAt { get; set; }
-    public decimal BasePrice { get; set; }
-    public decimal TaxAmount { get; set; }
-    public decimal TotalPrice { get; set; }
-    public int PricingMatrixId { get; set; }
+    public decimal? BasePrice { get; set; }
+    public decimal? TaxAmount { get; set; }
+    public decimal? TotalPrice { get; set; }
+    public int? PricingMatrixId { get; set; }
     public UserDto? Creator { get; set; }
 }
 

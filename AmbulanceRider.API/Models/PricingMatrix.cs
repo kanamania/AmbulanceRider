@@ -27,6 +27,12 @@ public class PricingMatrix : BaseModel
     public decimal TaxRate { get; set; }
     public decimal TotalPrice => BasePrice * (1 + TaxRate);
     
+    // Region
+    public int? RegionId { get; set; }
+    public virtual Region? Region { get; set; }
+    
+    public bool IsDefault { get; set; } = false;
+    
     // Relationships
     public int? CompanyId { get; set; }
     public virtual Company? Company { get; set; }

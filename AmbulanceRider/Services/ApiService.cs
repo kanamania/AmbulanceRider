@@ -400,4 +400,69 @@ public class ApiService : IApiService
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<InvoiceDto>() ?? throw new Exception("Failed to mark invoice as paid");
     }
+
+    public async Task<List<PricingMatrixDto>> GetPricingMatricesAsync()
+    {
+        return await _httpClient.GetFromJsonAsync<List<PricingMatrixDto>>("/api/pricing") ?? new List<PricingMatrixDto>();
+    }
+
+    public async Task<PricingMatrixDto?> GetPricingMatrixByIdAsync(int id)
+    {
+        return await _httpClient.GetFromJsonAsync<PricingMatrixDto>($"/api/pricing/{id}");
+    }
+
+    public async Task<PricingMatrixDto> CreatePricingMatrixAsync(CreatePricingMatrixDto dto)
+    {
+        var response = await _httpClient.PostAsJsonAsync("/api/pricing", dto);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<PricingMatrixDto>() ?? throw new Exception("Failed to create pricing matrix");
+    }
+
+    public async Task<PricingMatrixDto> UpdatePricingMatrixAsync(int id, UpdatePricingMatrixDto dto)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"/api/pricing/{id}", dto);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<PricingMatrixDto>() ?? throw new Exception("Failed to update pricing matrix");
+    }
+
+    public async Task DeletePricingMatrixAsync(int id)
+    {
+        var response = await _httpClient.DeleteAsync($"/api/pricing/{id}");
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<List<RegionDto>> GetRegionsAsync()
+    {
+        return await _httpClient.GetFromJsonAsync<List<RegionDto>>("/api/regions") ?? new List<RegionDto>();
+    }
+
+    public async Task<List<RegionDto>> GetActiveRegionsAsync()
+    {
+        return await _httpClient.GetFromJsonAsync<List<RegionDto>>("/api/regions/active") ?? new List<RegionDto>();
+    }
+
+    public async Task<RegionDto?> GetRegionByIdAsync(int id)
+    {
+        return await _httpClient.GetFromJsonAsync<RegionDto>($"/api/regions/{id}");
+    }
+
+    public async Task<RegionDto> CreateRegionAsync(CreateRegionDto dto)
+    {
+        var response = await _httpClient.PostAsJsonAsync("/api/regions", dto);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<RegionDto>() ?? throw new Exception("Failed to create region");
+    }
+
+    public async Task<RegionDto> UpdateRegionAsync(int id, UpdateRegionDto dto)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"/api/regions/{id}", dto);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<RegionDto>() ?? throw new Exception("Failed to update region");
+    }
+
+    public async Task DeleteRegionAsync(int id)
+    {
+        var response = await _httpClient.DeleteAsync($"/api/regions/{id}");
+        response.EnsureSuccessStatusCode();
+    }
 }

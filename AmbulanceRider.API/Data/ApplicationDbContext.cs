@@ -31,6 +31,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<AuditLog> AuditLogs { get; set; }
     public DbSet<Invoice> Invoices { get; set; }
     public DbSet<InvoiceTrip> InvoiceTrips { get; set; }
+    public DbSet<Region> Regions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

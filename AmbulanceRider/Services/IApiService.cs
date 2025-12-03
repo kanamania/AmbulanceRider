@@ -71,4 +71,19 @@ public interface IApiService
     Task<InvoicePreviewDto> PreviewInvoiceAsync(CreateInvoiceDto dto);
     Task<InvoiceDto> CreateInvoiceAsync(CreateInvoiceDto dto);
     Task<InvoiceDto> MarkInvoiceAsPaidAsync(int id, MarkInvoicePaidDto dto);
+
+    // Pricing Matrix
+    Task<List<PricingMatrixDto>> GetPricingMatricesAsync();
+    Task<PricingMatrixDto?> GetPricingMatrixByIdAsync(int id);
+    Task<PricingMatrixDto> CreatePricingMatrixAsync(CreatePricingMatrixDto dto);
+    Task<PricingMatrixDto> UpdatePricingMatrixAsync(int id, UpdatePricingMatrixDto dto);
+    Task DeletePricingMatrixAsync(int id);
+
+    // Regions
+    Task<List<RegionDto>> GetRegionsAsync();
+    Task<List<RegionDto>> GetActiveRegionsAsync();
+    Task<RegionDto?> GetRegionByIdAsync(int id);
+    Task<RegionDto> CreateRegionAsync(CreateRegionDto dto);
+    Task<RegionDto> UpdateRegionAsync(int id, UpdateRegionDto dto);
+    Task DeleteRegionAsync(int id);
 }

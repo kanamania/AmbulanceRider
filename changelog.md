@@ -1,5 +1,53 @@
 # Changelog
 
+## [0.0.14] - 2025-12-04T01:15:00+03:00
+
+### Added
+- Regions management UI integrated into Pricing Matrix page
+- "Manage Regions" button in pricing page header
+- Modal dialog for regions CRUD operations with inline form
+- Real-time region creation, editing, and deletion within pricing page
+- Regions list table showing name, code, description, and status
+- Visual indicators for default and active/inactive regions
+- Form validation for required region fields
+
+### Changed
+- Regions can now be managed directly from the pricing page without navigation
+- Improved workflow for creating pricing matrices with region selection
+
+## [0.0.13] - 2025-12-04T01:10:00+03:00
+
+### Added
+- Region-aware pricing matrix system with default fallback mechanism
+- Region model and repository for managing geographical pricing zones
+- RegionsController with full CRUD operations (Admin only)
+- Default pricing matrix flag to serve as fallback for regions without specific pricing
+- Region selection in pricing matrix form with IsDefault checkbox
+- Region column in pricing matrices list showing region-specific pricing
+- Protection against deleting default pricing matrices and default regions
+- Client-side and API-side Region DTOs
+
+### Changed
+- Pricing matrices now support region-specific pricing with automatic fallback to default
+- Updated PricingMatrix model to include RegionId and IsDefault flag
+- Enhanced pricing matrix list to display region information and default badges
+- Pricing matrix queries now order by IsDefault flag (default pricing shown first)
+
+## [0.0.12] - 2025-12-04T00:55:00+03:00
+
+### Added
+- Pricing Matrix management UI with full CRUD operations
+- Pricing Matrix list page with dimension ranges, pricing details, and filters
+- Create/Edit Pricing Matrix form with dimension inputs, pricing configuration, and optional filters (Company, Vehicle Type, Trip Type)
+- Pricing menu link in main navigation (Admin only)
+- PricingController expanded with Create, Update, Delete endpoints (Admin role required)
+- Client-side and API-side DTOs for Pricing Matrix operations
+
+## [0.0.11] - 2025-12-04T00:50:00+03:00
+
+### Fixed
+- Fixed JSON deserialization error in Blazor client by making PricingMatrixId, BasePrice, TaxAmount, and TotalPrice nullable in client-side TripDto to match API DTOs
+
 ## [0.0.10] - 2025-12-02T21:11:00+03:00
 
 ### Added

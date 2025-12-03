@@ -1,0 +1,312 @@
+@page "/pricing/create"
+@page "/pricing/edit/{id:int}"
+@using AmbulanceRider.Models
+@using AmbulanceRider.Services
+@inject IApiService ApiService
+@inject NavigationManager Navigation
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+
+<PageTitle>@(IsEditMode ? "Edit Pricing Matrix" : "Create Pricing Matrix")</PageTitle>
+
+<div class="container-fluid">
+    <div class="mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/pricing">Pricing Matrices</a></li>
+                <li class="breadcrumb-item active">@(IsEditMode ? "Edit" : "Create")</li>
+            </ol>
+        </nav>
+        <h1 class="text-2xl font-semibold text-slate-900">
+            <i class="bi bi-currency-dollar me-2"></i>
+            @(IsEditMode ? "Edit Pricing Matrix" : "Create New Pricing Matrix")
+        </h1>
+    </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
+        </div>
+    }
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <EditForm Model="@model" OnValidSubmit="HandleSubmit">
+                    <DataAnnotationsValidator/>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Name *</label>
+                            <InputText @bind-Value="model.Name" class="form-control" placeholder="e.g., Standard Package"/>
+                            <ValidationMessage For="@(() => model.Name)"/>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Description</label>
+                            <InputText @bind-Value="model.Description" class="form-control" placeholder="Optional description"/>
+                        </div>
+                    </div>
+
+                    <h5 class="mt-4 mb-3 text-slate-700">Dimension Ranges</h5>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Min Weight (kg) *</label>
+                            <InputNumber @bind-Value="model.MinWeight" class="form-control" step="0.01"/>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Max Weight (kg) *</label>
+                            <InputNumber @bind-Value="model.MaxWeight" class="form-control" step="0.01"/>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Min Height (m) *</label>
+                            <InputNumber @bind-Value="model.MinHeight" class="form-control" step="0.01"/>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Max Height (m) *</label>
+                            <InputNumber @bind-Value="model.MaxHeight" class="form-control" step="0.01"/>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Min Length (m) *</label>
+                            <InputNumber @bind-Value="model.MinLength" class="form-control" step="0.01"/>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Max Length (m) *</label>
+                            <InputNumber @bind-Value="model.MaxLength" class="form-control" step="0.01"/>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Min Width (m) *</label>
+                            <InputNumber @bind-Value="model.MinWidth" class="form-control" step="0.01"/>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Max Width (m) *</label>
+                            <InputNumber @bind-Value="model.MaxWidth" class="form-control" step="0.01"/>
+                        </div>
+                    </div>
+
+                    <h5 class="mt-4 mb-3 text-slate-700">Pricing</h5>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Base Price *</label>
+                            <InputNumber @bind-Value="model.BasePrice" class="form-control" step="0.01"/>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Tax Rate (decimal, e.g., 0.18 for 18%) *</label>
+                            <InputNumber @bind-Value="model.TaxRate" class="form-control" step="0.01"/>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Total Price (calculated)</label>
+                            <input type="text" class="form-control" value="@((model.BasePrice * (1 + model.TaxRate)).ToString("C"))" readonly/>
+                        </div>
+                    </div>
+
+                    <h5 class="mt-4 mb-3 text-slate-700">Region & Scope</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Region @(model.IsDefault ? "(Default pricing applies to all regions)" : "")</label>
+                            <InputSelect @bind-Value="model.RegionId" class="form-select" disabled="@model.IsDefault">
+                                <option value="">Select Region</option>
+                                @foreach (var region in regions)
+                                {
+                                    <option value="@region.Id">@region.Name @(region.IsDefault ? "(Default)" : "")</option>
+                                }
+                            </InputSelect>
+                            <small class="text-muted">Select a specific region or leave empty for default pricing</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check mt-4">
+                                <InputCheckbox @bind-Value="model.IsDefault" class="form-check-input" id="isDefaultCheck" disabled="@IsEditMode"/>
+                                <label class="form-check-label" for="isDefaultCheck">
+                                    Set as Default Pricing (Fallback for regions without specific pricing)
+                                </label>
+                            </div>
+                            @if (IsEditMode && model.IsDefault)
+                            {
+                                <small class="text-info d-block mt-2">
+                                    <i class="bi bi-info-circle"></i> Default pricing cannot be changed to non-default
+                                </small>
+                            }
+                        </div>
+                    </div>
+
+                    <h5 class="mt-4 mb-3 text-slate-700">Optional Filters</h5>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Company</label>
+                            <InputSelect @bind-Value="model.CompanyId" class="form-select">
+                                <option value="">All Companies</option>
+                                @foreach (var company in companies)
+                                {
+                                    <option value="@company.Id">@company.Name</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Vehicle Type</label>
+                            <InputSelect @bind-Value="model.VehicleTypeId" class="form-select">
+                                <option value="">All Vehicle Types</option>
+                                @foreach (var vehicleType in vehicleTypes)
+                                {
+                                    <option value="@vehicleType.Id">@vehicleType.Name</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Trip Type</label>
+                            <InputSelect @bind-Value="model.TripTypeId" class="form-select">
+                                <option value="">All Trip Types</option>
+                                @foreach (var tripType in tripTypes)
+                                {
+                                    <option value="@tripType.Id">@tripType.Name</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                            @if (isSaving)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            <i class="bi bi-check-circle me-1"></i> @(IsEditMode ? "Update" : "Create")
+                        </button>
+                        <button type="button" class="btn btn-secondary" @onclick="Cancel">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private CreatePricingMatrixDto model = new();
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private string? errorMessage;
+    private bool IsEditMode => Id.HasValue;
+
+    private List<CompanyDto> companies = new();
+    private List<VehicleTypeDto> vehicleTypes = new();
+    private List<TripTypeDto> tripTypes = new();
+    private List<RegionDto> regions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Load dropdown data
+            companies = await ApiService.GetCompaniesAsync() ?? new List<CompanyDto>();
+            vehicleTypes = await ApiService.GetVehicleTypesAsync() ?? new List<VehicleTypeDto>();
+            tripTypes = await ApiService.GetTripTypesAsync() ?? new List<TripTypeDto>();
+            regions = await ApiService.GetActiveRegionsAsync() ?? new List<RegionDto>();
+
+            if (IsEditMode)
+            {
+                var existing = await ApiService.GetPricingMatrixByIdAsync(Id!.Value);
+                if (existing == null)
+                {
+                    errorMessage = "Pricing matrix not found.";
+                    return;
+                }
+
+                model = new CreatePricingMatrixDto
+                {
+                    Name = existing.Name,
+                    Description = existing.Description,
+                    MinWeight = existing.MinWeight,
+                    MaxWeight = existing.MaxWeight,
+                    MinHeight = existing.MinHeight,
+                    MaxHeight = existing.MaxHeight,
+                    MinLength = existing.MinLength,
+                    MaxLength = existing.MaxLength,
+                    MinWidth = existing.MinWidth,
+                    MaxWidth = existing.MaxWidth,
+                    BasePrice = existing.BasePrice,
+                    TaxRate = existing.TaxRate,
+                    RegionId = existing.RegionId,
+                    IsDefault = existing.IsDefault,
+                    CompanyId = existing.CompanyId,
+                    VehicleTypeId = existing.VehicleTypeId,
+                    TripTypeId = existing.TripTypeId
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            isSaving = true;
+            errorMessage = null;
+
+            if (IsEditMode)
+            {
+                var updateDto = new UpdatePricingMatrixDto
+                {
+                    Name = model.Name,
+                    Description = model.Description,
+                    MinWeight = model.MinWeight,
+                    MaxWeight = model.MaxWeight,
+                    MinHeight = model.MinHeight,
+                    MaxHeight = model.MaxHeight,
+                    MinLength = model.MinLength,
+                    MaxLength = model.MaxLength,
+                    MinWidth = model.MinWidth,
+                    MaxWidth = model.MaxWidth,
+                    BasePrice = model.BasePrice,
+                    TaxRate = model.TaxRate,
+                    RegionId = model.RegionId,
+                    CompanyId = model.CompanyId,
+                    VehicleTypeId = model.VehicleTypeId,
+                    TripTypeId = model.TripTypeId
+                };
+                await ApiService.UpdatePricingMatrixAsync(Id!.Value, updateDto);
+                Navigation.NavigateTo("/pricing?status=updated");
+            }
+            else
+            {
+                await ApiService.CreatePricingMatrixAsync(model);
+                Navigation.NavigateTo("/pricing?status=created");
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to {(IsEditMode ? "update" : "create")} pricing matrix: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/pricing");
+    }
+}

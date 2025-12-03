@@ -13,6 +13,7 @@ public class PricingMatrixRepository : Repository<PricingMatrix>, IPricingMatrix
     public override async Task<PricingMatrix?> GetByIdAsync(int id)
     {
         return await _dbSet
+            .Include(p => p.Region)
             .Include(p => p.Company)
             .Include(p => p.VehicleType)
             .Include(p => p.TripType)
@@ -22,16 +23,20 @@ public class PricingMatrixRepository : Repository<PricingMatrix>, IPricingMatrix
     public override async Task<IEnumerable<PricingMatrix>> GetAllAsync()
     {
         return await _dbSet
+            .Include(p => p.Region)
             .Include(p => p.Company)
             .Include(p => p.VehicleType)
             .Include(p => p.TripType)
             .Where(p => p.DeletedAt == null)
+            .OrderByDescending(p => p.IsDefault)
+            .ThenBy(p => p.Name)
             .ToListAsync();
     }
 
     public async Task<IEnumerable<PricingMatrix>> GetByDimensionsAsync(decimal weight, decimal height, decimal length, decimal width)
     {
         return await _dbSet
+            .Include(p => p.Region)
             .Include(p => p.Company)
             .Include(p => p.VehicleType)
             .Include(p => p.TripType)
@@ -40,6 +45,7 @@ public class PricingMatrixRepository : Repository<PricingMatrix>, IPricingMatrix
                 height >= p.MinHeight && height <= p.MaxHeight &&
                 length >= p.MinLength && length <= p.MaxLength &&
                 width >= p.MinWidth && width <= p.MaxWidth)
+            .OrderByDescending(p => p.IsDefault)
             .ToListAsync();
     }
 }
