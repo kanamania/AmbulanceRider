@@ -129,14 +129,14 @@
                                 <td class="px-6 py-4 text-slate-600">@(matrix.VehicleType?.Name ?? "All")</td>
                                 <td class="px-6 py-4 text-slate-600">@(matrix.TripType?.Name ?? "All")</td>
                                 <td class="px-6 py-4">
-                                    <div class="flex items-center justify-end gap-2">
+                                    <div class="btn-group btn-group-sm">
                                         <button
-                                            class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-blue-200 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                            class="btn btn-primary"
                                             title="Edit" @onclick="() => NavigateToEdit(matrix.Id)">
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                         <button
-                                            class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-200 bg-white text-red-500 transition hover:border-red-300 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                                            class="btn btn-danger"
                                             title="@(matrix.IsDefault ? "Cannot delete default pricing" : "Delete")" 
                                             @onclick="() => ConfirmDelete(matrix.Id)"
                                             disabled="@(deletingMatrixIds.Contains(matrix.Id) || matrix.IsDefault)">
