@@ -11,14 +11,18 @@
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="flex items-center gap-2 text-2xl font-semibold text-slate-900">
-            <i class="bi bi-buildings"></i>
-            Companies
-        </h1>
-        <p class="text-sm text-slate-600">Manage organizations, contacts, and addresses.</p>
-        <button class="btn btn-primary create-btn" @onclick="NavigateToCreate">
-            <i class="bi bi-plus-circle me-1"></i> Add New Company
-        </button>
+        <div class="d-flex gap-2 justify-content-start w-50 flex-column">
+            <h1 class="flex items-center gap-2 text-2xl font-semibold text-slate-900">
+                <i class="bi bi-buildings"></i>
+                Companies
+            </h1>
+            <p class="text-sm text-slate-600">Manage organizations, contacts, and addresses.</p>
+        </div>
+        <div class="d-flex flex-column w-50">
+            <button class="btn btn-primary create-btn" @onclick="NavigateToCreate">
+                <i class="bi bi-plus-circle me-1"></i> Add New Company
+            </button>
+        </div>
     </div>
 
     @if (!string.IsNullOrEmpty(successMessage))
@@ -85,20 +89,19 @@
                                 <td class="px-6 py-4 text-slate-600">@company.ContactPhone</td>
                                 <td class="px-6 py-4 text-slate-600">@company.Address</td>
                                 <td class="px-6 py-4">
-                                    <div class="flex items-center justify-end gap-2">
+                                    <div class="btn-group btn-group-small">
                                         <button
-                                            class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-blue-200 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                            class="btn btn-primary"
                                             title="Edit" @onclick="() => NavigateToEdit(company.Id)">
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                         <button
-                                            class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-200 bg-white text-red-500 transition hover:border-red-300 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                                            class="btn btn-danger"
                                             title="Delete" @onclick="() => ConfirmDelete(company.Id)"
                                             disabled="@deletingCompanyIds.Contains(company.Id)">
                                             @if (deletingCompanyIds.Contains(company.Id))
                                             {
-                                                <span
-                                                    class="h-4 w-4 animate-spin rounded-full border-2 border-red-200 border-t-red-500"></span>
+                                                <i class="bi bi-pencil"></i>
                                             }
                                             else
                                             {

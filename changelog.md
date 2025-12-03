@@ -8,6 +8,10 @@
   - Medium Box (30x47x49)
   - Large Box (38x47x65)
   - Extra Large Box (60x61x70)
+### Changed
+- Navigation menu updates:
+  - Added Settings dropdown with Vehicles, Locations, Pricing, and Telemetry
+  - Updated active menu item styling (color: #c52227)
 
 ## [0.0.14] - 2025-12-04T01:15:00+03:00
 
