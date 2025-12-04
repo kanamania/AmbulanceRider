@@ -241,17 +241,17 @@
 
     private void DownloadPdf(int id)
     {
-        NavigationManager.NavigateTo($"/invoice/{id}/download/pdf", true);
+        NavigationManager.NavigateTo($"/api/invoices/{id}/download/pdf", true);
     }
 
     private void DownloadExcel(int id)
     {
-        NavigationManager.NavigateTo($"/invoice/{id}/download/excel", true);
+        NavigationManager.NavigateTo($"/api/invoices/{id}/download/excel", true);
     }
 
     private void DownloadBoth(int id)
     {
-        NavigationManager.NavigateTo($"/invoice/{id}/download/both", true);
+        NavigationManager.NavigateTo($"/api/invoices/{id}/download/both", true);
     }
 
     private async Task SendEmail(bool success)
