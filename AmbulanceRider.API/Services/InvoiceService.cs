@@ -398,7 +398,7 @@ public class InvoiceService
                            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                                <!-- Header -->
                                <div style="text-align: center; margin-bottom: 20px;">
-                                   <h2 style="color: #007bff;">AmbulanceRider Invoice</h2>
+                                   <h2 style="color: #007bff;">Global Express Logistics Invoice</h2>
                                    <p style="color: #6c757d;">{invoice.InvoiceNumber}</p>
                                </div>
 
@@ -474,8 +474,8 @@ public class InvoiceService
 
                                <!-- Footer -->
                                <div style="text-align: center; color: #6c757d; font-size: 0.9em; margin-top: 30px;">
-                                   <p>AmbulanceRider Ltd | P.O. Box 12345-00100, Nairobi</p>
-                                   <p>support@ambulancerider.com | +254 700 000 000</p>
+                                   <p>Global Express Logistics | P.O. Box 12345-00100, Dar es salaam</p>
+                                   <p>support@globalexpress.co.tz | +254 700 000 000</p>
                                </div>
                            </div>
                            """;
@@ -533,9 +533,9 @@ public class InvoiceService
             {
                 row.RelativeItem().Column(column =>
                 {
-                    column.Item().Text("AmbulanceRider").FontSize(20).Bold().FontColor(Colors.Blue.Medium);
-                    column.Item().Text("Ambulance Management System").FontSize(10);
-                    column.Item().PaddingTop(5).Text("Email: info@ambulancerider.com").FontSize(9);
+                    column.Item().Text("Global Express Logistics").FontSize(20).Bold().FontColor(Colors.Blue.Medium);
+                    column.Item().Text("Global Express Logistics System").FontSize(10);
+                    column.Item().PaddingTop(5).Text("Email: info@globalexpress.co.tz").FontSize(9);
                     column.Item().Text("Phone: +254 700 000 000").FontSize(9);
                 });
 
@@ -678,7 +678,7 @@ public class InvoiceService
         using var workbook = new XLWorkbook();
         var worksheet = workbook.Worksheets.Add("Invoice");
 
-        worksheet.Cell("A1").Value = "AmbulanceRider";
+        worksheet.Cell("A1").Value = "Global Express Logistics";
         worksheet.Cell("A1").Style.Font.Bold = true;
         worksheet.Cell("A1").Style.Font.FontSize = 16;
 
@@ -791,6 +791,9 @@ public class InvoiceService
             Type = invoice.Type.ToString(),
             CompanyId = invoice.CompanyId,
             CompanyName = invoice.Company?.Name ?? "",
+            CompanyEmail = invoice.Company?.ContactEmail ?? "",
+            CompanyPhoneNumber = invoice.Company?.ContactPhone ?? "",
+            CompanyAddress = invoice.Company?.Address ?? "",
             InvoiceDate = invoice.InvoiceDate,
             PeriodStart = invoice.PeriodStart,
             PeriodEnd = invoice.PeriodEnd,
