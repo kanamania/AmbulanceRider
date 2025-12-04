@@ -511,7 +511,7 @@ public class InvoiceService
             container.Page(page =>
             {
                 page.Size(PageSizes.A4);
-                page.Margin(50);
+                page.Margin(10);
                 page.PageColor(Colors.White);
                 page.DefaultTextStyle(x => x.FontSize(10));
 
