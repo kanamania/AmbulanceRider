@@ -191,7 +191,7 @@ public class InvoiceController : ControllerBase
 
     [HttpPost("generate-test-invoices")]
     public async Task<ActionResult<List<InvoiceDto>>> GenerateTestInvoices(
-        [FromQuery] int count = 5, 
+        [FromQuery] int count = 10, 
         [FromQuery] int companyId = 1)
     {
         try

@@ -28,11 +28,11 @@ public class InvoiceService
         var query = _context.Invoices
             .Include(i => i.Company)
             .Include(i => i.InvoiceTrips)
-                .ThenInclude(it => it.Trip)
-                    .ThenInclude(t => t!.Vehicle)
+            .ThenInclude(it => it.Trip)
+            .ThenInclude(t => t!.Vehicle)
             .Include(i => i.InvoiceTrips)
-                .ThenInclude(it => it.Trip)
-                    .ThenInclude(t => t!.Driver)
+            .ThenInclude(it => it.Trip)
+            .ThenInclude(t => t!.Driver)
             .AsQueryable();
 
         if (filter.CompanyId.HasValue)
@@ -66,11 +66,11 @@ public class InvoiceService
         var invoice = await _context.Invoices
             .Include(i => i.Company)
             .Include(i => i.InvoiceTrips)
-                .ThenInclude(it => it.Trip)
-                    .ThenInclude(t => t!.Vehicle)
+            .ThenInclude(it => it.Trip)
+            .ThenInclude(t => t!.Vehicle)
             .Include(i => i.InvoiceTrips)
-                .ThenInclude(it => it.Trip)
-                    .ThenInclude(t => t!.Driver)
+            .ThenInclude(it => it.Trip)
+            .ThenInclude(t => t!.Driver)
             .FirstOrDefaultAsync(i => i.Id == id);
 
         return invoice == null ? null : MapToDto(invoice);
@@ -224,11 +224,11 @@ public class InvoiceService
         var invoice = await _context.Invoices
             .Include(i => i.Company)
             .Include(i => i.InvoiceTrips)
-                .ThenInclude(it => it.Trip)
-                    .ThenInclude(t => t!.Vehicle)
+            .ThenInclude(it => it.Trip)
+            .ThenInclude(t => t!.Vehicle)
             .Include(i => i.InvoiceTrips)
-                .ThenInclude(it => it.Trip)
-                    .ThenInclude(t => t!.Driver)
+            .ThenInclude(it => it.Trip)
+            .ThenInclude(t => t!.Driver)
             .FirstOrDefaultAsync(i => i.Id == id);
 
         if (invoice == null)
@@ -260,212 +260,221 @@ public class InvoiceService
 
     public async Task<List<InvoiceDto>> GenerateTestInvoicesAsync(int count, int companyId)
     {
-        var random = new Random();
-        var invoices = new List<InvoiceDto>();
-        
-        // Get required data
-        var drivers = await _context.Users
-            .Where(u => u.UserRoles.Any(ur => ur.Role.Name == "Driver"))
-            .Take(5)
-            .ToListAsync();
-
-        var creators = await _context.Users
-            .Where(u => u.UserRoles.Any(ur => ur.Role.Name == "User"))
-            .Take(3)
-            .ToListAsync();
-
-        var vehicles = await _context.Vehicles.Take(5).ToListAsync();
-        var pricingMatrices = await _context.PricingMatrices
-            .Include(pm => pm.Region)
-            .Where(pm => pm.Region!.Code == "DAR")
-            .ToListAsync();
-        var locations = await _context.Locations.ToListAsync();
-
-        // Create test trips
-        var testTrips = new List<Trip>();
-        for (int i = 0; i < count * 5; i++)
+        try
         {
-            var pricingMatrix = pricingMatrices[random.Next(pricingMatrices.Count)];
-            var fromLocation = locations[random.Next(locations.Count)];
-            var toLocation = locations[random.Next(locations.Count)];
-            var vehicle = vehicles[random.Next(vehicles.Count)];
-            var driver = drivers[random.Next(drivers.Count)];
-            var creator = creators[random.Next(creators.Count)];
+            var random = new Random();
+            var invoices = new List<InvoiceDto>();
 
-            testTrips.Add(new Trip 
+            // Get required data
+            var drivers = await _context.Users
+                .Where(u => u.UserRoles.Any(ur => ur.Role!.Name == "Driver"))
+                .Take(5)
+                .ToListAsync();
+
+            var creators = await _context.Users
+                .Where(u => u.UserRoles.Any(ur => ur.Role!.Name == "User"))
+                .Take(3)
+                .ToListAsync();
+
+            var vehicles = await _context.Vehicles.Take(5).ToListAsync();
+            var pricingMatrices = await _context.PricingMatrices
+                .Include(pm => pm.Region)
+                .Where(pm => pm.Region!.Code == "DAR")
+                .ToListAsync();
+            var locations = await _context.Locations.ToListAsync();
+
+            // Create test trips
+            var testTrips = new List<Trip>();
+            for (int i = 0; i < count * 5; i++)
             {
-                Name = $"Test Trip {i + 1} {fromLocation.Name} -> {toLocation.Name}",
-                Status = TripStatus.Completed,
-                IsPaid = false,
-                PricingMatrixId = pricingMatrix.Id,
-                BasePrice = pricingMatrix.BasePrice,
-                TaxAmount = pricingMatrix.BasePrice * pricingMatrix.TaxRate,
-                TotalPrice = pricingMatrix.BasePrice * (1 + pricingMatrix.TaxRate),
-                Weight = random.Next((int)pricingMatrix.MinWeight, (int)pricingMatrix.MaxWeight),
-                Width = random.Next((int)pricingMatrix.MinWidth, (int)pricingMatrix.MaxWidth),
-                Height = random.Next((int)pricingMatrix.MinHeight, (int)pricingMatrix.MaxHeight),
-                Length = random.Next((int)pricingMatrix.MinLength, (int)pricingMatrix.MaxLength),
-                CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30)),
-                VehicleId = vehicle.Id,
-                DriverId = driver.Id,
-                CreatedBy = creator.Id,
-                ScheduledStartTime = DateTime.UtcNow.AddHours(-random.Next(24, 72)),
-                ActualStartTime = DateTime.UtcNow.AddHours(-random.Next(12, 24)),
-                ActualEndTime = DateTime.UtcNow.AddHours(-random.Next(1, 12)),
-                FromLocationName = fromLocation.Name,
-                ToLocationName = toLocation.Name,
-                FromLatitude = fromLocation.Latitude,
-                FromLongitude = fromLocation.Longitude,
-                ToLatitude = toLocation.Latitude,
-                ToLongitude = toLocation.Longitude,
-                EstimatedDistance = random.Next(5, 100),
-                EstimatedDuration = random.Next(15, 120),
-            });
-        }
-        await _context.Trips.AddRangeAsync(testTrips);
-        await _context.SaveChangesAsync();
+                var pricingMatrix = pricingMatrices[random.Next(pricingMatrices.Count)];
+                var fromLocation = locations[random.Next(locations.Count)];
+                var toLocation = locations[random.Next(locations.Count)];
+                var vehicle = vehicles[random.Next(vehicles.Count)];
+                var driver = drivers[random.Next(drivers.Count)];
+                var creator = creators[random.Next(creators.Count)];
 
-        // Create invoices
-        for (int i = 0; i < count; i++)
-        {
-            var invoiceType = random.Next(2) == 0 ? InvoiceType.Proforma : InvoiceType.Final;
-            var invoiceNumber = await GenerateInvoiceNumberAsync(invoiceType);
-            var periodStart = DateTime.UtcNow.AddDays(-random.Next(30));
-            var periodEnd = periodStart.AddDays(random.Next(1, 30));
-
-            // Select 2-5 trips for this invoice
-            var tripCount = random.Next(2, 6);
-            var selectedTrips = testTrips
-                .Skip(i * 2)
-                .Take(tripCount)
-                .ToList();
-
-            var invoice = new Invoice
-            {
-                InvoiceNumber = invoiceNumber,
-                Type = invoiceType,
-                CompanyId = companyId,
-                InvoiceDate = DateTime.UtcNow,
-                PeriodStart = periodStart,
-                PeriodEnd = periodEnd,
-                SubTotal = selectedTrips.Sum(t => t.BasePrice)!.Value,
-                TaxAmount = selectedTrips.Sum(t => t.TaxAmount)!.Value,
-                TotalAmount = selectedTrips.Sum(t => t.TotalPrice)!.Value,
-                Status = InvoiceStatus.Draft,
-                Notes = "Test invoice",
-                InvoiceTrips = selectedTrips.Select(t => new InvoiceTrip
+                testTrips.Add(new Trip
                 {
-                    TripId = t.Id,
-                    BasePrice = t.BasePrice!.Value,
-                    TaxAmount = t.TaxAmount!.Value,
-                    TotalPrice = t.TotalPrice!.Value
-                }).ToList()
-            };
+                    Name = $"Test Trip {i + 1} {fromLocation.Name} -> {toLocation.Name}",
+                    Status = TripStatus.Completed,
+                    IsPaid = false,
+                    PricingMatrixId = pricingMatrix.Id,
+                    BasePrice = pricingMatrix.BasePrice,
+                    TaxAmount = pricingMatrix.BasePrice * pricingMatrix.TaxRate,
+                    TotalPrice = pricingMatrix.BasePrice * (1 + pricingMatrix.TaxRate),
+                    Weight = random.Next((int)pricingMatrix.MinWeight, (int)pricingMatrix.MaxWeight),
+                    Width = random.Next((int)pricingMatrix.MinWidth, (int)pricingMatrix.MaxWidth),
+                    Height = random.Next((int)pricingMatrix.MinHeight, (int)pricingMatrix.MaxHeight),
+                    Length = random.Next((int)pricingMatrix.MinLength, (int)pricingMatrix.MaxLength),
+                    CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30)),
+                    VehicleId = vehicle.Id,
+                    DriverId = driver.Id,
+                    CreatedBy = creator.Id,
+                    ScheduledStartTime = DateTime.UtcNow.AddHours(-random.Next(24, 72)),
+                    ActualStartTime = DateTime.UtcNow.AddHours(-random.Next(12, 24)),
+                    ActualEndTime = DateTime.UtcNow.AddHours(-random.Next(1, 12)),
+                    FromLocationName = fromLocation.Name,
+                    ToLocationName = toLocation.Name,
+                    FromLatitude = fromLocation.Latitude,
+                    FromLongitude = fromLocation.Longitude,
+                    ToLatitude = toLocation.Latitude,
+                    ToLongitude = toLocation.Longitude,
+                    EstimatedDistance = random.Next(5, 100),
+                    EstimatedDuration = random.Next(15, 120),
+                });
+            }
 
-            _context.Invoices.Add(invoice);
+            await _context.Trips.AddRangeAsync(testTrips);
             await _context.SaveChangesAsync();
-            invoices.Add(MapToDto(invoice));
-        }
 
-        return invoices;
+            // Create invoices
+            for (int i = 0; i < count; i++)
+            {
+                var invoiceType = random.Next(2) == 0 ? InvoiceType.Proforma : InvoiceType.Final;
+                var invoiceNumber = await GenerateInvoiceNumberAsync(invoiceType);
+                var periodStart = DateTime.UtcNow.AddDays(-random.Next(30));
+                var periodEnd = periodStart.AddDays(random.Next(1, 30));
+
+                // Select 2-5 trips for this invoice
+                var tripCount = random.Next(2, 6);
+                var selectedTrips = testTrips
+                    .Skip(i * 2)
+                    .Take(tripCount)
+                    .ToList();
+
+                var invoice = new Invoice
+                {
+                    InvoiceNumber = invoiceNumber,
+                    Type = invoiceType,
+                    CompanyId = companyId,
+                    InvoiceDate = DateTime.UtcNow,
+                    PeriodStart = periodStart,
+                    PeriodEnd = periodEnd,
+                    SubTotal = selectedTrips.Sum(t => t.BasePrice)!.Value,
+                    TaxAmount = selectedTrips.Sum(t => t.TaxAmount)!.Value,
+                    TotalAmount = selectedTrips.Sum(t => t.TotalPrice)!.Value,
+                    Status = InvoiceStatus.Draft,
+                    Notes = "Test invoice",
+                    InvoiceTrips = selectedTrips.Select(t => new InvoiceTrip
+                    {
+                        TripId = t.Id,
+                        BasePrice = t.BasePrice!.Value,
+                        TaxAmount = t.TaxAmount!.Value,
+                        TotalPrice = t.TotalPrice!.Value
+                    }).ToList()
+                };
+
+                _context.Invoices.Add(invoice);
+                await _context.SaveChangesAsync();
+                invoices.Add(MapToDto(invoice));
+            }
+
+            return invoices;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Failed to generate test invoices", ex);
+        }
     }
 
-    public async Task SendInvoiceEmailAsync(int id, List<string> recipientEmails, string? subject = null, string? body = null)
+    public async Task SendInvoiceEmailAsync(int id, List<string> recipientEmails, string? subject = null,
+        string? body = null)
     {
         var invoice = await _context.Invoices
             .Include(i => i.Company)
             .Include(i => i.InvoiceTrips)
-                .ThenInclude(it => it.Trip)
+            .ThenInclude(it => it.Trip)
             .FirstOrDefaultAsync(i => i.Id == id) ?? throw new Exception("Invoice not found");
 
         var (pdfBytes, excelBytes) = await GenerateInvoiceFilesAsync(id);
 
         var defaultSubject = $"{invoice.Type} Invoice {invoice.InvoiceNumber} - {invoice.Company?.Name}";
         var defaultBody = $"""
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <!-- Header -->
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h2 style="color: #007bff;">AmbulanceRider Invoice</h2>
-                    <p style="color: #6c757d;">{invoice.InvoiceNumber}</p>
-                </div>
+                           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                               <!-- Header -->
+                               <div style="text-align: center; margin-bottom: 20px;">
+                                   <h2 style="color: #007bff;">AmbulanceRider Invoice</h2>
+                                   <p style="color: #6c757d;">{invoice.InvoiceNumber}</p>
+                               </div>
 
-                <!-- Invoice Summary -->
-                <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                        <div>
-                            <h3 style="margin-top: 0;">Invoice Details</h3>
-                            <p><strong>Date:</strong> {invoice.InvoiceDate:dd/MM/yyyy}</p>
-                            <p><strong>Type:</strong> {invoice.Type}</p>
-                            <p><strong>Status:</strong> 
-                                <span style="color: {GetStatusColor(invoice.Status)}">
-                                    {invoice.Status}
-                                </span>
-                            </p>
-                            {(invoice.PaidDate != null ? $"<p><strong>Paid Date:</strong> {invoice.PaidDate:dd/MM/yyyy}</p>" : "")}
-                        </div>
-                        <div>
-                            <h3 style="margin-top: 0;">Company Details</h3>
-                            <p><strong>Name:</strong> {invoice.Company?.Name}</p>
-                            <p><strong>Billing Period:</strong> {invoice.PeriodStart:dd/MM/yyyy} to {invoice.PeriodEnd:dd/MM/yyyy}</p>
-                            <p><strong>Trips:</strong> {invoice.InvoiceTrips.Count}</p>
-                        </div>
-                    </div>
+                               <!-- Invoice Summary -->
+                               <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+                                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                       <div>
+                                           <h3 style="margin-top: 0;">Invoice Details</h3>
+                                           <p><strong>Date:</strong> {invoice.InvoiceDate:dd/MM/yyyy}</p>
+                                           <p><strong>Type:</strong> {invoice.Type}</p>
+                                           <p><strong>Status:</strong> 
+                                               <span style="color: {GetStatusColor(invoice.Status)}">
+                                                   {invoice.Status}
+                                               </span>
+                                           </p>
+                                           {(invoice.PaidDate != null ? $"<p><strong>Paid Date:</strong> {invoice.PaidDate:dd/MM/yyyy}</p>" : "")}
+                                       </div>
+                                       <div>
+                                           <h3 style="margin-top: 0;">Company Details</h3>
+                                           <p><strong>Name:</strong> {invoice.Company?.Name}</p>
+                                           <p><strong>Billing Period:</strong> {invoice.PeriodStart:dd/MM/yyyy} to {invoice.PeriodEnd:dd/MM/yyyy}</p>
+                                           <p><strong>Trips:</strong> {invoice.InvoiceTrips.Count}</p>
+                                       </div>
+                                   </div>
 
-                    <!-- Amount Breakdown -->
-                    <div style="border-top: 1px solid #dee2e6; padding-top: 15px;">
-                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
-                            <div>
-                                <p><strong>Subtotal:</strong></p>
-                                <p><strong>Tax ({invoice.Company?.TaxRate ?? 16}%):</strong></p>
-                                <p style="font-weight: bold; margin-top: 10px;">Total Amount:</p>
-                            </div>
-                            <div style="text-align: right;">
-                                <p>KES {invoice.SubTotal:N2}</p>
-                                <p>KES {invoice.TaxAmount:N2}</p>
-                                <p style="font-size: 1.2em; color: #28a745;">KES {invoice.TotalAmount:N2}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                                   <!-- Amount Breakdown -->
+                                   <div style="border-top: 1px solid #dee2e6; padding-top: 15px;">
+                                       <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
+                                           <div>
+                                               <p><strong>Subtotal:</strong></p>
+                                               <p><strong>Tax ({invoice.Company?.TaxRate ?? 16}%):</strong></p>
+                                               <p style="font-weight: bold; margin-top: 10px;">Total Amount:</p>
+                                           </div>
+                                           <div style="text-align: right;">
+                                               <p>KES {invoice.SubTotal:N2}</p>
+                                               <p>KES {invoice.TaxAmount:N2}</p>
+                                               <p style="font-size: 1.2em; color: #28a745;">KES {invoice.TotalAmount:N2}</p>
+                                           </div>
+                                       </div>
+                                   </div>
+                               </div>
 
-                <!-- Payment Instructions -->
-                <div style="background-color: #e7f5ff; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-                    <h3 style="margin-top: 0; color: #0056b3;">Payment Instructions</h3>
-                    <p><strong>Due Date:</strong> {invoice.InvoiceDate.AddDays(30):dd/MM/yyyy}</p>
-                    <p><strong>Bank:</strong> Equity Bank Kenya</p>
-                    <p><strong>Account:</strong> AmbulanceRider Ltd (1234567890)</p>
-                    <p><strong>Reference:</strong> {invoice.InvoiceNumber}</p>
-                    {(invoice.Status == InvoiceStatus.Paid ? 
-                        "<p style=\"color: #28a745;\">✓ Payment received - thank you!</p>" : "") +
-                        "<p>Please make payment within 30 days</p>"}
-                </div>
+                               <!-- Payment Instructions -->
+                               <div style="background-color: #e7f5ff; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                                   <h3 style="margin-top: 0; color: #0056b3;">Payment Instructions</h3>
+                                   <p><strong>Due Date:</strong> {invoice.InvoiceDate.AddDays(30):dd/MM/yyyy}</p>
+                                   <p><strong>Bank:</strong> Equity Bank Kenya</p>
+                                   <p><strong>Account:</strong> AmbulanceRider Ltd (1234567890)</p>
+                                   <p><strong>Reference:</strong> {invoice.InvoiceNumber}</p>
+                                   {(invoice.Status == InvoiceStatus.Paid ?
+                                        "<p style=\"color: #28a745;\">✓ Payment received - thank you!</p>" : "") +
+                                    "<p>Please make payment within 30 days</p>"}
+                               </div>
 
-                <!-- Notes -->
-                {(!string.IsNullOrEmpty(invoice.Notes) ? $"""
-                <div style="margin-bottom: 20px;">
-                    <h3 style="margin-top: 0;">Notes</h3>
-                    <p style="padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
-                        {invoice.Notes}
-                    </p>
-                </div>
-                """ : "")}
+                               <!-- Notes -->
+                               {(!string.IsNullOrEmpty(invoice.Notes) ? $"""
+                                                                         <div style="margin-bottom: 20px;">
+                                                                             <h3 style="margin-top: 0;">Notes</h3>
+                                                                             <p style="padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
+                                                                                 {invoice.Notes}
+                                                                             </p>
+                                                                         </div>
+                                                                         """ : "")}
 
-                <!-- Attachments -->
-                <div style="margin-bottom: 20px;">
-                    <h3 style="margin-top: 0;">Attachments</h3>
-                    <ul>
-                        <li>{invoice.InvoiceNumber}.pdf - Full invoice details</li>
-                        <li>{invoice.InvoiceNumber}.xlsx - Itemized trip records</li>
-                    </ul>
-                </div>
+                               <!-- Attachments -->
+                               <div style="margin-bottom: 20px;">
+                                   <h3 style="margin-top: 0;">Attachments</h3>
+                                   <ul>
+                                       <li>{invoice.InvoiceNumber}.pdf - Full invoice details</li>
+                                       <li>{invoice.InvoiceNumber}.xlsx - Itemized trip records</li>
+                                   </ul>
+                               </div>
 
-                <!-- Footer -->
-                <div style="text-align: center; color: #6c757d; font-size: 0.9em; margin-top: 30px;">
-                    <p>AmbulanceRider Ltd | P.O. Box 12345-00100, Nairobi</p>
-                    <p>support@ambulancerider.com | +254 700 000 000</p>
-                </div>
-            </div>
-            """;
+                               <!-- Footer -->
+                               <div style="text-align: center; color: #6c757d; font-size: 0.9em; margin-top: 30px;">
+                                   <p>AmbulanceRider Ltd | P.O. Box 12345-00100, Nairobi</p>
+                                   <p>support@ambulancerider.com | +254 700 000 000</p>
+                               </div>
+                           </div>
+                           """;
 
         var attachments = new Dictionary<string, byte[]>
         {
@@ -474,9 +483,9 @@ public class InvoiceService
         };
 
         await _emailService.SendEmailWithAttachmentsAsync(
-            recipientEmails, 
-            subject ?? defaultSubject, 
-            body ?? defaultBody, 
+            recipientEmails,
+            subject ?? defaultSubject,
+            body ?? defaultBody,
             attachments);
     }
 
@@ -601,9 +610,12 @@ public class InvoiceService
                         var trip = item.Trip;
                         table.Cell().Element(CellStyle).Text(index.ToString());
                         table.Cell().Element(CellStyle).Text(trip?.Name ?? "");
-                        table.Cell().Element(CellStyle).Text($"{trip?.FromLocationName ?? "N/A"} → {trip?.ToLocationName ?? "N/A"}");
+                        table.Cell().Element(CellStyle)
+                            .Text($"{trip?.FromLocationName ?? "N/A"} → {trip?.ToLocationName ?? "N/A"}");
                         table.Cell().Element(CellStyle).Text(trip?.Vehicle?.Name ?? "N/A");
-                        table.Cell().Element(CellStyle).Text(trip?.Driver != null ? $"{trip.Driver.FirstName} {trip.Driver.LastName}" : "N/A");
+                        table.Cell().Element(CellStyle).Text(trip?.Driver != null
+                            ? $"{trip.Driver.FirstName} {trip.Driver.LastName}"
+                            : "N/A");
                         table.Cell().Element(CellStyle).AlignRight().Text($"{item.BasePrice:N2}");
                         table.Cell().Element(CellStyle).AlignRight().Text($"{item.TaxAmount:N2}");
                         table.Cell().Element(CellStyle).AlignRight().Text($"{item.TotalPrice:N2}");
@@ -707,7 +719,8 @@ public class InvoiceService
             worksheet.Cell(row, 3).Value = trip?.FromLocationName ?? "N/A";
             worksheet.Cell(row, 4).Value = trip?.ToLocationName ?? "N/A";
             worksheet.Cell(row, 5).Value = trip?.Vehicle?.Name ?? "N/A";
-            worksheet.Cell(row, 6).Value = trip?.Driver != null ? $"{trip.Driver.FirstName} {trip.Driver.LastName}" : "N/A";
+            worksheet.Cell(row, 6).Value =
+                trip?.Driver != null ? $"{trip.Driver.FirstName} {trip.Driver.LastName}" : "N/A";
             worksheet.Cell(row, 7).Value = trip?.ActualEndTime?.ToString("dd/MM/yyyy") ?? "";
             worksheet.Cell(row, 8).Value = item.BasePrice;
             worksheet.Cell(row, 9).Value = item.TaxAmount;
