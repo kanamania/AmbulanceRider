@@ -268,9 +268,9 @@ public class InvoiceService
             var invoices = new List<InvoiceDto>();
 
             // Get required data
-            var drivers = await _userManager.GetUsersInRoleAsync("Driver");
+            var drivers = (await _userManager.GetUsersInRoleAsync("Driver")) ?? new List<User>();
 
-            var creators = await _userManager.GetUsersInRoleAsync("User");
+            var creators = (await _userManager.GetUsersInRoleAsync("User")) ?? new List<User>();
 
             var vehicles = await _context.Vehicles.ToListAsync();
             var pricingMatrices = await _context.PricingMatrices
