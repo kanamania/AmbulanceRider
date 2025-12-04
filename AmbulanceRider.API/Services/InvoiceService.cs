@@ -533,6 +533,11 @@ public class InvoiceService
             {
                 row.RelativeItem().Column(column =>
                 {
+                    var letterheadPath = Path.Combine(_environment.WebRootPath, "ge-letterhead.png");
+                    if (File.Exists(letterheadPath))
+                    {
+                        column.Item().Height(50).Image(letterheadPath);
+                    }
                     column.Item().Text("Global Express Logistics").FontSize(20).Bold().FontColor(Colors.Blue.Medium);
                     column.Item().Text("Global Express Logistics System").FontSize(10);
                     column.Item().PaddingTop(5).Text("Email: info@globalexpress.co.tz").FontSize(9);
@@ -569,11 +574,11 @@ public class InvoiceService
                             col.Item().Text($"Phone: {invoice.Company.ContactPhone}").FontSize(9);
                     });
 
-                    row.RelativeItem().Column(col =>
+                    row.RelativeItem().AlignRight().Column(col =>
                     {
-                        col.Item().Text("Invoice Period:").Bold().FontSize(11);
-                        col.Item().PaddingTop(5).Text($"From: {invoice.PeriodStart:dd/MM/yyyy}").FontSize(10);
-                        col.Item().Text($"To: {invoice.PeriodEnd:dd/MM/yyyy}").FontSize(10);
+                        col.Item().AlignRight().Text("Invoice Period:").Bold().FontSize(11);
+                        col.Item().AlignRight().PaddingTop(5).Text($"From: {invoice.PeriodStart:dd/MM/yyyy}").FontSize(10);
+                        col.Item().AlignRight().Text($"To: {invoice.PeriodEnd:dd/MM/yyyy}").FontSize(10);
                     });
                 });
 
@@ -582,10 +587,8 @@ public class InvoiceService
                     table.ColumnsDefinition(columns =>
                     {
                         columns.ConstantColumn(30);
+                        columns.RelativeColumn(3);
                         columns.RelativeColumn(2);
-                        columns.RelativeColumn(2);
-                        columns.RelativeColumn(1.5f);
-                        columns.RelativeColumn(1.5f);
                         columns.RelativeColumn();
                         columns.RelativeColumn();
                         columns.RelativeColumn();
@@ -595,9 +598,7 @@ public class InvoiceService
                     {
                         header.Cell().Element(CellStyle).Text("#").Bold();
                         header.Cell().Element(CellStyle).Text("Trip Name").Bold();
-                        header.Cell().Element(CellStyle).Text("Route").Bold();
                         header.Cell().Element(CellStyle).Text("Vehicle").Bold();
-                        header.Cell().Element(CellStyle).Text("Driver").Bold();
                         header.Cell().Element(CellStyle).AlignRight().Text("Base").Bold();
                         header.Cell().Element(CellStyle).AlignRight().Text("Tax").Bold();
                         header.Cell().Element(CellStyle).AlignRight().Text("Total").Bold();
@@ -614,12 +615,7 @@ public class InvoiceService
                         var trip = item.Trip;
                         table.Cell().Element(CellStyle).Text(index.ToString());
                         table.Cell().Element(CellStyle).Text(trip?.Name ?? "");
-                        table.Cell().Element(CellStyle)
-                            .Text($"{trip?.FromLocationName ?? "N/A"} → {trip?.ToLocationName ?? "N/A"}");
                         table.Cell().Element(CellStyle).Text(trip?.Vehicle?.Name ?? "N/A");
-                        table.Cell().Element(CellStyle).Text(trip?.Driver != null
-                            ? $"{trip.Driver.FirstName} {trip.Driver.LastName}"
-                            : "N/A");
                         table.Cell().Element(CellStyle).AlignRight().Text($"{item.BasePrice:N2}");
                         table.Cell().Element(CellStyle).AlignRight().Text($"{item.TaxAmount:N2}");
                         table.Cell().Element(CellStyle).AlignRight().Text($"{item.TotalPrice:N2}");
