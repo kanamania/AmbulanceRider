@@ -18,6 +18,9 @@ public class ApiService : IApiService
         _navigationManager = navigationManager;
         // Don't set BaseAddress here - it's already set in Program.cs
         // Just use the configured client
+        _httpClient.DefaultRequestHeaders.Authorization = 
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _authService.GetTokenAsync().Result);
+
     }
 
     private async Task<T> ExecuteAsync<T>(Func<Task<T>> action)
@@ -473,7 +476,7 @@ public class ApiService : IApiService
     {
         await ExecuteAsync(async () => 
         {
-            var response = await _httpClient.GetAsync($"/api/{endpoint.TrimStart('/')}");
+            var response = await _httpClient.GetAsync($"/api/{endpoint.TrimStart('/')}", HttpCompletionOption.ResponseHeadersRead);
             response.EnsureSuccessStatusCode();
             
             var contentDisposition = response.Content.Headers.ContentDisposition;
