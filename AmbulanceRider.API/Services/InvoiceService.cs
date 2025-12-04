@@ -281,6 +281,11 @@ public class InvoiceService
                 .ToListAsync();
             var locations = await _context.Locations.ToListAsync();
 
+            Console.WriteLine($"Drivers count: {drivers.Count}");
+            Console.WriteLine($"Creators count: {creators.Count}");
+            Console.WriteLine($"Vehicles count: {vehicles.Count}");
+            Console.WriteLine($"Pricing matrices count: {pricingMatrices.Count}");
+            Console.WriteLine($"Locations count: {locations.Count}");
             // Create test trips
             var testTrips = new List<Trip>();
             for (int i = 0; i < count * 5; i++)
