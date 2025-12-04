@@ -17,10 +17,14 @@ public class ApiService : IApiService
         _authService = authService;
         _navigationManager = navigationManager;
         // Don't set BaseAddress here - it's already set in Program.cs
-        // Just use the configured client
-        _httpClient.DefaultRequestHeaders.Authorization = 
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _authService.GetTokenAsync().Result);
+        _ = InitializeAuthHeaderAsync();
+    }
 
+    private async Task InitializeAuthHeaderAsync()
+    {
+        var token = await _authService.GetTokenAsync();
+        _httpClient.DefaultRequestHeaders.Authorization = 
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
     }
 
     private async Task<T> ExecuteAsync<T>(Func<Task<T>> action)
