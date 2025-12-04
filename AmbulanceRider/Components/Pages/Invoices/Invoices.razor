@@ -4,6 +4,7 @@
 @using AmbulanceRider.Components.Shared
 @inject IApiService ApiService
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,Dispatcher")]
 
 <div class="container-fluid mt-4">
@@ -241,37 +242,30 @@
 
     private async Task DownloadPdf(int id)
     {
-        try
-        {
-            await ApiService.DownloadFileAsync($"invoices/{id}/download/pdf", $"{id}_invoice.pdf");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error downloading PDF: {ex.Message}");
-        }
+        await DownloadFile($"invoices/{id}/download/pdf");
     }
 
     private async Task DownloadExcel(int id)
     {
-        try
-        {
-            await ApiService.DownloadFileAsync($"invoices/{id}/download/excel", $"{id}_invoice.xlsx");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error downloading Excel: {ex.Message}");
-        }
+        await DownloadFile($"invoices/{id}/download/excel");
     }
 
     private async Task DownloadBoth(int id)
     {
+        await DownloadFile($"invoices/{id}/download/both");
+    }
+
+    private async Task DownloadFile(string endpoint)
+    {
         try
         {
-            await ApiService.DownloadFileAsync($"invoices/{id}/download/both", $"{id}_invoice.zip");
+            var (bytes, contentType, fileName) = await ApiService.GetFileBytesAsync(endpoint);
+            var base64 = Convert.ToBase64String(bytes);
+            await JSRuntime.InvokeVoidAsync("downloadFileFromBytes", fileName, contentType, base64);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error downloading files: {ex.Message}");
+            Console.WriteLine($"Error downloading file: {ex.Message}");
         }
     }
 

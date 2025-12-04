@@ -493,4 +493,20 @@ public class ApiService : IApiService
             }
         });
     }
+
+    public async Task<(byte[] bytes, string contentType, string fileName)> GetFileBytesAsync(string endpoint)
+    {
+        return await ExecuteAsync(async () =>
+        {
+            var response = await _httpClient.GetAsync($"/api/{endpoint.TrimStart('/')}");
+            response.EnsureSuccessStatusCode();
+            
+            var bytes = await response.Content.ReadAsByteArrayAsync();
+            var contentType = response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream";
+            var contentDisposition = response.Content.Headers.ContentDisposition;
+            var fileName = contentDisposition?.FileNameStar ?? contentDisposition?.FileName?.Trim('"') ?? "download";
+            
+            return (bytes, contentType, fileName);
+        });
+    }
 }

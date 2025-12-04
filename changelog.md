@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.0.17] - 2025-12-04T08:45:00+03:00
+
+### Fixed
+- Fixed invoice download endpoints returning 401 Unauthorized by implementing authenticated HTTP requests with JavaScript interop for file downloads
+- Fixed send-email API URL construction to prevent double `/api/api/` path issue
+- Removed trailing slash from production ApiBaseUrl configuration
+
+### Added
+- `GetFileBytesAsync` method in ApiService for authenticated file downloads
+- JavaScript helper `fileDownload.js` for triggering browser file downloads from byte arrays
+- JSRuntime injection in InvoiceDetail.razor and Invoices.razor for download functionality
+
+### Changed
+- Invoice download methods now use authenticated HttpClient instead of NavigationManager.NavigateTo
+- Download buttons trigger proper file downloads with correct authentication headers
+
 ## [0.0.16] - 2025-12-04T01:38:00+03:00
 
 ### Added

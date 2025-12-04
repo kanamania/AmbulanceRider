@@ -2,7 +2,9 @@
 
 A full-stack web application for managing emergency medical dispatch operations with comprehensive trip management, status workflow, audit trails, real-time tracking, and advanced telemetry.
 
-> **Latest Updates (2025-12-02):** 
+> **Latest Updates (2025-12-04):** 
+> - Fixed invoice download 401 Unauthorized with authenticated file downloads ✅
+> - Fixed send-email API double `/api/api/` path issue ✅
 > - Seeded baseline driver-to-vehicle assignments for dispatcher workflows ✅
 > - Companies admin UI now matches modern Tailwind dashboard styling ✅
 > - Fixed null reference when listing users without companies ✅

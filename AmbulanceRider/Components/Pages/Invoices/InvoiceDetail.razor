@@ -3,6 +3,7 @@
 @using AmbulanceRider.Services
 @inject IApiService ApiService
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,Dispatcher")]
 
 <div class="container-fluid mt-4">
@@ -245,19 +246,44 @@
         }
     }
 
-    private void DownloadPdf()
+    private bool downloading = false;
+
+    private async Task DownloadPdf()
     {
-        NavigationManager.NavigateTo($"/api/invoices/{Id}/download/pdf", true);
+        await DownloadFile($"invoices/{Id}/download/pdf");
     }
 
-    private void DownloadExcel()
+    private async Task DownloadExcel()
     {
-        NavigationManager.NavigateTo($"/api/invoices/{Id}/download/excel", true);
+        await DownloadFile($"invoices/{Id}/download/excel");
     }
 
-    private void DownloadBoth()
+    private async Task DownloadBoth()
     {
-        NavigationManager.NavigateTo($"/api/invoices/{Id}/download/both", true);
+        await DownloadFile($"invoices/{Id}/download/both");
+    }
+
+    private async Task DownloadFile(string endpoint)
+    {
+        if (downloading) return;
+        downloading = true;
+        StateHasChanged();
+        
+        try
+        {
+            var (bytes, contentType, fileName) = await ApiService.GetFileBytesAsync(endpoint);
+            var base64 = Convert.ToBase64String(bytes);
+            await JSRuntime.InvokeVoidAsync("downloadFileFromBytes", fileName, contentType, base64);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error downloading file: {ex.Message}");
+        }
+        finally
+        {
+            downloading = false;
+            StateHasChanged();
+        }
     }
 
     private string GetStatusBadgeClass(string status)
