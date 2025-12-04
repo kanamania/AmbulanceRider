@@ -24,4 +24,5 @@ public class Company : BaseModel
     
     // Navigation properties
     public virtual ICollection<User> Users { get; set; } = new List<User>();
+    public decimal TaxRate { get; set; }
 }

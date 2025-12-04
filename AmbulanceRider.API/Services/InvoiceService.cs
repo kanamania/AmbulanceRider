@@ -360,7 +360,7 @@ public class InvoiceService
                                     {invoice.Status}
                                 </span>
                             </p>
-                            {invoice.PaidDate != null ? $"<p><strong>Paid Date:</strong> {invoice.PaidDate:dd/MM/yyyy}</p>" : ""}
+                            {(invoice.PaidDate != null ? $"<p><strong>Paid Date:</strong> {invoice.PaidDate:dd/MM/yyyy}</p>" : "")}
                         </div>
                         <div>
                             <h3 style="margin-top: 0;">Company Details</h3>
@@ -394,8 +394,8 @@ public class InvoiceService
                     <p><strong>Bank:</strong> Equity Bank Kenya</p>
                     <p><strong>Account:</strong> AmbulanceRider Ltd (1234567890)</p>
                     <p><strong>Reference:</strong> {invoice.InvoiceNumber}</p>
-                    {invoice.Status == InvoiceStatus.Paid ? 
-                        "<p style=\"color: #28a745;\">✓ Payment received - thank you!</p>" : 
+                    {(invoice.Status == InvoiceStatus.Paid ? 
+                        "<p style=\"color: #28a745;\">✓ Payment received - thank you!</p>" : "") +
                         "<p>Please make payment within 30 days</p>"}
                 </div>
 

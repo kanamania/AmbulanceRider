@@ -254,11 +254,11 @@
         NavigationManager.NavigateTo($"/api/invoice/{id}/download/both", true);
     }
 
-    private async Task SendEmail(EmailDialog.EmailModel model)
+    private async Task SendEmail(EmailDialog model)
     {
         try
         {
-            await ApiService.PostAsync($"api/invoice/{model.InvoiceId}/send-email", new { RecipientEmail = model.RecipientEmail, Subject = model.Subject, Body = model.Body });
+            await ApiService.PostAsync<InvoiceDto>($"api/invoice/{model.InvoiceId}/send-email", new { RecipientEmail = model.CompanyContactEmail, Subject = model.Subject, Body = model.Body });
         }
         catch (Exception ex)
         {
@@ -296,7 +296,7 @@
     {
         try
         {
-            await ApiService.PostAsync($"api/invoice/generate-test-invoices?count=5");
+            await ApiService.PostAsync<InvoiceDto>($"api/invoice/generate-test-invoices?count=5", null);
             await LoadInvoices();
         }
         catch (Exception ex)
