@@ -254,15 +254,11 @@
         NavigationManager.NavigateTo($"/api/invoice/{id}/download/both", true);
     }
 
-    private async Task SendEmail(EmailDialog model)
+    private async Task SendEmail(bool success)
     {
-        try
+        if (success)
         {
-            await ApiService.PostAsync<InvoiceDto>($"api/invoice/{model.InvoiceId}/send-email", new { RecipientEmail = model.CompanyContactEmail, Subject = model.Subject, Body = model.Body });
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error sending invoice email: {ex.Message}");
+            await LoadInvoices();
         }
     }
 
@@ -278,16 +274,15 @@
             var company = companies.FirstOrDefault(c => c.Id == invoice.CompanyId);
             emailDialog.CompanyContactEmail = company?.ContactEmail ?? "";
             
-            emailDialog.OnSend = EventCallback.Factory.Create<bool>(this, async (success) => await HandleEmailSent(success));
+            emailDialog.OnSend = EventCallback.Factory.Create<bool>(this, async (success) => 
+            {
+                if (success)
+                {
+                    await LoadInvoices();
+                }
+            });
+            
             emailDialog.Show = true;
-        }
-    }
-
-    private async Task HandleEmailSent(bool success)
-    {
-        if (success)
-        {
-            await LoadInvoices();
         }
     }
 
@@ -324,10 +319,4 @@
             _ => "secondary"
         };
     }
-
-    private EventCallback<bool> _CreateInferredCallback(bool target, Func<EmailDialog, Task> sendEmail)
-    {
-        return EventCallback.Factory.Create<bool>(this, async (success) => await HandleEmailSent(success));
-    }
-
 }
