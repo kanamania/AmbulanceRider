@@ -278,7 +278,7 @@
             var company = companies.FirstOrDefault(c => c.Id == invoice.CompanyId);
             emailDialog.CompanyContactEmail = company?.ContactEmail ?? "";
             
-            emailDialog.OnSend = EventCallback.Factory.Create<bool>(this, HandleEmailSent);
+            emailDialog.OnSend = EventCallback.Factory.Create<bool>(this, async (success) => await HandleEmailSent(success));
             emailDialog.Show = true;
         }
     }
@@ -324,4 +324,10 @@
             _ => "secondary"
         };
     }
+
+    private EventCallback<bool> _CreateInferredCallback(bool target, Func<EmailDialog, Task> sendEmail)
+    {
+        return EventCallback.Factory.Create<bool>(this, async (success) => await HandleEmailSent(success));
+    }
+
 }
