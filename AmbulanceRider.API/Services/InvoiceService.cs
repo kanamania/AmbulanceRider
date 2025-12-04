@@ -260,10 +260,72 @@ public class InvoiceService
 
     public async Task<List<InvoiceDto>> GenerateTestInvoicesAsync(int count, int companyId)
     {
-        var company = await _context.Companies.FindAsync(companyId) ?? throw new Exception("Company not found");
         var random = new Random();
         var invoices = new List<InvoiceDto>();
+        
+        // Get required data
+        var drivers = await _context.Users
+            .Where(u => u.UserRoles.Any(ur => ur.Role.Name == "Driver"))
+            .Take(5)
+            .ToListAsync();
 
+        var creators = await _context.Users
+            .Where(u => u.UserRoles.Any(ur => ur.Role.Name == "User"))
+            .Take(3)
+            .ToListAsync();
+
+        var vehicles = await _context.Vehicles.Take(5).ToListAsync();
+        var pricingMatrices = await _context.PricingMatrices
+            .Include(pm => pm.Region)
+            .Where(pm => pm.Region!.Code == "DAR")
+            .ToListAsync();
+        var locations = await _context.Locations.ToListAsync();
+
+        // Create test trips
+        var testTrips = new List<Trip>();
+        for (int i = 0; i < count * 5; i++)
+        {
+            var pricingMatrix = pricingMatrices[random.Next(pricingMatrices.Count)];
+            var fromLocation = locations[random.Next(locations.Count)];
+            var toLocation = locations[random.Next(locations.Count)];
+            var vehicle = vehicles[random.Next(vehicles.Count)];
+            var driver = drivers[random.Next(drivers.Count)];
+            var creator = creators[random.Next(creators.Count)];
+
+            testTrips.Add(new Trip 
+            {
+                Name = $"Test Trip {i + 1} {fromLocation.Name} -> {toLocation.Name}",
+                Status = TripStatus.Completed,
+                IsPaid = false,
+                PricingMatrixId = pricingMatrix.Id,
+                BasePrice = pricingMatrix.BasePrice,
+                TaxAmount = pricingMatrix.BasePrice * pricingMatrix.TaxRate,
+                TotalPrice = pricingMatrix.BasePrice * (1 + pricingMatrix.TaxRate),
+                Weight = random.Next((int)pricingMatrix.MinWeight, (int)pricingMatrix.MaxWeight),
+                Width = random.Next((int)pricingMatrix.MinWidth, (int)pricingMatrix.MaxWidth),
+                Height = random.Next((int)pricingMatrix.MinHeight, (int)pricingMatrix.MaxHeight),
+                Length = random.Next((int)pricingMatrix.MinLength, (int)pricingMatrix.MaxLength),
+                CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30)),
+                VehicleId = vehicle.Id,
+                DriverId = driver.Id,
+                CreatedBy = creator.Id,
+                ScheduledStartTime = DateTime.UtcNow.AddHours(-random.Next(24, 72)),
+                ActualStartTime = DateTime.UtcNow.AddHours(-random.Next(12, 24)),
+                ActualEndTime = DateTime.UtcNow.AddHours(-random.Next(1, 12)),
+                FromLocationName = fromLocation.Name,
+                ToLocationName = toLocation.Name,
+                FromLatitude = fromLocation.Latitude,
+                FromLongitude = fromLocation.Longitude,
+                ToLatitude = toLocation.Latitude,
+                ToLongitude = toLocation.Longitude,
+                EstimatedDistance = random.Next(5, 100),
+                EstimatedDuration = random.Next(15, 120),
+            });
+        }
+        await _context.Trips.AddRangeAsync(testTrips);
+        await _context.SaveChangesAsync();
+
+        // Create invoices
         for (int i = 0; i < count; i++)
         {
             var invoiceType = random.Next(2) == 0 ? InvoiceType.Proforma : InvoiceType.Final;
@@ -271,32 +333,12 @@ public class InvoiceService
             var periodStart = DateTime.UtcNow.AddDays(-random.Next(30));
             var periodEnd = periodStart.AddDays(random.Next(1, 30));
 
-            // Generate random trip data
-            var tripCount = random.Next(1, 10);
-            var trips = new List<InvoiceTripDto>();
-            var subTotal = 0m;
-            var taxAmount = 0m;
-            var totalAmount = 0m;
-
-            for (int j = 0; j < tripCount; j++)
-            {
-                var basePrice = random.Next(500, 5000);
-                var tax = basePrice * 0.16m;
-                var total = basePrice + tax;
-
-                trips.Add(new InvoiceTripDto
-                {
-                    TripId = j + 1,
-                    TripName = $"Test Trip {j + 1}",
-                    BasePrice = basePrice,
-                    TaxAmount = tax,
-                    TotalPrice = total
-                });
-
-                subTotal += basePrice;
-                taxAmount += tax;
-                totalAmount += total;
-            }
+            // Select 2-5 trips for this invoice
+            var tripCount = random.Next(2, 6);
+            var selectedTrips = testTrips
+                .Skip(i * 2)
+                .Take(tripCount)
+                .ToList();
 
             var invoice = new Invoice
             {
@@ -306,23 +348,22 @@ public class InvoiceService
                 InvoiceDate = DateTime.UtcNow,
                 PeriodStart = periodStart,
                 PeriodEnd = periodEnd,
-                SubTotal = subTotal,
-                TaxAmount = taxAmount,
-                TotalAmount = totalAmount,
+                SubTotal = selectedTrips.Sum(t => t.BasePrice)!.Value,
+                TaxAmount = selectedTrips.Sum(t => t.TaxAmount)!.Value,
+                TotalAmount = selectedTrips.Sum(t => t.TotalPrice)!.Value,
                 Status = InvoiceStatus.Draft,
-                Notes = "This is a test invoice for development purposes",
-                InvoiceTrips = trips.Select(t => new InvoiceTrip
+                Notes = "Test invoice",
+                InvoiceTrips = selectedTrips.Select(t => new InvoiceTrip
                 {
-                    TripId = t.TripId,
-                    BasePrice = t.BasePrice,
-                    TaxAmount = t.TaxAmount,
-                    TotalPrice = t.TotalPrice
+                    TripId = t.Id,
+                    BasePrice = t.BasePrice!.Value,
+                    TaxAmount = t.TaxAmount!.Value,
+                    TotalPrice = t.TotalPrice!.Value
                 }).ToList()
             };
 
             _context.Invoices.Add(invoice);
             await _context.SaveChangesAsync();
-
             invoices.Add(MapToDto(invoice));
         }
 
@@ -532,9 +573,9 @@ public class InvoiceService
                         columns.RelativeColumn(2);
                         columns.RelativeColumn(1.5f);
                         columns.RelativeColumn(1.5f);
-                        columns.RelativeColumn(1);
-                        columns.RelativeColumn(1);
-                        columns.RelativeColumn(1);
+                        columns.RelativeColumn();
+                        columns.RelativeColumn();
+                        columns.RelativeColumn();
                     });
 
                     table.Header(header =>

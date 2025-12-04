@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.0.15] - 2025-12-04T01:38:00+03:00
+## [0.0.16] - 2025-12-04T01:38:00+03:00
 
 ### Added
 - Pricing matrix seeding for Dar es Salaam region and default pricing with exact dimensions and pricing values
@@ -13,7 +13,7 @@
   - Added Settings dropdown with Vehicles, Locations, Pricing, and Telemetry
   - Updated active menu item styling (color: #c52227)
 
-## [0.0.14] - 2025-12-04T01:15:00+03:00
+## [0.0.15] - 2025-12-04T01:15:00+03:00
 
 ### Added
 - Regions management UI integrated into Pricing Matrix page
@@ -28,7 +28,7 @@
 - Regions can now be managed directly from the pricing page without navigation
 - Improved workflow for creating pricing matrices with region selection
 
-## [0.0.13] - 2025-12-04T01:10:00+03:00
+## [0.0.14] - 2025-12-04T01:10:00+03:00
 
 ### Added
 - Region-aware pricing matrix system with default fallback mechanism
@@ -46,7 +46,7 @@
 - Enhanced pricing matrix list to display region information and default badges
 - Pricing matrix queries now order by IsDefault flag (default pricing shown first)
 
-## [0.0.12] - 2025-12-04T00:55:00+03:00
+## [0.0.13] - 2025-12-04T00:55:00+03:00
 
 ### Added
 - Pricing Matrix management UI with full CRUD operations
@@ -56,27 +56,27 @@
 - PricingController expanded with Create, Update, Delete endpoints (Admin role required)
 - Client-side and API-side DTOs for Pricing Matrix operations
 
-## [0.0.11] - 2025-12-04T00:50:00+03:00
+## [0.0.12] - 2025-12-04T00:50:00+03:00
 
 ### Fixed
 - Fixed JSON deserialization error in Blazor client by making PricingMatrixId, BasePrice, TaxAmount, and TotalPrice nullable in client-side TripDto to match API DTOs
 
-## [0.0.10] - 2025-12-02T21:11:00+03:00
+## [0.0.11] - 2025-12-02T21:11:00+03:00
 
 ### Added
 - Seeded baseline driver-to-vehicle assignments to support trip auto-fill scenarios
 
-## [0.0.9] - 2025-12-02T20:44:00+03:00
+## [0.0.10] - 2025-12-02T20:44:00+03:00
 
 ### Changed
 - Restyled companies administration table to match modern dashboard visuals and align with Tailwind patterns
 
-## [0.0.8] - 2025-12-02T20:40:00+03:00
+## [0.0.9] - 2025-12-02T20:40:00+03:00
 
 ### Fixed
 - Prevented null reference when listing users without associated companies by eager loading company data and guarding DTO mapping
 
-## [0.0.7] - 2025-12-02T13:36:00+03:00
+## [0.0.8] - 2025-12-02T13:36:00+03:00
 
 ### Added
 - Companies hub page with Tailwind-styled directory and quick access from main navigation
@@ -84,7 +84,7 @@
 ### Changed
 - Moved Trip Types access into Trips page via dedicated Manage Trip Types button to declutter navigation
 
-## [0.0.6] - 2025-12-02T13:27:00+03:00
+## [0.0.7] - 2025-12-02T13:27:00+03:00
 
 ### Added
 - Introduced CompaniesController with secured GET /api/companies endpoint
@@ -93,7 +93,7 @@
 - Updated Blazor components to inject IApiService interface consistently
 - Expanded IApiService contract to cover all ApiService features for DI resolution
 
-## [0.0.5] - 2025-12-02T12:48:00+03:00
+## [0.0.6] - 2025-12-02T12:48:00+03:00
 
 ### Fixed
 - Fixed 500 Internal Server Error on company dashboard stats endpoint when no trips with prices exist
@@ -101,7 +101,7 @@
 - Fixed DashboardController dependency injection to use ICompanyStatsService interface instead of concrete class
 - Fixed JSON deserialization error by making UserDto.CompanyId nullable to handle users without assigned companies
 
-## [0.0.4] - 2025-12-02T12:35:00+03:00
+## [0.0.5] - 2025-12-02T12:35:00+03:00
 
 ### Changed
 - Invoice system temporarily disabled pending proper migration setup (requires dotnet-ef tools)
@@ -134,19 +134,25 @@
 - Invoice filtering based on trip creation date and creator's company
 - Moved all migrations from Data/Migrations to Migrations folder
 
-## [0.0.3] - 2025-12-02T10:35:00+03:00
+## [0.0.4] - 2025-12-02T10:35:00+03:00
 
 ### Changed
 - Updated UI branding to use the Global Express logo and icon assets.
 
-## [0.0.2] - 2025-12-02
+## [0.0.3] - 2025-12-02
 
 ### Fixed
 - Redirect signed-out users to the login page when API responses return HTTP 401 across Blazor UI pages.
 
-## [0.0.1] - 2025-11-27
+## [0.0.2] - 2025-11-27
 
 ### Added
 - Migration to assign Admin role to demo@gmail.com
 - Migration to assign User role to all existing users without roles
 - Added dotnet-ef tools to API container runtime image
+
+## [0.0.1] - 2025-12-04
+### Added
+- Pricing matrix integration to test invoice generation
+- Implemented dimension-based pricing for test trips
+- Updated test data to include realistic location coordinates

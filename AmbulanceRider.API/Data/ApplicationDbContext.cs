@@ -136,6 +136,11 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.Description).HasMaxLength(500);
             
             // Relationships
+            entity.HasOne(p => p.Region)
+                .WithMany()
+                .HasForeignKey(p => p.RegionId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
             entity.HasOne(p => p.Company)
                 .WithMany()
                 .HasForeignKey(p => p.CompanyId)
