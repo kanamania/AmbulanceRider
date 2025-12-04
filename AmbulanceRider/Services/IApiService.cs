@@ -89,4 +89,5 @@ public interface IApiService
 
     // File downloads
     Task DownloadFileAsync(string endpoint, string fileName);
+    Task<(byte[] bytes, string contentType, string fileName)> GetFileBytesAsync(string endpoint);
 }
