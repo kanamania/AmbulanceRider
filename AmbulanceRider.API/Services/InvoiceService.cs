@@ -538,8 +538,7 @@ public class InvoiceService
                     {
                         column.Item().Height(50).Image(letterheadPath);
                     }
-                    column.Item().Text("Global Express Logistics").FontSize(20).Bold().FontColor(Colors.Blue.Medium);
-                    column.Item().Text("Global Express Logistics System").FontSize(10);
+                    column.Item().Text("Global Express Logistics").FontSize(15).Bold().FontColor(Colors.Blue.Medium);
                     column.Item().PaddingTop(5).Text("Email: info@globalexpress.co.tz").FontSize(9);
                     column.Item().Text("Phone: +254 700 000 000").FontSize(9);
                 });
