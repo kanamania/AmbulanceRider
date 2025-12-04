@@ -375,7 +375,7 @@ public class ApiService : IApiService
             queryParams.Add($"EndDate={filter.EndDate.Value:yyyy-MM-dd}");
 
         var query = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";
-        return await _httpClient.GetFromJsonAsync<List<InvoiceDto>>($"/api/invoice{query}") ?? new List<InvoiceDto>();
+        return await _httpClient.GetFromJsonAsync<List<InvoiceDto>>($"/api/invoices{query}") ?? new List<InvoiceDto>();
     }
 
     public async Task<InvoiceDto?> GetInvoiceByIdAsync(int id)
@@ -392,7 +392,7 @@ public class ApiService : IApiService
 
     public async Task<InvoiceDto> CreateInvoiceAsync(CreateInvoiceDto dto)
     {
-        var response = await _httpClient.PostAsJsonAsync("/api/invoice", dto);
+        var response = await _httpClient.PostAsJsonAsync("/api/invoices", dto);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<InvoiceDto>() ?? throw new Exception("Failed to create invoice");
     }
