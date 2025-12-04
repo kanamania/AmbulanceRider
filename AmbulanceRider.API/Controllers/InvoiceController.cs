@@ -189,7 +189,7 @@ public class InvoiceController : ControllerBase
         }
     }
 
-    [HttpPost("generate-test-invoices")]
+    [HttpPost("invoices/generate-test-invoices")]
     public async Task<ActionResult<List<InvoiceDto>>> GenerateTestInvoices(
         [FromQuery] int count = 5, 
         [FromQuery] int companyId = 1)

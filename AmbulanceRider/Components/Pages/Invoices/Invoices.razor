@@ -275,11 +275,19 @@
             emailDialog.DefaultSubject = $"{invoiceType} Invoice {invoiceNumber} - {companyName}";
             emailDialog.DefaultBody = $"Dear {companyName},\n\nPlease find attached your {invoiceType} invoice {invoiceNumber}.\n\nBest regards,\nAmbulanceRider Team";
             
-            // Set company email if available
             var company = companies.FirstOrDefault(c => c.Id == invoice.CompanyId);
             emailDialog.CompanyContactEmail = company?.ContactEmail ?? "";
             
+            emailDialog.OnSend = EventCallback.Factory.Create<bool>(this, HandleEmailSent);
             emailDialog.Show = true;
+        }
+    }
+
+    private async Task HandleEmailSent(bool success)
+    {
+        if (success)
+        {
+            await LoadInvoices();
         }
     }
 
@@ -296,7 +304,7 @@
     {
         try
         {
-            await ApiService.PostAsync<InvoiceDto>($"api/invoice/generate-test-invoices?count=5", null);
+            await ApiService.PostAsync<InvoiceDto>("api/invoices/generate-test-invoices", new { count = 5 });
             await LoadInvoices();
         }
         catch (Exception ex)
