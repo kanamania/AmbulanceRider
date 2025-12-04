@@ -12,8 +12,9 @@ public class Company : BaseModel
     [StringLength(500)]
     public string? Description { get; set; }
     
+    [Required]
     [StringLength(100)]
-    public string? ContactEmail { get; set; }
+    public string ContactEmail { get; set; } = string.Empty;
     
     [StringLength(20)]
     public string? ContactPhone { get; set; }

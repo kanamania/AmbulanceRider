@@ -13,11 +13,13 @@ public class InvoiceService
 {
     private readonly ApplicationDbContext _context;
     private readonly IWebHostEnvironment _environment;
+    private readonly IEmailService _emailService;
 
-    public InvoiceService(ApplicationDbContext context, IWebHostEnvironment environment)
+    public InvoiceService(ApplicationDbContext context, IWebHostEnvironment environment, IEmailService emailService)
     {
         _context = context;
         _environment = environment;
+        _emailService = emailService;
         QuestPDF.Settings.License = LicenseType.Community;
     }
 
@@ -254,6 +256,198 @@ public class InvoiceService
         await _context.SaveChangesAsync();
 
         return (pdfBytes, excelBytes);
+    }
+
+    public async Task<List<InvoiceDto>> GenerateTestInvoicesAsync(int count, int companyId)
+    {
+        var company = await _context.Companies.FindAsync(companyId) ?? throw new Exception("Company not found");
+        var random = new Random();
+        var invoices = new List<InvoiceDto>();
+
+        for (int i = 0; i < count; i++)
+        {
+            var invoiceType = random.Next(2) == 0 ? InvoiceType.Proforma : InvoiceType.Final;
+            var invoiceNumber = await GenerateInvoiceNumberAsync(invoiceType);
+            var periodStart = DateTime.UtcNow.AddDays(-random.Next(30));
+            var periodEnd = periodStart.AddDays(random.Next(1, 30));
+
+            // Generate random trip data
+            var tripCount = random.Next(1, 10);
+            var trips = new List<InvoiceTripDto>();
+            var subTotal = 0m;
+            var taxAmount = 0m;
+            var totalAmount = 0m;
+
+            for (int j = 0; j < tripCount; j++)
+            {
+                var basePrice = random.Next(500, 5000);
+                var tax = basePrice * 0.16m;
+                var total = basePrice + tax;
+
+                trips.Add(new InvoiceTripDto
+                {
+                    TripId = j + 1,
+                    TripName = $"Test Trip {j + 1}",
+                    BasePrice = basePrice,
+                    TaxAmount = tax,
+                    TotalPrice = total
+                });
+
+                subTotal += basePrice;
+                taxAmount += tax;
+                totalAmount += total;
+            }
+
+            var invoice = new Invoice
+            {
+                InvoiceNumber = invoiceNumber,
+                Type = invoiceType,
+                CompanyId = companyId,
+                InvoiceDate = DateTime.UtcNow,
+                PeriodStart = periodStart,
+                PeriodEnd = periodEnd,
+                SubTotal = subTotal,
+                TaxAmount = taxAmount,
+                TotalAmount = totalAmount,
+                Status = InvoiceStatus.Draft,
+                Notes = "This is a test invoice for development purposes",
+                InvoiceTrips = trips.Select(t => new InvoiceTrip
+                {
+                    TripId = t.TripId,
+                    BasePrice = t.BasePrice,
+                    TaxAmount = t.TaxAmount,
+                    TotalPrice = t.TotalPrice
+                }).ToList()
+            };
+
+            _context.Invoices.Add(invoice);
+            await _context.SaveChangesAsync();
+
+            invoices.Add(MapToDto(invoice));
+        }
+
+        return invoices;
+    }
+
+    public async Task SendInvoiceEmailAsync(int id, List<string> recipientEmails, string? subject = null, string? body = null)
+    {
+        var invoice = await _context.Invoices
+            .Include(i => i.Company)
+            .Include(i => i.InvoiceTrips)
+                .ThenInclude(it => it.Trip)
+            .FirstOrDefaultAsync(i => i.Id == id) ?? throw new Exception("Invoice not found");
+
+        var (pdfBytes, excelBytes) = await GenerateInvoiceFilesAsync(id);
+
+        var defaultSubject = $"{invoice.Type} Invoice {invoice.InvoiceNumber} - {invoice.Company?.Name}";
+        var defaultBody = $"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <!-- Header -->
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2 style="color: #007bff;">AmbulanceRider Invoice</h2>
+                    <p style="color: #6c757d;">{invoice.InvoiceNumber}</p>
+                </div>
+
+                <!-- Invoice Summary -->
+                <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <h3 style="margin-top: 0;">Invoice Details</h3>
+                            <p><strong>Date:</strong> {invoice.InvoiceDate:dd/MM/yyyy}</p>
+                            <p><strong>Type:</strong> {invoice.Type}</p>
+                            <p><strong>Status:</strong> 
+                                <span style="color: {GetStatusColor(invoice.Status)}">
+                                    {invoice.Status}
+                                </span>
+                            </p>
+                            {invoice.PaidDate != null ? $"<p><strong>Paid Date:</strong> {invoice.PaidDate:dd/MM/yyyy}</p>" : ""}
+                        </div>
+                        <div>
+                            <h3 style="margin-top: 0;">Company Details</h3>
+                            <p><strong>Name:</strong> {invoice.Company?.Name}</p>
+                            <p><strong>Billing Period:</strong> {invoice.PeriodStart:dd/MM/yyyy} to {invoice.PeriodEnd:dd/MM/yyyy}</p>
+                            <p><strong>Trips:</strong> {invoice.InvoiceTrips.Count}</p>
+                        </div>
+                    </div>
+
+                    <!-- Amount Breakdown -->
+                    <div style="border-top: 1px solid #dee2e6; padding-top: 15px;">
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
+                            <div>
+                                <p><strong>Subtotal:</strong></p>
+                                <p><strong>Tax ({invoice.Company?.TaxRate ?? 16}%):</strong></p>
+                                <p style="font-weight: bold; margin-top: 10px;">Total Amount:</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <p>KES {invoice.SubTotal:N2}</p>
+                                <p>KES {invoice.TaxAmount:N2}</p>
+                                <p style="font-size: 1.2em; color: #28a745;">KES {invoice.TotalAmount:N2}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Instructions -->
+                <div style="background-color: #e7f5ff; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                    <h3 style="margin-top: 0; color: #0056b3;">Payment Instructions</h3>
+                    <p><strong>Due Date:</strong> {invoice.InvoiceDate.AddDays(30):dd/MM/yyyy}</p>
+                    <p><strong>Bank:</strong> Equity Bank Kenya</p>
+                    <p><strong>Account:</strong> AmbulanceRider Ltd (1234567890)</p>
+                    <p><strong>Reference:</strong> {invoice.InvoiceNumber}</p>
+                    {invoice.Status == InvoiceStatus.Paid ? 
+                        "<p style=\"color: #28a745;\">✓ Payment received - thank you!</p>" : 
+                        "<p>Please make payment within 30 days</p>"}
+                </div>
+
+                <!-- Notes -->
+                {(!string.IsNullOrEmpty(invoice.Notes) ? $"""
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin-top: 0;">Notes</h3>
+                    <p style="padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
+                        {invoice.Notes}
+                    </p>
+                </div>
+                """ : "")}
+
+                <!-- Attachments -->
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin-top: 0;">Attachments</h3>
+                    <ul>
+                        <li>{invoice.InvoiceNumber}.pdf - Full invoice details</li>
+                        <li>{invoice.InvoiceNumber}.xlsx - Itemized trip records</li>
+                    </ul>
+                </div>
+
+                <!-- Footer -->
+                <div style="text-align: center; color: #6c757d; font-size: 0.9em; margin-top: 30px;">
+                    <p>AmbulanceRider Ltd | P.O. Box 12345-00100, Nairobi</p>
+                    <p>support@ambulancerider.com | +254 700 000 000</p>
+                </div>
+            </div>
+            """;
+
+        var attachments = new Dictionary<string, byte[]>
+        {
+            { $"{invoice.InvoiceNumber}.pdf", pdfBytes },
+            { $"{invoice.InvoiceNumber}.xlsx", excelBytes }
+        };
+
+        await _emailService.SendEmailWithAttachmentsAsync(
+            recipientEmails, 
+            subject ?? defaultSubject, 
+            body ?? defaultBody, 
+            attachments);
+    }
+
+    private string GetStatusColor(InvoiceStatus status)
+    {
+        return status switch
+        {
+            InvoiceStatus.Paid => "#28a745",
+            InvoiceStatus.Sent => "#17a2b8",
+            InvoiceStatus.Cancelled => "#dc3545",
+            _ => "#6c757d" // Draft
+        };
     }
 
     private byte[] GeneratePdf(Invoice invoice)

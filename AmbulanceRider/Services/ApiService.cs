@@ -327,9 +327,12 @@ public class ApiService : IApiService
         return await _httpClient.GetFromJsonAsync<CompanyStatsDto>($"api/dashboard/company-stats/{companyId}");
     }
 
-    public async Task<List<CompanyDto>?> GetCompaniesAsync()
+    public async Task<List<CompanyDto>> GetCompaniesAsync()
     {
-        return await _httpClient.GetFromJsonAsync<List<CompanyDto>?>($"api/companies");
+        var response = await _httpClient.GetAsync("api/companies");
+        response.EnsureSuccessStatusCode();
+        var companies = await response.Content.ReadFromJsonAsync<List<CompanyDto>>() ?? new List<CompanyDto>();
+        return companies.Select(c => new CompanyDto { ContactEmail = c.ContactEmail, Id = c.Id, Name = c.Name }).ToList();
     }
 
     public async Task<CompanyDto?> GetCompanyByIdAsync(int id)

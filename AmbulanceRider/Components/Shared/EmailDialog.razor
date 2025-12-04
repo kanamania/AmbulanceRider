@@ -1,0 +1,126 @@
+@using AmbulanceRider.Models
+@inject IApiService ApiService
+
+<div class="modal @(Show ? "d-block" : "d-none")" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Send Invoice Email</h5>
+                <button type="button" class="btn-close" @onclick="Close" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="recipientEmails" class="form-label">Recipient Emails (comma separated)</label>
+                    <input type="text" class="form-control" id="recipientEmails" 
+                           @bind="_recipientEmailsInput" 
+                           placeholder="email1@example.com, email2@example.com" />
+                    @if (!string.IsNullOrEmpty(CompanyContactEmail))
+                    {
+                        <div class="form-text">
+                            Company contact: @CompanyContactEmail
+                            <button type="button" class="btn btn-sm btn-link" @onclick="() => AddCompanyEmail()">
+                                Add
+                            </button>
+                        </div>
+                    }
+                </div>
+                <div class="mb-3">
+                    <label for="emailSubject" class="form-label">Subject</label>
+                    <input type="text" class="form-control" id="emailSubject" @bind="Subject" />
+                </div>
+                <div class="mb-3">
+                    <label for="emailBody" class="form-label">Message</label>
+                    <textarea class="form-control" id="emailBody" rows="5" @bind="Body"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="Close" disabled="@Loading">Cancel</button>
+                <button type="button" class="btn btn-primary" @onclick="Send" disabled="@Loading">
+                    @if (Loading)
+                    {
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span class="visually-hidden">Sending...</span>
+                    }
+                    else
+                    {
+                        <span>Send Email</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public EventCallback<bool> ShowChanged { get; set; }
+    [Parameter] public int InvoiceId { get; set; }
+    [Parameter] public string DefaultSubject { get; set; } = string.Empty;
+    [Parameter] public string DefaultBody { get; set; } = string.Empty;
+
+    private string _recipientEmailsInput = "test@example.com"; // Default for testing
+    public string CompanyContactEmail { get; set; } = string.Empty;
+
+    private List<string> RecipientEmails => 
+        _recipientEmailsInput.Split(',')
+            .Select(e => e.Trim())
+            .Where(e => !string.IsNullOrEmpty(e))
+            .ToList();
+
+    private string Subject { get; set; } = string.Empty;
+    private string Body { get; set; } = string.Empty;
+    private bool Loading { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        Subject = DefaultSubject;
+        Body = DefaultBody;
+    }
+
+    private async Task Close()
+    {
+        Show = false;
+        await ShowChanged.InvokeAsync(Show);
+    }
+
+    private void AddCompanyEmail()
+    {
+        if (!string.IsNullOrEmpty(CompanyContactEmail))
+        {
+            var currentEmails = RecipientEmails;
+            if (!currentEmails.Contains(CompanyContactEmail))
+            {
+                _recipientEmailsInput = string.IsNullOrEmpty(_recipientEmailsInput)
+                    ? CompanyContactEmail
+                    : $"{_recipientEmailsInput}, {CompanyContactEmail}";
+            }
+        }
+    }
+
+    private async Task Send()
+    {
+        if (RecipientEmails.Count == 0 || RecipientEmails.Any(e => !e.Contains("@")))
+        {
+            return;
+        }
+        Loading = true;
+        try
+        {
+            await ApiService.PostAsync($"api/invoice/{InvoiceId}/send-email", new 
+            { 
+                RecipientEmails = RecipientEmails,
+                Subject = Subject,
+                Body = Body
+            });
+            await Close();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error sending email: {ex.Message}");
+        }
+        finally
+        {
+            Loading = false;
+        }
+    }
+}

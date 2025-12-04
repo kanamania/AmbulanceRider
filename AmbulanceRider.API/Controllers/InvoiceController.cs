@@ -174,4 +174,34 @@ public class InvoiceController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    [HttpPost("{id}/send-email")]
+    public async Task<ActionResult> SendInvoiceEmail(int id, [FromBody] SendInvoiceEmailDto dto)
+    {
+        try
+        {
+            await _invoiceService.SendInvoiceEmailAsync(id, dto.RecipientEmails, dto.Subject, dto.Body);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPost("generate-test-invoices")]
+    public async Task<ActionResult<List<InvoiceDto>>> GenerateTestInvoices(
+        [FromQuery] int count = 5, 
+        [FromQuery] int companyId = 1)
+    {
+        try
+        {
+            var invoices = await _invoiceService.GenerateTestInvoicesAsync(count, companyId);
+            return Ok(invoices);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 }
