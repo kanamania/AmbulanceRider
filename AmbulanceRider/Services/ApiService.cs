@@ -380,12 +380,12 @@ public class ApiService : IApiService
 
     public async Task<InvoiceDto?> GetInvoiceByIdAsync(int id)
     {
-        return await _httpClient.GetFromJsonAsync<InvoiceDto>($"/api/invoice/{id}");
+        return await _httpClient.GetFromJsonAsync<InvoiceDto>($"/api/invoices/{id}");
     }
 
     public async Task<InvoicePreviewDto> PreviewInvoiceAsync(CreateInvoiceDto dto)
     {
-        var response = await _httpClient.PostAsJsonAsync("/api/invoice/preview", dto);
+        var response = await _httpClient.PostAsJsonAsync("/api/invoices/preview", dto);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<InvoicePreviewDto>() ?? throw new Exception("Failed to preview invoice");
     }
@@ -399,7 +399,7 @@ public class ApiService : IApiService
 
     public async Task<InvoiceDto> MarkInvoiceAsPaidAsync(int id, MarkInvoicePaidDto dto)
     {
-        var response = await _httpClient.PostAsJsonAsync($"/api/invoice/{id}/mark-paid", dto);
+        var response = await _httpClient.PostAsJsonAsync($"/api/invoices/{id}/mark-paid", dto);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<InvoiceDto>() ?? throw new Exception("Failed to mark invoice as paid");
     }

@@ -247,17 +247,17 @@
 
     private void DownloadPdf()
     {
-        NavigationManager.NavigateTo($"/api/invoice/{Id}/download/pdf", true);
+        NavigationManager.NavigateTo($"/api/invoices/{Id}/download/pdf", true);
     }
 
     private void DownloadExcel()
     {
-        NavigationManager.NavigateTo($"/api/invoice/{Id}/download/excel", true);
+        NavigationManager.NavigateTo($"/api/invoices/{Id}/download/excel", true);
     }
 
     private void DownloadBoth()
     {
-        NavigationManager.NavigateTo($"/api/invoice/{Id}/download/both", true);
+        NavigationManager.NavigateTo($"/api/invoices/{Id}/download/both", true);
     }
 
     private string GetStatusBadgeClass(string status)

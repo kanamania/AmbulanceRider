@@ -109,7 +109,7 @@
         Loading = true;
         try
         {
-            await ApiService.PostAsync<InvoiceDto>($"api/invoice/{InvoiceId}/send-email", new 
+            await ApiService.PostAsync<InvoiceDto>($"api/invoices/{InvoiceId}/send-email", new 
             { 
                 RecipientEmails = RecipientEmails,
                 Subject = Subject,
