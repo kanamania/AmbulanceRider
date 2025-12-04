@@ -241,17 +241,17 @@
 
     private void DownloadPdf(int id)
     {
-        NavigationManager.NavigateTo($"/api/invoice/{id}/download/pdf", true);
+        NavigationManager.NavigateTo($"/invoice/{id}/download/pdf", true);
     }
 
     private void DownloadExcel(int id)
     {
-        NavigationManager.NavigateTo($"/api/invoice/{id}/download/excel", true);
+        NavigationManager.NavigateTo($"/invoice/{id}/download/excel", true);
     }
 
     private void DownloadBoth(int id)
     {
-        NavigationManager.NavigateTo($"/api/invoice/{id}/download/both", true);
+        NavigationManager.NavigateTo($"/invoice/{id}/download/both", true);
     }
 
     private async Task SendEmail(bool success)
@@ -299,7 +299,7 @@
     {
         try
         {
-            await ApiService.PostAsync<InvoiceDto>("api/invoices/generate-test-invoices", new { count = 5 });
+            await ApiService.PostAsync<InvoiceDto>("invoices/generate-test-invoices", new { count = 5 });
             await LoadInvoices();
         }
         catch (Exception ex)
