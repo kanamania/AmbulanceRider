@@ -86,4 +86,7 @@ public interface IApiService
     Task<RegionDto> CreateRegionAsync(CreateRegionDto dto);
     Task<RegionDto> UpdateRegionAsync(int id, UpdateRegionDto dto);
     Task DeleteRegionAsync(int id);
+
+    // File downloads
+    Task DownloadFileAsync(string endpoint, string fileName);
 }

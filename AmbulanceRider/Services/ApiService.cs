@@ -468,4 +468,22 @@ public class ApiService : IApiService
         var response = await _httpClient.DeleteAsync($"/api/regions/{id}");
         response.EnsureSuccessStatusCode();
     }
+
+    public async Task DownloadFileAsync(string endpoint, string fileName)
+    {
+        await ExecuteAsync(async () => 
+        {
+            var response = await _httpClient.GetAsync($"/api/{endpoint.TrimStart('/')}");
+            response.EnsureSuccessStatusCode();
+            
+            var contentDisposition = response.Content.Headers.ContentDisposition;
+            var suggestedFileName = contentDisposition?.FileNameStar ?? contentDisposition?.FileName ?? fileName;
+            
+            var stream = await response.Content.ReadAsStreamAsync();
+            using (var fileStream = new FileStream(suggestedFileName, FileMode.Create))
+            {
+                await stream.CopyToAsync(fileStream);
+            }
+        });
+    }
 }

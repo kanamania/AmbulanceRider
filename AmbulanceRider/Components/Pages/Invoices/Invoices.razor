@@ -239,19 +239,40 @@
         }
     }
 
-    private void DownloadPdf(int id)
+    private async Task DownloadPdf(int id)
     {
-        NavigationManager.NavigateTo($"/api/invoices/{id}/download/pdf", true);
+        try
+        {
+            await ApiService.DownloadFileAsync($"invoices/{id}/download/pdf", $"{id}_invoice.pdf");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error downloading PDF: {ex.Message}");
+        }
     }
 
-    private void DownloadExcel(int id)
+    private async Task DownloadExcel(int id)
     {
-        NavigationManager.NavigateTo($"/api/invoices/{id}/download/excel", true);
+        try
+        {
+            await ApiService.DownloadFileAsync($"invoices/{id}/download/excel", $"{id}_invoice.xlsx");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error downloading Excel: {ex.Message}");
+        }
     }
 
-    private void DownloadBoth(int id)
+    private async Task DownloadBoth(int id)
     {
-        NavigationManager.NavigateTo($"/api/invoices/{id}/download/both", true);
+        try
+        {
+            await ApiService.DownloadFileAsync($"invoices/{id}/download/both", $"{id}_invoice.zip");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error downloading files: {ex.Message}");
+        }
     }
 
     private async Task SendEmail(bool success)
