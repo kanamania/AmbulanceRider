@@ -6,6 +6,7 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using ClosedXML.Excel;
+using Microsoft.AspNetCore.Identity;
 
 namespace AmbulanceRider.API.Services;
 
@@ -14,6 +15,7 @@ public class InvoiceService
     private readonly ApplicationDbContext _context;
     private readonly IWebHostEnvironment _environment;
     private readonly IEmailService _emailService;
+    private readonly UserManager<User> _userManager;
 
     public InvoiceService(ApplicationDbContext context, IWebHostEnvironment environment, IEmailService emailService)
     {
@@ -266,13 +268,9 @@ public class InvoiceService
             var invoices = new List<InvoiceDto>();
 
             // Get required data
-            var drivers = await _context.Users
-                .Where(u => u.UserRoles.Any(ur => ur.Role!.Name == "Driver"))
-                .ToListAsync();
+            var drivers = await _userManager.GetUsersInRoleAsync("Driver");
 
-            var creators = await _context.Users
-                .Where(u => u.UserRoles.Any(ur => ur.Role!.Name == "User"))
-                .ToListAsync();
+            var creators = await _userManager.GetUsersInRoleAsync("User");
 
             var vehicles = await _context.Vehicles.ToListAsync();
             var pricingMatrices = await _context.PricingMatrices
