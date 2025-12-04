@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AmbulanceRider.API.DTOs;
 using AmbulanceRider.API.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -115,10 +116,18 @@ public class InvoiceController : ControllerBase
     {
         try
         {
-            var (pdfBytes, _) = await _invoiceService.GenerateInvoiceFilesAsync(id);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
             var invoice = await _invoiceService.GetInvoiceByIdAsync(id);
+            if (invoice == null)
+                return NotFound(new { message = "Invoice not found" });
+
+            // Add additional authorization checks here if needed
             
-            return File(pdfBytes, "application/pdf", $"{invoice!.InvoiceNumber}.pdf");
+            var (pdfBytes, _) = await _invoiceService.GenerateInvoiceFilesAsync(id);
+            return File(pdfBytes, "application/pdf", $"{invoice.InvoiceNumber}_{DateTime.Now:yyyy-mm-dd_hh-mm-ss}.pdf");
         }
         catch (Exception ex)
         {
@@ -131,10 +140,16 @@ public class InvoiceController : ControllerBase
     {
         try
         {
-            var (_, excelBytes) = await _invoiceService.GenerateInvoiceFilesAsync(id);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
             var invoice = await _invoiceService.GetInvoiceByIdAsync(id);
-            
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{invoice!.InvoiceNumber}.xlsx");
+            if (invoice == null)
+                return NotFound(new { message = "Invoice not found" });
+                
+            var (_, excelBytes) = await _invoiceService.GenerateInvoiceFilesAsync(id);
+            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{invoice.InvoiceNumber}_{DateTime.Now:yyyy-mm-dd_hh-mm-ss}.xlsx");
         }
         catch (Exception ex)
         {
@@ -147,19 +162,25 @@ public class InvoiceController : ControllerBase
     {
         try
         {
-            var (pdfBytes, excelBytes) = await _invoiceService.GenerateInvoiceFilesAsync(id);
-            var invoice = await _invoiceService.GetInvoiceByIdAsync(id);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
 
+            var invoice = await _invoiceService.GetInvoiceByIdAsync(id);
+            if (invoice == null)
+                return NotFound(new { message = "Invoice not found" });
+
+            var (pdfBytes, excelBytes) = await _invoiceService.GenerateInvoiceFilesAsync(id);
             using var memoryStream = new MemoryStream();
             using (var archive = new System.IO.Compression.ZipArchive(memoryStream, System.IO.Compression.ZipArchiveMode.Create, true))
             {
-                var pdfEntry = archive.CreateEntry($"{invoice!.InvoiceNumber}.pdf");
+                var pdfEntry = archive.CreateEntry($"{invoice!.InvoiceNumber}_{DateTime.Now:yyyy-mm-dd_hh-mm-ss}.pdf");
                 using (var entryStream = pdfEntry.Open())
                 {
                     await entryStream.WriteAsync(pdfBytes, 0, pdfBytes.Length);
                 }
 
-                var excelEntry = archive.CreateEntry($"{invoice.InvoiceNumber}.xlsx");
+                var excelEntry = archive.CreateEntry($"{invoice.InvoiceNumber}_{DateTime.Now:yyyy-mm-dd_hh-mm-ss}.xlsx");
                 using (var entryStream = excelEntry.Open())
                 {
                     await entryStream.WriteAsync(excelBytes, 0, excelBytes.Length);
@@ -167,7 +188,7 @@ public class InvoiceController : ControllerBase
             }
 
             memoryStream.Position = 0;
-            return File(memoryStream.ToArray(), "application/zip", $"{invoice.InvoiceNumber}.zip");
+            return File(memoryStream.ToArray(), "application/zip", $"{invoice.InvoiceNumber}_{DateTime.Now:yyyy-mm-dd_hh-mm-ss}.zip");
         }
         catch (Exception ex)
         {
