@@ -17,11 +17,13 @@ public class InvoiceService
     private readonly IEmailService _emailService;
     private readonly UserManager<User> _userManager;
 
-    public InvoiceService(ApplicationDbContext context, IWebHostEnvironment environment, IEmailService emailService)
+    public InvoiceService(UserManager<User> userManager, ApplicationDbContext context,
+        IWebHostEnvironment environment, IEmailService emailService)
     {
         _context = context;
         _environment = environment;
         _emailService = emailService;
+        _userManager = userManager;
         QuestPDF.Settings.License = LicenseType.Community;
     }
 
