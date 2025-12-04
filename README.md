@@ -2,19 +2,30 @@
 
 A full-stack web application for managing emergency medical dispatch operations with comprehensive trip management, status workflow, audit trails, real-time tracking, and advanced telemetry.
 
+**Version:** 0.0.19 | **Last Updated:** 2025-12-04
+
 > **Latest Updates (2025-12-04):** 
-> - Fixed invoice download 401 Unauthorized with authenticated file downloads ✅
-> - Fixed send-email API double `/api/api/` path issue ✅
-> - Seeded baseline driver-to-vehicle assignments for dispatcher workflows ✅
-> - Companies admin UI now matches modern Tailwind dashboard styling ✅
-> - Fixed null reference when listing users without companies ✅
-> - Invoice System with PDF & Excel Generation ⭐ NEW
-> - Dashboard now redirects unauthorized sessions to the login page ✅
-> - Trip Status Change Logging & Audit Trail System ✅
-> - Dynamic Trip Types with Custom Attributes ⭐
+> - Invoice PDF: Removed Route/Driver columns, added letterhead image, aligned Invoice Period right ✅
+> - Consolidated documentation into 6 core files ✅
+> - Created planning-implementation.md with roadmap & recommendations ✅
+> - Created end-user-documentation.md with user guides ✅
+> - Created testing.md with testing strategy ✅
+> - Created api-specifications.md with API docs ✅
+> - Fixed invoice download 401 Unauthorized ✅
+> - Invoice System with PDF & Excel Generation ⭐
+> - Region-aware Pricing Matrix ⭐
 > - Comprehensive Telemetry & Analytics System ⭐
 
-📚 **[Complete Documentation Index](./DOCUMENTATION_INDEX.md)** - Navigate all documentation files organized by topic and use case.
+## 📚 Core Documentation
+
+| Document | Description |
+|----------|-------------|
+| [README.md](./README.md) | Project overview and quick start |
+| [changelog.md](./changelog.md) | Version history and changes |
+| [planning-implementation.md](./planning-implementation.md) | Roadmap, weaknesses, recommendations |
+| [end-user-documentation.md](./end-user-documentation.md) | User guides for all modules |
+| [testing.md](./testing.md) | Testing strategy and procedures |
+| [api-specifications.md](./api-specifications.md) | API endpoint documentation |
 
 ## 🎯 Features
 
@@ -428,169 +439,44 @@ dotnet ef database update
 - Check browser console for CORS errors
 - Verify `AllowAll` policy in `Program.cs`
 
-## 📚 Documentation
+## 📈 Known Weaknesses & Recommendations
 
-### 📖 Complete Documentation Index
+See [planning-implementation.md](./planning-implementation.md) for detailed analysis.
 
-#### Feature Documentation
-1. **[FEATURE_SUMMARY.md](./FEATURE_SUMMARY.md)** - Complete overview of all implemented features
-2. **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** - Detailed API endpoint documentation
+### Critical Issues
+| Issue | Risk | Status |
+|-------|------|--------|
+| No automated testing | High regression risk | ❌ Open |
+| Hardcoded secrets in docker-compose | Security vulnerability | ❌ Open |
+| Duplicate DI registrations | Maintenance overhead | ❌ Open |
 
-#### Trip Management
-3. **[TRIP_STATUS_LOGGING_IMPLEMENTATION.md](./TRIP_STATUS_LOGGING_IMPLEMENTATION.md)** - Audit trail system technical details
-4. **[TRIP_STATUS_LOGGING_GUIDE.md](./TRIP_STATUS_LOGGING_GUIDE.md)** - User guide for viewing status history
-5. **[TRIP_STATUS_WORKFLOW_SUMMARY.md](./TRIP_STATUS_WORKFLOW_SUMMARY.md)** - Status workflow rules and transitions
-6. **[QUICK_START_TRIP_STATUS.md](./QUICK_START_TRIP_STATUS.md)** - Quick guide for changing trip status
-7. **[TRIP_UI_UPDATE_SUMMARY.md](./TRIP_UI_UPDATE_SUMMARY.md)** - Coordinate-based system implementation
-8. **[TRIP_COORDINATES_UPDATE.md](./TRIP_COORDINATES_UPDATE.md)** - Map integration details
-9. **[TRIP_MODULE_SUMMARY.md](./TRIP_MODULE_SUMMARY.md)** - Trip module overview
+### Medium Priority
+| Issue | Risk | Status |
+|-------|------|--------|
+| Documentation sprawl (60+ files) | Maintenance difficulty | 🔄 In Progress |
+| Missing input validation | Data integrity | ❌ Open |
+| No rate limiting | DoS vulnerability | ❌ Open |
+| Inconsistent error handling | Client-side issues | ❌ Open |
 
-#### Telemetry & Analytics ⭐ NEW
-10. **[TELEMETRY_IMPLEMENTATION.md](./TELEMETRY_IMPLEMENTATION.md)** - Complete telemetry system documentation
-11. **[TELEMETRY_ENHANCEMENTS.md](./TELEMETRY_ENHANCEMENTS.md)** - Account & apps tracking features
-12. **[TELEMETRY_TIMESERIES_GUIDE.md](./TELEMETRY_TIMESERIES_GUIDE.md)** - Timeseries logging and querying ⭐ NEW
-
-#### Implementation Guides
-13. **[IMPLEMENTATION_COMPLETE.md](./IMPLEMENTATION_COMPLETE.md)** - Status management implementation
-14. **[IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md)** - General implementation summary
-15. **[VEHICLE_DRIVER_AUTO_FILL_SUMMARY.md](./VEHICLE_DRIVER_AUTO_FILL_SUMMARY.md)** - Vehicle-driver integration
-
-#### Quick Start
-16. **[QUICKSTART.md](./QUICKSTART.md)** - Getting started guide
-
-### 🗂️ Documentation by Topic
-
-#### For Users
-- **Getting Started**: [QUICKSTART.md](./QUICKSTART.md)
-- **Trip Status Management**: [QUICK_START_TRIP_STATUS.md](./QUICK_START_TRIP_STATUS.md)
-- **Viewing Status History**: [TRIP_STATUS_LOGGING_GUIDE.md](./TRIP_STATUS_LOGGING_GUIDE.md)
-
-#### For Developers
-- **API Reference**: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
-- **Feature Overview**: [FEATURE_SUMMARY.md](./FEATURE_SUMMARY.md)
-- **Trip Workflow**: [TRIP_STATUS_WORKFLOW_SUMMARY.md](./TRIP_STATUS_WORKFLOW_SUMMARY.md)
-- **Audit System**: [TRIP_STATUS_LOGGING_IMPLEMENTATION.md](./TRIP_STATUS_LOGGING_IMPLEMENTATION.md)
-- **Telemetry System**: [TELEMETRY_IMPLEMENTATION.md](./TELEMETRY_IMPLEMENTATION.md) ⭐ NEW
-- **Telemetry Enhancements**: [TELEMETRY_ENHANCEMENTS.md](./TELEMETRY_ENHANCEMENTS.md) ⭐ NEW
-- **Timeseries Telemetry**: [TELEMETRY_TIMESERIES_GUIDE.md](./TELEMETRY_TIMESERIES_GUIDE.md) ⭐ NEW
-
-#### For Administrators
-- **Complete Feature List**: [FEATURE_SUMMARY.md](./FEATURE_SUMMARY.md)
-- **Status Workflow Rules**: [TRIP_STATUS_WORKFLOW_SUMMARY.md](./TRIP_STATUS_WORKFLOW_SUMMARY.md)
-- **Implementation Details**: [IMPLEMENTATION_COMPLETE.md](./IMPLEMENTATION_COMPLETE.md)
-- **Analytics & Tracking**: [TELEMETRY_IMPLEMENTATION.md](./TELEMETRY_IMPLEMENTATION.md) ⭐ NEW
-
-## 📋 Change Log
-
-### Version 1.0.0 (2025-10-27)
-
-#### ⭐ New Features
-
-**Trip Status Change Logging & Audit Trail**
-- ✅ Automatic logging of all trip status changes
-- ✅ Complete audit trail with user, timestamp, and reasons
-- ✅ Visual timeline UI component
-- ✅ Status change history API endpoint
-- ✅ Database table: `trip_status_logs` with indexes
-- ✅ Cascade delete protection
-- ✅ Read-only logs for compliance
-
-**Trip Status Workflow Management**
-- ✅ Complete/Cancel trips with optional notes
-- ✅ Approve/Reject trips with required reasons
-- ✅ Force complete capability (Admin override)
-- ✅ Status transition validation
-- ✅ Role-based permissions
-- ✅ Modal dialogs for user input
-- ✅ Real-time UI updates
-
-**Coordinate-Based Trip System**
-- ✅ Interactive map pickers for location selection
-- ✅ Latitude/longitude coordinate storage
-- ✅ Optional location names for readability
-- ✅ Visual feedback on coordinate updates
-- ✅ Flexible system (not limited to predefined routes)
-
-**Vehicle-Driver Integration**
-- ✅ Auto-fill driver selection based on vehicle
-- ✅ Vehicle-driver assignment management
-- ✅ Driver availability tracking
-
-**Telemetry & Analytics System** ⭐ NEW
-- ✅ Device information tracking (OS, browser, device type, app version)
-- ✅ Google/Apple account type detection based on OS
-- ✅ GPS location tracking with accuracy metrics
-- ✅ Network monitoring (connection type, online status)
-- ✅ Battery status tracking (level, charging state)
-- ✅ Installed apps detection (browser plugins, PWA apps)
-- ✅ Event tracking (login, register, trip operations)
-- ✅ **Timeseries logging** - Batch telemetry for high-volume data ⭐ NEW
-- ✅ **Time-based queries** - Query telemetry by date ranges ⭐ NEW
-- ✅ **Route visualization** - Track location history over time ⭐ NEW
-- ✅ **User privacy controls** - Users can only access their own data ⭐ NEW
-- ✅ Privacy-conscious implementation with graceful permission handling
-- ✅ Non-blocking telemetry collection
-- ✅ Database storage with indexed queries
-
-#### 🔧 Technical Improvements
-- ✅ Repository pattern for TripStatusLog and Telemetry
-- ✅ Service layer with business logic validation
-- ✅ DTOs for clean API contracts
-- ✅ Database indexes for performance
-- ✅ Soft delete implementation
-- ✅ Comprehensive error handling
-- ✅ Loading states and user feedback
-- ✅ JavaScript interop for browser APIs
-- ✅ Geolocation, Battery, and Network Information APIs
-
-#### 📝 Documentation
-- ✅ 16 comprehensive documentation files
-- ✅ User guides and quick starts
-- ✅ Technical implementation details
-- ✅ API endpoint documentation
-- ✅ Status workflow diagrams
-- ✅ Telemetry system documentation
-- ✅ Timeseries telemetry guide ⭐ NEW
-- ✅ Privacy and compliance guidelines
-
-### Version 0.9.0 (Previous)
-- ✅ User management with roles
-- ✅ Vehicle management with types
-- ✅ Location management
-- ✅ JWT authentication
-- ✅ Basic trip CRUD operations
+### Recommendations
+1. **Immediate:** Move secrets to .env file, remove duplicate DI registrations
+2. **Short-term:** Add unit tests, implement rate limiting, standardize errors
+3. **Long-term:** Add CI/CD pipeline, implement caching, add API versioning
 
 ## 📈 Future Enhancements
 
 ### Planned Features
+- [ ] Unit and integration tests (Priority: High)
+- [ ] CI/CD pipeline (Priority: High)
+- [ ] Rate limiting (Priority: Medium)
 - [ ] Real-time notifications with SignalR
-- [ ] Mobile app (MAUI) for enhanced telemetry access
-- [ ] Advanced reporting and analytics dashboard
-- [ ] Telemetry analytics dashboard with charts and graphs
-- [ ] Telemetry data export (CSV, JSON)
-- [ ] Telemetry aggregation and statistics
+- [ ] Mobile app (MAUI)
+- [ ] Advanced analytics dashboard
 - [ ] Multi-language support
 - [ ] Email notifications on status changes
-- [ ] Performance monitoring dashboard
-- [ ] Unit and integration tests
-- [ ] CI/CD pipeline
-- [ ] OAuth integration for Google/Apple account emails
 
-### Audit Trail Enhancements
-- [ ] Export logs to CSV/PDF
-- [ ] Advanced filtering (date range, user, status)
-- [ ] Search in notes and reasons
-- [ ] Analytics dashboard for status changes
-- [ ] Comparison view (before/after states)
-- [ ] Slack/Teams integration for notifications
-
-### Trip Management Enhancements
-- [ ] Bulk status operations
-- [ ] GPS verification for completion
-- [ ] Photo/signature capture
-- [ ] Auto-approve based on criteria
-- [ ] Auto-start at scheduled time
-- [ ] Route optimization suggestions
+### Technical Debt
+See [planning-implementation.md](./planning-implementation.md#technical-debt-register) for complete register.
 
 ## 📄 License
 

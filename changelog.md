@@ -1,6 +1,41 @@
 # Changelog
 
-## [0.0.17] - 2025-12-04T08:45:00+03:00
+## [0.0.19] - 2025-12-04T08:56:00+03:00
+
+### Changed
+- Invoice PDF: Removed Route and Driver columns from trip table for cleaner layout
+- Invoice PDF: Added ge-letterhead.png image before system name in header
+- Invoice PDF: Aligned Invoice Period section hard right for better visual balance
+
+### Added
+- Copied ge-letterhead.png to API wwwroot for PDF generation access
+
+## [0.0.18] - 2025-12-04T08:45:00+03:00
+
+### Added
+- Created `planning-implementation.md` with project roadmap, identified weaknesses, and recommendations
+- Created `end-user-documentation.md` with comprehensive user guides for all modules
+- Created `testing.md` with testing strategy, manual test procedures, and planned test implementation
+- Created `api-specifications.md` with complete API endpoint documentation
+
+### Documentation
+- Consolidated documentation strategy into 6 core files
+- Identified 45+ redundant .md files for archival
+- Added technical debt register with 10 identified items
+- Added implementation roadmap with 6 phases
+
+### Identified Weaknesses
+- No automated testing (0% coverage)
+- Hardcoded secrets in docker-compose.yaml
+- Duplicate service registrations in Program.cs
+- Documentation sprawl (60+ scattered .md files)
+- Missing input validation on some endpoints
+- Inconsistent error handling across controllers
+- No rate limiting implementation
+- No API versioning strategy
+- No caching strategy
+
+## [0.0.17] - 2025-12-04T08:30:00+03:00
 
 ### Fixed
 - Fixed invoice download endpoints returning 401 Unauthorized by implementing authenticated HTTP requests with JavaScript interop for file downloads
