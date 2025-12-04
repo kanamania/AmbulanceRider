@@ -19,6 +19,9 @@ public class InvoiceDto
     public string? Notes { get; set; }
     public int TripCount { get; set; }
     public List<InvoiceTripDto> Trips { get; set; } = new();
+    public string? CompanyEmail { get; set; }
+    public string? CompanyPhoneNumber { get; set; }
+    public string? CompanyAddress { get; set; }
 }
 
 public class InvoiceTripDto

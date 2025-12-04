@@ -7,6 +7,9 @@ public class InvoiceDto
     public string Type { get; set; } = string.Empty;
     public int CompanyId { get; set; }
     public string CompanyName { get; set; } = string.Empty;
+    public string CompanyEmail { get; set; } = string.Empty;
+    public string CompanyPhoneNumber { get; set; } = string.Empty;
+    public string CompanyAddress { get; set; } = string.Empty;
     public DateTime InvoiceDate { get; set; }
     public DateTime PeriodStart { get; set; }
     public DateTime PeriodEnd { get; set; }
@@ -53,6 +56,9 @@ public class InvoicePreviewDto
 {
     public int CompanyId { get; set; }
     public string CompanyName { get; set; } = string.Empty;
+    public string CompanyEmail { get; set; } = string.Empty;
+    public string CompanyPhoneNumber { get; set; } = string.Empty;
+    public string CompanyAddress { get; set; } = string.Empty;
     public DateTime PeriodStart { get; set; }
     public DateTime PeriodEnd { get; set; }
     public List<InvoiceTripDto> Trips { get; set; } = new();
