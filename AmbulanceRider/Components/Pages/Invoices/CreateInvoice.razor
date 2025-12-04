@@ -118,13 +118,13 @@
                                                 <span class="badge bg-info">@company.TripCount</span>
                                             </td>
                                             <td class="text-end">
-                                                <span class="text-muted">KES</span> @company.SubTotal.ToString("N2")
+                                                <span class="text-muted">TZS</span> @company.SubTotal.ToString("N2")
                                             </td>
                                             <td class="text-end">
-                                                <span class="text-muted">KES</span> @company.TaxAmount.ToString("N2")
+                                                <span class="text-muted">TZS</span> @company.TaxAmount.ToString("N2")
                                             </td>
                                             <td class="text-end">
-                                                <strong class="text-success">KES @company.TotalAmount.ToString("N2")</strong>
+                                                <strong class="text-success">TZS @company.TotalAmount.ToString("N2")</strong>
                                             </td>
                                             <td class="text-center">
                                                 <button class="btn btn-sm btn-success" @onclick="() => CreateInvoiceForCompany(company.CompanyId)">
@@ -138,9 +138,9 @@
                                     <tr>
                                         <th>Total</th>
                                         <th class="text-center">@companiesWithTrips.Sum(c => c.TripCount)</th>
-                                        <th class="text-end">KES @companiesWithTrips.Sum(c => c.SubTotal).ToString("N2")</th>
-                                        <th class="text-end">KES @companiesWithTrips.Sum(c => c.TaxAmount).ToString("N2")</th>
-                                        <th class="text-end"><strong>KES @companiesWithTrips.Sum(c => c.TotalAmount).ToString("N2")</strong></th>
+                                        <th class="text-end">TZS @companiesWithTrips.Sum(c => c.SubTotal).ToString("N2")</th>
+                                        <th class="text-end">TZS @companiesWithTrips.Sum(c => c.TaxAmount).ToString("N2")</th>
+                                        <th class="text-end"><strong>TZS @companiesWithTrips.Sum(c => c.TotalAmount).ToString("N2")</strong></th>
                                         <th></th>
                                     </tr>
                                 </tfoot>

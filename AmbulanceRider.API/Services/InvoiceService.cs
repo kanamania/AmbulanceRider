@@ -433,9 +433,9 @@ public class InvoiceService
                                                <p style="font-weight: bold; margin-top: 10px;">Total Amount:</p>
                                            </div>
                                            <div style="text-align: right;">
-                                               <p>KES {invoice.SubTotal:N2}</p>
-                                               <p>KES {invoice.TaxAmount:N2}</p>
-                                               <p style="font-size: 1.2em; color: #28a745;">KES {invoice.TotalAmount:N2}</p>
+                                               <p>TZS {invoice.SubTotal:N2}</p>
+                                               <p>TZS {invoice.TaxAmount:N2}</p>
+                                               <p style="font-size: 1.2em; color: #28a745;">TZS {invoice.TotalAmount:N2}</p>
                                            </div>
                                        </div>
                                    </div>
@@ -638,17 +638,17 @@ public class InvoiceService
                     col.Item().Row(row =>
                     {
                         row.AutoItem().Width(100).Text("Subtotal:").Bold();
-                        row.AutoItem().Width(80).AlignRight().Text($"KES {invoice.SubTotal:N2}");
+                        row.AutoItem().Width(80).AlignRight().Text($"TZS {invoice.SubTotal:N2}");
                     });
                     col.Item().Row(row =>
                     {
                         row.AutoItem().Width(100).Text("Tax:").Bold();
-                        row.AutoItem().Width(80).AlignRight().Text($"KES {invoice.TaxAmount:N2}");
+                        row.AutoItem().Width(80).AlignRight().Text($"TZS {invoice.TaxAmount:N2}");
                     });
                     col.Item().PaddingTop(5).BorderTop(1).BorderColor(Colors.Grey.Medium).Row(row =>
                     {
                         row.AutoItem().Width(100).Text("Total:").Bold().FontSize(12);
-                        row.AutoItem().Width(80).AlignRight().Text($"KES {invoice.TotalAmount:N2}").Bold().FontSize(12);
+                        row.AutoItem().Width(80).AlignRight().Text($"TZS {invoice.TotalAmount:N2}").Bold().FontSize(12);
                     });
                 });
 
