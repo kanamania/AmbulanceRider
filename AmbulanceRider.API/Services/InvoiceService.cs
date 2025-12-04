@@ -268,15 +268,13 @@ public class InvoiceService
             // Get required data
             var drivers = await _context.Users
                 .Where(u => u.UserRoles.Any(ur => ur.Role!.Name == "Driver"))
-                .Take(5)
                 .ToListAsync();
 
             var creators = await _context.Users
                 .Where(u => u.UserRoles.Any(ur => ur.Role!.Name == "User"))
-                .Take(3)
                 .ToListAsync();
 
-            var vehicles = await _context.Vehicles.Take(5).ToListAsync();
+            var vehicles = await _context.Vehicles.ToListAsync();
             var pricingMatrices = await _context.PricingMatrices
                 .Include(pm => pm.Region)
                 .Where(pm => pm.Region!.Code == "DAR")
@@ -374,7 +372,8 @@ public class InvoiceService
         }
         catch (Exception ex)
         {
-            throw new Exception("Failed to generate test invoices", ex);
+            Console.WriteLine($"Error generating test invoices: {ex}");
+            throw new Exception($"Failed to generate test invoices: {ex.Message}");
         }
     }
 
