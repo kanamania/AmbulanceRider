@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AmbulanceRider.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/invoices")]
 [Authorize]
 public class InvoiceController : ControllerBase
 {
