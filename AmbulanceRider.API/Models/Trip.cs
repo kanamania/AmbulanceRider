@@ -39,6 +39,12 @@ public class Trip : BaseModel
     [StringLength(200)]
     public string? ToLocationName { get; set; }
     
+    [StringLength(100)]
+    public string? FromRegion { get; set; }
+    
+    [StringLength(100)]
+    public string? ToRegion { get; set; }
+    
     // Foreign keys
     public int? VehicleId { get; set; }
     public Guid? DriverId { get; set; }

@@ -2,16 +2,14 @@
 
 A full-stack web application for managing emergency medical dispatch operations with comprehensive trip management, status workflow, audit trails, real-time tracking, and advanced telemetry.
 
-**Version:** 0.0.19 | **Last Updated:** 2025-12-04
+**Version:** 0.0.21 | **Last Updated:** 2025-12-06
 
-> **Latest Updates (2025-12-04):** 
-> - Invoice PDF: Removed Route/Driver columns, added letterhead image, aligned Invoice Period right ✅
-> - Consolidated documentation into 6 core files ✅
-> - Created planning-implementation.md with roadmap & recommendations ✅
-> - Created end-user-documentation.md with user guides ✅
-> - Created testing.md with testing strategy ✅
-> - Created api-specifications.md with API docs ✅
-> - Fixed invoice download 401 Unauthorized ✅
+> **Latest Updates (2025-12-06):** 
+> - PricingMatrix DataType for TripType attributes ⭐ NEW
+> - Region detection from OpenStreetMap during trip creation ✅
+> - Region-aware pricing: uses regional pricing when from/to regions match ✅
+> - Trip response now includes fromRegion and toRegion fields ✅
+> - Invoice PDF: Removed Route/Driver columns, added letterhead image ✅
 > - Invoice System with PDF & Excel Generation ⭐
 > - Region-aware Pricing Matrix ⭐
 > - Comprehensive Telemetry & Analytics System ⭐

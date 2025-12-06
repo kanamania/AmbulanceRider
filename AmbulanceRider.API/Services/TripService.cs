@@ -14,6 +14,7 @@ public class TripService : ITripService
     private readonly INotificationService _notificationService;
     private readonly IRouteOptimizationService _routeOptimizationService;
     private readonly IPricingMatrixRepository _pricingRepo;
+    private readonly IGeocodingService _geocodingService;
 
     public TripService(
         ITripRepository tripRepository,
@@ -23,7 +24,8 @@ public class TripService : ITripService
         ITripAttributeValueRepository tripAttributeValueRepository,
         INotificationService notificationService,
         IRouteOptimizationService routeOptimizationService,
-        IPricingMatrixRepository pricingRepo)
+        IPricingMatrixRepository pricingRepo,
+        IGeocodingService geocodingService)
     {
         _tripRepository = tripRepository;
         _vehicleRepository = vehicleRepository;
@@ -33,6 +35,7 @@ public class TripService : ITripService
         _notificationService = notificationService;
         _routeOptimizationService = routeOptimizationService;
         _pricingRepo = pricingRepo;
+        _geocodingService = geocodingService;
     }
 
     public async Task<IEnumerable<TripDto>> GetAllTripsAsync()
@@ -107,6 +110,13 @@ public class TripService : ITripService
             }
         }
 
+        var fromRegionTask = _geocodingService.GetRegionFromCoordinatesAsync(createTripDto.FromLatitude, createTripDto.FromLongitude);
+        var toRegionTask = _geocodingService.GetRegionFromCoordinatesAsync(createTripDto.ToLatitude, createTripDto.ToLongitude);
+        await Task.WhenAll(fromRegionTask, toRegionTask);
+        
+        var fromRegion = fromRegionTask.Result;
+        var toRegion = toRegionTask.Result;
+
         var trip = new Trip
         {
             Name = createTripDto.Name,
@@ -118,6 +128,8 @@ public class TripService : ITripService
             ToLongitude = createTripDto.ToLongitude,
             FromLocationName = createTripDto.FromLocationName,
             ToLocationName = createTripDto.ToLocationName,
+            FromRegion = fromRegion,
+            ToRegion = toRegion,
             VehicleId = createTripDto.VehicleId,
             DriverId = createTripDto.DriverId,
             TripTypeId = createTripDto.TripTypeId,
@@ -127,13 +139,24 @@ public class TripService : ITripService
             Creator = creator
         };
 
-        // Calculate pricing
-        var pricing = (await _pricingRepo.GetByDimensionsAsync(
-            createTripDto.Weight, 
+        PricingMatrix? pricing = null;
+        
+        if (!string.IsNullOrEmpty(fromRegion) && !string.IsNullOrEmpty(toRegion) && 
+            string.Equals(fromRegion, toRegion, StringComparison.OrdinalIgnoreCase))
+        {
+            pricing = await _pricingRepo.GetByRegionAndDimensionsAsync(
+                fromRegion,
+                createTripDto.Weight,
+                createTripDto.Height,
+                createTripDto.Length,
+                createTripDto.Width);
+        }
+        
+        pricing ??= await _pricingRepo.GetDefaultByDimensionsAsync(
+            createTripDto.Weight,
             createTripDto.Height,
             createTripDto.Length,
-            createTripDto.Width))
-            .FirstOrDefault();
+            createTripDto.Width);
 
         if (pricing != null)
         {
@@ -684,6 +707,8 @@ public class TripService : ITripService
             ToLongitude = trip.ToLongitude,
             FromLocationName = trip.FromLocationName,
             ToLocationName = trip.ToLocationName,
+            FromRegion = trip.FromRegion,
+            ToRegion = trip.ToRegion,
             VehicleId = trip.VehicleId,
             Vehicle = trip.Vehicle != null ? new VehicleDto
             {
