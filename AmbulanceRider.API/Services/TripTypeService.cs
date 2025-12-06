@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AmbulanceRider.API.DTOs;
 using AmbulanceRider.API.Models;
 using AmbulanceRider.API.Repositories;
@@ -8,13 +9,16 @@ public class TripTypeService : ITripTypeService
 {
     private readonly ITripTypeRepository _tripTypeRepository;
     private readonly ITripTypeAttributeRepository _attributeRepository;
+    private readonly IPricingMatrixRepository _pricingMatrixRepository;
 
     public TripTypeService(
         ITripTypeRepository tripTypeRepository,
-        ITripTypeAttributeRepository attributeRepository)
+        ITripTypeAttributeRepository attributeRepository,
+        IPricingMatrixRepository pricingMatrixRepository)
     {
         _tripTypeRepository = tripTypeRepository;
         _attributeRepository = attributeRepository;
+        _pricingMatrixRepository = pricingMatrixRepository;
     }
 
     public async Task<IEnumerable<TripTypeDto>> GetAllTripTypesAsync()
@@ -51,7 +55,7 @@ public class TripTypeService : ITripTypeService
         if (tripType == null)
             return null;
 
-        return MapToDtoWithAttributes(tripType);
+        return await MapToDtoWithAttributesFromEntityAsync(tripType);
     }
 
     public async Task<TripTypeDto> CreateTripTypeAsync(CreateTripTypeDto dto)
@@ -195,29 +199,19 @@ public class TripTypeService : ITripTypeService
         };
     }
 
-    private static TripTypeDto MapToDtoWithAttributes(TripType tripType)
+    private async Task<TripTypeDto> MapToDtoWithAttributesFromEntityAsync(TripType tripType)
     {
-        return new TripTypeDto
+        var attributeDtos = new List<TripTypeAttributeDto>();
+        var attributes = tripType.Attributes
+            .Where(a => a.DeletedAt == null)
+            .OrderBy(a => a.DisplayOrder)
+            .ToList();
+        
+        foreach (var attr in attributes)
         {
-            Id = tripType.Id,
-            Name = tripType.Name,
-            Description = tripType.Description,
-            Color = tripType.Color,
-            Icon = tripType.Icon,
-            IsActive = tripType.IsActive,
-            DisplayOrder = tripType.DisplayOrder,
-            CreatedAt = tripType.CreatedAt,
-            Attributes = tripType.Attributes
-                .Where(a => a.DeletedAt == null)
-                .OrderBy(a => a.DisplayOrder)
-                .Select(MapAttributeToDto)
-                .ToList()
-        };
-    }
-
-    private async Task<TripTypeDto> MapToDtoWithAttributesAsync(TripType tripType)
-    {
-        var attributes = await _attributeRepository.GetByTripTypeIdAsync(tripType.Id);
+            var dto = await MapAttributeToDtoAsync(attr);
+            attributeDtos.Add(dto);
+        }
         
         return new TripTypeDto
         {
@@ -229,7 +223,62 @@ public class TripTypeService : ITripTypeService
             IsActive = tripType.IsActive,
             DisplayOrder = tripType.DisplayOrder,
             CreatedAt = tripType.CreatedAt,
-            Attributes = attributes.Select(MapAttributeToDto).ToList()
+            Attributes = attributeDtos
+        };
+    }
+
+    private async Task<TripTypeDto> MapToDtoWithAttributesAsync(TripType tripType)
+    {
+        var attributes = await _attributeRepository.GetByTripTypeIdAsync(tripType.Id);
+        var attributeDtos = new List<TripTypeAttributeDto>();
+        
+        foreach (var attr in attributes)
+        {
+            var dto = await MapAttributeToDtoAsync(attr);
+            attributeDtos.Add(dto);
+        }
+        
+        return new TripTypeDto
+        {
+            Id = tripType.Id,
+            Name = tripType.Name,
+            Description = tripType.Description,
+            Color = tripType.Color,
+            Icon = tripType.Icon,
+            IsActive = tripType.IsActive,
+            DisplayOrder = tripType.DisplayOrder,
+            CreatedAt = tripType.CreatedAt,
+            Attributes = attributeDtos
+        };
+    }
+
+    private async Task<TripTypeAttributeDto> MapAttributeToDtoAsync(TripTypeAttribute attribute)
+    {
+        var options = attribute.Options;
+        
+        if (string.Equals(attribute.DataType, "PricingMatrix", StringComparison.OrdinalIgnoreCase))
+        {
+            var pricingMatrices = await _pricingMatrixRepository.GetAllAsync();
+            var optionsList = pricingMatrices.Select(p => new { value = p.Id, label = p.Name }).ToList();
+            options = JsonSerializer.Serialize(optionsList);
+        }
+        
+        return new TripTypeAttributeDto
+        {
+            Id = attribute.Id,
+            TripTypeId = attribute.TripTypeId,
+            Name = attribute.Name,
+            Label = attribute.Label,
+            Description = attribute.Description,
+            DataType = attribute.DataType,
+            IsRequired = attribute.IsRequired,
+            DisplayOrder = attribute.DisplayOrder,
+            Options = options,
+            DefaultValue = attribute.DefaultValue,
+            ValidationRules = attribute.ValidationRules,
+            Placeholder = attribute.Placeholder,
+            IsActive = attribute.IsActive,
+            CreatedAt = attribute.CreatedAt
         };
     }
 

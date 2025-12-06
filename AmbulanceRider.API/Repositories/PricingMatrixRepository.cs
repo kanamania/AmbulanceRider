@@ -48,4 +48,38 @@ public class PricingMatrixRepository : Repository<PricingMatrix>, IPricingMatrix
             .OrderByDescending(p => p.IsDefault)
             .ToListAsync();
     }
+
+    public async Task<PricingMatrix?> GetByRegionAndDimensionsAsync(string regionName, decimal weight, decimal height, decimal length, decimal width)
+    {
+        return await _dbSet
+            .Include(p => p.Region)
+            .Include(p => p.Company)
+            .Include(p => p.VehicleType)
+            .Include(p => p.TripType)
+            .Where(p => p.DeletedAt == null &&
+                p.Region != null &&
+                p.Region.IsActive &&
+                p.Region.Name == regionName &&
+                weight >= p.MinWeight && weight <= p.MaxWeight &&
+                height >= p.MinHeight && height <= p.MaxHeight &&
+                length >= p.MinLength && length <= p.MaxLength &&
+                width >= p.MinWidth && width <= p.MaxWidth)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<PricingMatrix?> GetDefaultByDimensionsAsync(decimal weight, decimal height, decimal length, decimal width)
+    {
+        return await _dbSet
+            .Include(p => p.Region)
+            .Include(p => p.Company)
+            .Include(p => p.VehicleType)
+            .Include(p => p.TripType)
+            .Where(p => p.DeletedAt == null &&
+                p.IsDefault &&
+                weight >= p.MinWeight && weight <= p.MaxWeight &&
+                height >= p.MinHeight && height <= p.MaxHeight &&
+                length >= p.MinLength && length <= p.MaxLength &&
+                width >= p.MinWidth && width <= p.MaxWidth)
+            .FirstOrDefaultAsync();
+    }
 }

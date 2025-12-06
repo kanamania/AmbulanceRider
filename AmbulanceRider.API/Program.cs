@@ -241,6 +241,7 @@ builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
 builder.Services.AddScoped<IDataHashService, DataHashService>();
 builder.Services.AddScoped<IDataHashNotificationService, DataHashNotificationService>();
 builder.Services.AddScoped<IPricingService, PricingService>();
+builder.Services.AddScoped<IGeocodingService, GeocodingService>();
 builder.Services.AddScoped<ICompanyStatsService, CompanyStatsService>();
 builder.Services.AddScoped<InvoiceService>(provider => new InvoiceService(provider.GetRequiredService<UserManager<User>>(), provider.GetRequiredService<ApplicationDbContext>(), provider.GetRequiredService<IWebHostEnvironment>(), provider.GetRequiredService<IEmailService>()));
 

@@ -20,6 +20,8 @@ public class TripDto
     public double ToLongitude { get; set; }
     public string? FromLocationName { get; set; }
     public string? ToLocationName { get; set; }
+    public string? FromRegion { get; set; }
+    public string? ToRegion { get; set; }
     
     public int? VehicleId { get; set; }
     public VehicleDto? Vehicle { get; set; }

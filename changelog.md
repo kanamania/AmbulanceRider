@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.0.21] - 2025-12-06T18:45:00+03:00
+
+### Added
+- PricingMatrix DataType for TripType attributes - dynamically fetches all PricingMatrix entries as dropdown options
+- New "Pricing Matrix (dropdown)" option in TripType attribute creation form
+
+### Changed
+- TripTypeService now injects IPricingMatrixRepository to populate PricingMatrix options dynamically
+- TripType attributes with DataType "PricingMatrix" return options as JSON array with value/label pairs
+
+## [0.0.20] - 2025-12-06T18:30:00+03:00
+
+### Added
+- Region detection from OpenStreetMap Nominatim API during trip creation
+- `FromRegion` and `ToRegion` fields on Trip model to store detected regions
+- `IGeocodingService` and `GeocodingService` for reverse geocoding coordinates to region names
+- Region-aware pricing logic: uses regional pricing when from/to regions match and region has active pricing, otherwise falls back to default pricing
+- `GetByRegionAndDimensionsAsync` and `GetDefaultByDimensionsAsync` methods in `IPricingMatrixRepository`
+
+### Changed
+- `TripService.CreateTripAsync` now fetches regions from OpenStreetMap before saving trip
+- Trip creation response now includes `fromRegion` and `toRegion` fields
+- Pricing selection logic updated to prioritize regional pricing for same-region trips
+
+### Database
+- Added migration `AddTripRegionColumns` with `FromRegion` and `ToRegion` columns on trips table
+
 ## [0.0.19] - 2025-12-04T08:56:00+03:00
 
 ### Changed

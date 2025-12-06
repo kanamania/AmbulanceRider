@@ -15,10 +15,10 @@ public static class TripTypeSeedData
 
         var tripTypes = new List<TripType>
         {
-            // 1. Emergency Transport
+            // 1. Medical Assistance
             new TripType
             {
-                Name = "Emergency",
+                Name = "Medical Assistance",
                 Description = "Emergency medical transport requiring immediate attention",
                 Color = "#DC2626", // Red
                 Icon = "alert-circle",
@@ -29,27 +29,27 @@ public static class TripTypeSeedData
                 {
                     new TripTypeAttribute
                     {
-                        Name = "patient_age",
-                        Label = "Patient Age",
-                        Description = "Age of the patient in years",
-                        DataType = "number",
-                        IsRequired = true,
-                        DisplayOrder = 1,
-                        ValidationRules = "{\"min\": 0, \"max\": 120}",
-                        Placeholder = "Enter patient age",
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new TripTypeAttribute
-                    {
                         Name = "patient_name",
                         Label = "Patient Name",
                         Description = "Full name of the patient",
                         DataType = "text",
                         IsRequired = true,
-                        DisplayOrder = 2,
+                        DisplayOrder = 1,
                         ValidationRules = "{\"minLength\": 2, \"maxLength\": 100}",
                         Placeholder = "Enter patient name",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TripTypeAttribute
+                    {
+                        Name = "patient_age",
+                        Label = "Patient Age",
+                        Description = "Age of the patient in years",
+                        DataType = "number",
+                        IsRequired = true,
+                        DisplayOrder = 2,
+                        ValidationRules = "{\"min\": 0, \"max\": 120}",
+                        Placeholder = "Enter patient age",
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -61,7 +61,8 @@ public static class TripTypeSeedData
                         DataType = "select",
                         IsRequired = true,
                         DisplayOrder = 3,
-                        Options = "[\"Cardiac\", \"Trauma\", \"Respiratory\", \"Stroke\", \"Seizure\", \"Allergic Reaction\", \"Other\"]",
+                        Options =
+                            "[\"Cardiac\", \"Trauma\", \"Respiratory\", \"Stroke\", \"Seizure\", \"Allergic Reaction\", \"Other\"]",
                         Placeholder = "Select emergency type",
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow
@@ -91,15 +92,51 @@ public static class TripTypeSeedData
                         Placeholder = "List any special equipment needed (e.g., defibrillator, oxygen)",
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow
-                    }
+                    },
+                    new TripTypeAttribute
+                    {
+                        Name = "contact_person_name",
+                        Label = "Contact Person Name",
+                        Description = "Contact Person Name",
+                        DataType = "text",
+                        IsRequired = true,
+                        DisplayOrder = 6,
+                        Placeholder = "Enter Contact Person Name",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TripTypeAttribute
+                    {
+                        Name = "contact_person_phone",
+                        Label = "Contact Person Phone Number",
+                        Description = "Contact Person Phone Number",
+                        DataType = "number",
+                        IsRequired = true,
+                        DisplayOrder = 7,
+                        Placeholder = "Enter Contact Person Phone Number",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TripTypeAttribute
+                    {
+                        Name = "contact_person_address",
+                        Label = "Contact Person Address",
+                        Description = "Contact Person Address",
+                        DataType = "text",
+                        IsRequired = true,
+                        DisplayOrder = 8,
+                        Placeholder = "Enter Contact Person Address",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
                 }
             },
 
-            // 2. Routine Appointment
+            // 2. Parcel Delivery
             new TripType
             {
-                Name = "Routine",
-                Description = "Scheduled routine medical appointments and check-ups",
+                Name = "Parcel Delivery",
+                Description = "Parcel Delivery",
                 Color = "#2563EB", // Blue
                 Icon = "calendar",
                 IsActive = true,
@@ -109,9 +146,9 @@ public static class TripTypeSeedData
                 {
                     new TripTypeAttribute
                     {
-                        Name = "patient_name",
-                        Label = "Patient Name",
-                        Description = "Full name of the patient",
+                        Name = "parcel_size",
+                        Label = "Parcel Size",
+                        Description = "Parcel Size from Pricing Matrix",
                         DataType = "text",
                         IsRequired = true,
                         DisplayOrder = 1,
@@ -121,10 +158,11 @@ public static class TripTypeSeedData
                     },
                     new TripTypeAttribute
                     {
-                        Name = "appointment_time",
-                        Label = "Appointment Time",
-                        Description = "Scheduled appointment date and time",
-                        DataType = "date",
+                        Name = "confidential",
+                        Label = "Confidential?",
+                        Description = "Is Parcel confidential?",
+                        DataType = "select",
+                        Options = "[\"Yes\", \"No\"]",
                         IsRequired = true,
                         DisplayOrder = 2,
                         IsActive = true,
@@ -132,195 +170,42 @@ public static class TripTypeSeedData
                     },
                     new TripTypeAttribute
                     {
-                        Name = "mobility_status",
-                        Label = "Mobility Status",
-                        Description = "Patient's mobility level",
+                        Name = "fragile",
+                        Label = "Fragile?",
+                        Description = "Is Parcel fragile?",
                         DataType = "select",
+                        Options = "[\"Yes\", \"No\"]",
                         IsRequired = true,
                         DisplayOrder = 3,
-                        Options = "[\"Ambulatory\", \"Wheelchair\", \"Stretcher\", \"Assisted Walking\"]",
-                        Placeholder = "Select mobility status",
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow
                     },
                     new TripTypeAttribute
                     {
-                        Name = "appointment_type",
-                        Label = "Appointment Type",
-                        Description = "Type of medical appointment",
+                        Name = "signature",
+                        Label = "Signature required?",
+                        Description = "Is Signature required?",
                         DataType = "select",
-                        IsRequired = false,
+                        Options = "[\"Yes\", \"No\"]",
+                        IsRequired = true,
                         DisplayOrder = 4,
-                        Options = "[\"Check-up\", \"Dialysis\", \"Physical Therapy\", \"Specialist Visit\", \"Lab Work\", \"Other\"]",
-                        Placeholder = "Select appointment type",
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow
                     },
                     new TripTypeAttribute
                     {
-                        Name = "special_instructions",
-                        Label = "Special Instructions",
-                        Description = "Any special instructions or notes",
-                        DataType = "textarea",
-                        IsRequired = false,
+                        Name = "receiver_phone",
+                        Label = "Parcel Receiver Phone Number",
+                        Description = "Parcel Receiver Phone Number",
+                        DataType = "number",
+                        IsRequired = true,
                         DisplayOrder = 5,
-                        Placeholder = "Enter any special instructions",
+                        Placeholder = "Enter Parcel Receiver Phone Number",
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow
-                    }
+                    },
                 }
             },
-
-            // 3. Inter-Facility Transfer
-            new TripType
-            {
-                Name = "Transfer",
-                Description = "Patient transfer between medical facilities",
-                Color = "#059669", // Green
-                Icon = "arrow-right-left",
-                IsActive = true,
-                DisplayOrder = 3,
-                CreatedAt = DateTime.UtcNow,
-                Attributes = new List<TripTypeAttribute>
-                {
-                    new TripTypeAttribute
-                    {
-                        Name = "patient_name",
-                        Label = "Patient Name",
-                        Description = "Full name of the patient",
-                        DataType = "text",
-                        IsRequired = true,
-                        DisplayOrder = 1,
-                        Placeholder = "Enter patient name",
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new TripTypeAttribute
-                    {
-                        Name = "from_facility",
-                        Label = "From Facility",
-                        Description = "Name of the originating facility",
-                        DataType = "text",
-                        IsRequired = true,
-                        DisplayOrder = 2,
-                        Placeholder = "Enter facility name",
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new TripTypeAttribute
-                    {
-                        Name = "to_facility",
-                        Label = "To Facility",
-                        Description = "Name of the destination facility",
-                        DataType = "text",
-                        IsRequired = true,
-                        DisplayOrder = 3,
-                        Placeholder = "Enter facility name",
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new TripTypeAttribute
-                    {
-                        Name = "medical_records_attached",
-                        Label = "Medical Records Attached",
-                        Description = "Are medical records included with transfer?",
-                        DataType = "boolean",
-                        IsRequired = true,
-                        DisplayOrder = 4,
-                        DefaultValue = "false",
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new TripTypeAttribute
-                    {
-                        Name = "escort_required",
-                        Label = "Medical Escort Required",
-                        Description = "Does patient require medical escort?",
-                        DataType = "boolean",
-                        IsRequired = false,
-                        DisplayOrder = 5,
-                        DefaultValue = "false",
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new TripTypeAttribute
-                    {
-                        Name = "transfer_reason",
-                        Label = "Transfer Reason",
-                        Description = "Reason for the facility transfer",
-                        DataType = "textarea",
-                        IsRequired = true,
-                        DisplayOrder = 6,
-                        Placeholder = "Enter reason for transfer",
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    }
-                }
-            },
-
-            // 4. Discharge Transport
-            new TripType
-            {
-                Name = "Discharge",
-                Description = "Patient discharge and transport home",
-                Color = "#7C3AED", // Purple
-                Icon = "home",
-                IsActive = true,
-                DisplayOrder = 4,
-                CreatedAt = DateTime.UtcNow,
-                Attributes = new List<TripTypeAttribute>
-                {
-                    new TripTypeAttribute
-                    {
-                        Name = "patient_name",
-                        Label = "Patient Name",
-                        Description = "Full name of the patient",
-                        DataType = "text",
-                        IsRequired = true,
-                        DisplayOrder = 1,
-                        Placeholder = "Enter patient name",
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new TripTypeAttribute
-                    {
-                        Name = "discharge_facility",
-                        Label = "Discharge Facility",
-                        Description = "Name of the facility discharging patient",
-                        DataType = "text",
-                        IsRequired = true,
-                        DisplayOrder = 2,
-                        Placeholder = "Enter facility name",
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new TripTypeAttribute
-                    {
-                        Name = "mobility_assistance",
-                        Label = "Mobility Assistance",
-                        Description = "Level of assistance needed",
-                        DataType = "select",
-                        IsRequired = true,
-                        DisplayOrder = 3,
-                        Options = "[\"None\", \"Wheelchair\", \"Walker\", \"Stretcher\", \"Full Assistance\"]",
-                        Placeholder = "Select assistance level",
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new TripTypeAttribute
-                    {
-                        Name = "discharge_instructions",
-                        Label = "Discharge Instructions",
-                        Description = "Special care instructions from facility",
-                        DataType = "textarea",
-                        IsRequired = false,
-                        DisplayOrder = 4,
-                        Placeholder = "Enter any discharge instructions",
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    }
-                }
-            }
         };
 
         await context.TripTypes.AddRangeAsync(tripTypes);

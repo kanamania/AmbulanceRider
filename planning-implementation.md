@@ -1,7 +1,7 @@
 # Planning & Implementation Roadmap
 
-**Last Updated:** 2025-12-04T08:56:00+03:00  
-**Version:** 0.0.19
+**Last Updated:** 2025-12-06T18:45:00+03:00  
+**Version:** 0.0.21
 
 ---
 
