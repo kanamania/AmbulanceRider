@@ -1,7 +1,7 @@
 # Testing Documentation
 
-**Last Updated:** 2025-12-06T18:45:00+03:00  
-**Version:** 0.0.21
+**Last Updated:** 2025-12-07T13:45:00+03:00  
+**Version:** 0.0.23
 
 ---
 

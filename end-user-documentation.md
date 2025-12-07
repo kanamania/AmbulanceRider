@@ -1,7 +1,7 @@
 # End User Documentation
 
-**Last Updated:** 2025-12-06T18:45:00+03:00  
-**Version:** 0.0.21
+**Last Updated:** 2025-12-07T13:45:00+03:00  
+**Version:** 0.0.23
 
 ---
 
@@ -156,6 +156,17 @@ Trips can be categorized with custom attributes:
 | Routine | Scheduled transport | Appointment Time, Return Trip |
 | Transfer | Inter-facility transfer | Origin Facility, Destination Facility |
 | Delivery | Package/supply delivery | Package Type, Handling Instructions |
+
+### Managing Select Options for Attributes
+When creating or editing a trip type attribute with DataType "Select":
+1. Click **Add Attribute** or edit an existing attribute
+2. Select **Select (dropdown)** as the Data Type
+3. Use the options management panel:
+   - Type an option value and click **Add** or press Enter
+   - Edit existing options inline by modifying the text field
+   - Remove options using the trash button
+4. Options are numbered for easy reference
+5. Save the attribute to persist changes
 
 ---
 

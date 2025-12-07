@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.0.23] - 2025-12-07T13:45:00+03:00
+
+### Changed
+- Improved select options UI for TripType attributes - replaced JSON textarea with dynamic add/remove option fields
+- Select options are now editable inline with numbered list, individual edit/delete buttons per option
+- Added "Add" button with Enter key support for quick option entry
+- Options are automatically serialized to/from JSON when saving/loading attributes
+
+### UI Improvements
+- Better user experience for managing dropdown options in trip type attributes
+- Visual feedback with numbered options list
+- Consistent UI between Add Attribute and Edit Attribute modals
+
+## [0.0.22] - 2025-12-06T18:55:00+03:00
+
+### Added
+- Edit functionality for TripType attributes - all fields including DataType and Options are now editable
+- Edit button (pencil icon) next to delete button for each attribute
+- Edit Attribute modal with full form for modifying all attribute properties
+
+### Changed
+- Attribute list now shows edit and delete buttons in a button group
+- Users can now change DataType, Options, Label, Name, Description, Placeholder, Default Value, Required, and Active status
+
 ## [0.0.21] - 2025-12-06T18:45:00+03:00
 
 ### Added

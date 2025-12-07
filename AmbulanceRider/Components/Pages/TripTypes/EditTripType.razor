@@ -154,9 +154,14 @@
                                                     <p class="mb-0 small">@attr.Description</p>
                                                 }
                                             </div>
-                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => ConfirmDeleteAttribute(attr)">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
+                                            <div class="btn-group">
+                                                <button class="btn btn-sm btn-outline-primary" @onclick="() => ShowEditAttributeModal(attr)">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" @onclick="() => ConfirmDeleteAttribute(attr)">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 }
@@ -223,9 +228,38 @@
                         @if (newAttribute.DataType == "select")
                         {
                             <div class="mb-3">
-                                <label class="form-label">Options (JSON array) <span class="text-danger">*</span></label>
-                                <InputTextArea @bind-Value="newAttribute.Options" class="form-control" rows="2" placeholder='["Option 1", "Option 2", "Option 3"]' />
-                                <small class="text-muted">JSON array format</small>
+                                <label class="form-label">Options <span class="text-danger">*</span></label>
+                                <div class="border rounded p-3 bg-light">
+                                    @if (newAttributeOptions.Count == 0)
+                                    {
+                                        <div class="text-muted small mb-2">No options added yet. Add at least one option.</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="mb-2">
+                                            @for (int i = 0; i < newAttributeOptions.Count; i++)
+                                            {
+                                                var index = i;
+                                                <div class="input-group mb-2">
+                                                    <span class="input-group-text">@(index + 1)</span>
+                                                    <input type="text" class="form-control" value="@newAttributeOptions[index]" 
+                                                           @onchange="(e) => UpdateNewAttributeOption(index, e.Value?.ToString() ?? string.Empty)" 
+                                                           placeholder="Option value" />
+                                                    <button type="button" class="btn btn-outline-danger" @onclick="() => RemoveNewAttributeOption(index)">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" @bind="newOptionInput" placeholder="Enter new option" @onkeypress="HandleNewOptionKeyPress" />
+                                        <button type="button" class="btn btn-outline-primary" @onclick="AddNewAttributeOption">
+                                            <i class="bi bi-plus-circle me-1"></i>Add
+                                        </button>
+                                    </div>
+                                </div>
+                                <small class="text-muted">Add options that users can select from</small>
                             </div>
                         }
 
@@ -297,6 +331,139 @@
     </div>
 }
 
+@* Edit Attribute Modal *@
+@if (showEditAttributeModal && editAttribute != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Attribute</h5>
+                    <button type="button" class="btn-close" @onclick="CloseEditAttributeModal"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@editAttribute" OnValidSubmit="HandleEditAttribute">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Label <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="editAttribute.Label" class="form-control" />
+                                <small class="text-muted">Display name shown to users</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Field Name <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="editAttribute.Name" class="form-control" />
+                                <small class="text-muted">Internal field name (use snake_case)</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <InputTextArea @bind-Value="editAttribute.Description" class="form-control" rows="2" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Data Type <span class="text-danger">*</span></label>
+                                <InputSelect @bind-Value="editAttribute.DataType" class="form-select">
+                                    <option value="text">Text (single line)</option>
+                                    <option value="textarea">Text Area (multi-line)</option>
+                                    <option value="number">Number</option>
+                                    <option value="date">Date</option>
+                                    <option value="boolean">Boolean (checkbox)</option>
+                                    <option value="select">Select (dropdown)</option>
+                                    <option value="PricingMatrix">Pricing Matrix (dropdown)</option>
+                                </InputSelect>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Display Order</label>
+                                <InputNumber @bind-Value="editAttribute.DisplayOrder" class="form-control" />
+                            </div>
+                        </div>
+
+                        @if (editAttribute.DataType == "select")
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Options <span class="text-danger">*</span></label>
+                                <div class="border rounded p-3 bg-light">
+                                    @if (editAttributeOptions.Count == 0)
+                                    {
+                                        <div class="text-muted small mb-2">No options added yet. Add at least one option.</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="mb-2">
+                                            @for (int i = 0; i < editAttributeOptions.Count; i++)
+                                            {
+                                                var index = i;
+                                                <div class="input-group mb-2">
+                                                    <span class="input-group-text">@(index + 1)</span>
+                                                    <input type="text" class="form-control" value="@editAttributeOptions[index]" 
+                                                           @onchange="(e) => UpdateEditAttributeOption(index, e.Value?.ToString() ?? string.Empty)" 
+                                                           placeholder="Option value" />
+                                                    <button type="button" class="btn btn-outline-danger" @onclick="() => RemoveEditAttributeOption(index)">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" @bind="editOptionInput" placeholder="Enter new option" @onkeypress="HandleEditOptionKeyPress" />
+                                        <button type="button" class="btn btn-outline-primary" @onclick="AddEditAttributeOption">
+                                            <i class="bi bi-plus-circle me-1"></i>Add
+                                        </button>
+                                    </div>
+                                </div>
+                                <small class="text-muted">Add options that users can select from</small>
+                            </div>
+                        }
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Placeholder</label>
+                                <InputText @bind-Value="editAttribute.Placeholder" class="form-control" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Default Value</label>
+                                <InputText @bind-Value="editAttribute.DefaultValue" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <InputCheckbox @bind-Value="editAttributeIsRequired" class="form-check-input" id="editAttrRequired" />
+                                    <label class="form-check-label" for="editAttrRequired">Required Field</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <InputCheckbox @bind-Value="editAttributeIsActive" class="form-check-input" id="editAttrActive" />
+                                    <label class="form-check-label" for="editAttrActive">Active</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary" disabled="@isEditingAttribute">
+                                @if (isEditingAttribute)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1"></span>
+                                }
+                                Save Changes
+                            </button>
+                            <button type="button" class="btn btn-secondary" @onclick="CloseEditAttributeModal">Cancel</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     [Parameter]
     public int Id { get; set; }
@@ -314,6 +481,20 @@
     private bool isAddingAttribute = false;
     private TripTypeAttributeDto? attributeToDelete;
     private bool isDeletingAttribute = false;
+    
+    // Edit attribute
+    private bool showEditAttributeModal = false;
+    private UpdateTripTypeAttributeDto? editAttribute;
+    private int editAttributeId;
+    private bool isEditingAttribute = false;
+    private bool editAttributeIsRequired;
+    private bool editAttributeIsActive;
+    
+    // Select options management
+    private List<string> newAttributeOptions = new();
+    private string newOptionInput = string.Empty;
+    private List<string> editAttributeOptions = new();
+    private string editOptionInput = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -380,6 +561,8 @@
             IsActive = true,
             DisplayOrder = tripType?.Attributes.Count ?? 0
         };
+        newAttributeOptions = new List<string>();
+        newOptionInput = string.Empty;
         showAddAttributeModal = true;
     }
 
@@ -387,6 +570,8 @@
     {
         showAddAttributeModal = false;
         newAttribute = new();
+        newAttributeOptions = new List<string>();
+        newOptionInput = string.Empty;
     }
 
     private async Task HandleAddAttribute()
@@ -396,8 +581,13 @@
             isAddingAttribute = true;
             errorMessage = null;
 
+            if (newAttribute.DataType == "select")
+            {
+                newAttribute.Options = System.Text.Json.JsonSerializer.Serialize(newAttributeOptions);
+            }
+
             var created = await ApiService.CreateTripTypeAttributeAsync(newAttribute);
-            await LoadTripType(); // Reload to get updated attributes
+            await LoadTripType();
             CloseAddAttributeModal();
             successMessage = "Attribute added successfully!";
         }
@@ -408,6 +598,39 @@
         finally
         {
             isAddingAttribute = false;
+        }
+    }
+    
+    private void AddNewAttributeOption()
+    {
+        if (!string.IsNullOrWhiteSpace(newOptionInput))
+        {
+            newAttributeOptions.Add(newOptionInput.Trim());
+            newOptionInput = string.Empty;
+        }
+    }
+    
+    private void RemoveNewAttributeOption(int index)
+    {
+        if (index >= 0 && index < newAttributeOptions.Count)
+        {
+            newAttributeOptions.RemoveAt(index);
+        }
+    }
+    
+    private void UpdateNewAttributeOption(int index, string value)
+    {
+        if (index >= 0 && index < newAttributeOptions.Count)
+        {
+            newAttributeOptions[index] = value;
+        }
+    }
+    
+    private void HandleNewOptionKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            AddNewAttributeOption();
         }
     }
 
@@ -440,6 +663,115 @@
         finally
         {
             isDeletingAttribute = false;
+        }
+    }
+
+    private void ShowEditAttributeModal(TripTypeAttributeDto attribute)
+    {
+        editAttributeId = attribute.Id;
+        editAttribute = new UpdateTripTypeAttributeDto
+        {
+            Name = attribute.Name,
+            Label = attribute.Label,
+            Description = attribute.Description,
+            DataType = attribute.DataType,
+            DisplayOrder = attribute.DisplayOrder,
+            Options = attribute.Options,
+            DefaultValue = attribute.DefaultValue,
+            ValidationRules = attribute.ValidationRules,
+            Placeholder = attribute.Placeholder
+        };
+        editAttributeIsRequired = attribute.IsRequired;
+        editAttributeIsActive = attribute.IsActive;
+        
+        editAttributeOptions = new List<string>();
+        editOptionInput = string.Empty;
+        if (!string.IsNullOrEmpty(attribute.Options))
+        {
+            try
+            {
+                var options = System.Text.Json.JsonSerializer.Deserialize<List<string>>(attribute.Options);
+                if (options != null)
+                {
+                    editAttributeOptions = options;
+                }
+            }
+            catch { }
+        }
+        
+        showEditAttributeModal = true;
+    }
+
+    private void CloseEditAttributeModal()
+    {
+        showEditAttributeModal = false;
+        editAttribute = null;
+        editAttributeOptions = new List<string>();
+        editOptionInput = string.Empty;
+    }
+
+    private async Task HandleEditAttribute()
+    {
+        if (editAttribute == null) return;
+
+        try
+        {
+            isEditingAttribute = true;
+            errorMessage = null;
+
+            editAttribute.IsRequired = editAttributeIsRequired;
+            editAttribute.IsActive = editAttributeIsActive;
+            
+            if (editAttribute.DataType == "select")
+            {
+                editAttribute.Options = System.Text.Json.JsonSerializer.Serialize(editAttributeOptions);
+            }
+
+            await ApiService.UpdateTripTypeAttributeAsync(editAttributeId, editAttribute);
+            await LoadTripType();
+            CloseEditAttributeModal();
+            successMessage = "Attribute updated successfully!";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error updating attribute: {ex.Message}";
+        }
+        finally
+        {
+            isEditingAttribute = false;
+        }
+    }
+    
+    private void AddEditAttributeOption()
+    {
+        if (!string.IsNullOrWhiteSpace(editOptionInput))
+        {
+            editAttributeOptions.Add(editOptionInput.Trim());
+            editOptionInput = string.Empty;
+        }
+    }
+    
+    private void RemoveEditAttributeOption(int index)
+    {
+        if (index >= 0 && index < editAttributeOptions.Count)
+        {
+            editAttributeOptions.RemoveAt(index);
+        }
+    }
+    
+    private void UpdateEditAttributeOption(int index, string value)
+    {
+        if (index >= 0 && index < editAttributeOptions.Count)
+        {
+            editAttributeOptions[index] = value;
+        }
+    }
+    
+    private void HandleEditOptionKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            AddEditAttributeOption();
         }
     }
 

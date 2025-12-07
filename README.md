@@ -2,10 +2,13 @@
 
 A full-stack web application for managing emergency medical dispatch operations with comprehensive trip management, status workflow, audit trails, real-time tracking, and advanced telemetry.
 
-**Version:** 0.0.21 | **Last Updated:** 2025-12-06
+**Version:** 0.0.23 | **Last Updated:** 2025-12-07
 
-> **Latest Updates (2025-12-06):** 
-> - PricingMatrix DataType for TripType attributes ⭐ NEW
+> **Latest Updates (2025-12-07):** 
+> - Improved select options UI for TripType attributes ⭐ NEW
+> - Dynamic add/remove/edit for dropdown options ⭐ NEW
+> - Editable TripType attributes (DataType, Options, all fields) ✅
+> - PricingMatrix DataType for TripType attributes ✅
 > - Region detection from OpenStreetMap during trip creation ✅
 > - Region-aware pricing: uses regional pricing when from/to regions match ✅
 > - Trip response now includes fromRegion and toRegion fields ✅
