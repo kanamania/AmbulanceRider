@@ -25,23 +25,11 @@ EXPOSE 8080
 
 # Corrected RUN command
 RUN set -eux; \
-    # 1. Update package lists, allowing unauthenticated packages temporarily.
-    #    This is the only way to get the list to find the keyring package.
-    apt-get update --allow-unauthenticated; \
-    \
-    # 2. Install the official Debian keyrings. This fixes the root problem.
+    apt-get update -o Acquire::AllowInsecureRepositories=true; \
     apt-get install -y --no-install-recommends debian-archive-keyring; \
-    \
-    # 3. Perform a clean, secure update (now that the keys are installed).
     apt-get update; \
-    \
-    # 4. Install your desired package (e.g., curl, which you needed in the previous step).
-    #    (You didn't ask for a specific package here, but you would add it here)
-    # apt-get install -y --no-install-recommends curl; \
-    \
-    # 5. Clean up the cache.
     rm -rf /var/lib/apt/lists/*
-    
+        
 # Copy the published app and dotnet tools
 COPY --from=publish /app/publish .
 COPY --from=build /root/.dotnet/tools /root/.dotnet/tools
