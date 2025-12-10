@@ -1,9 +1,9 @@
 # Build stage
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Install EF Core tools
-RUN dotnet tool install --global dotnet-ef --version 9.0.10
+RUN dotnet tool install --global dotnet-ef --version 10.0.0
 ENV PATH="$PATH:/root/.dotnet/tools"
 
 # Copy csproj and restore dependencies
@@ -19,7 +19,7 @@ FROM build AS publish
 RUN dotnet publish "AmbulanceRider.API.csproj" -c Release -o /app/publish
 
 # Runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 EXPOSE 8080
 
