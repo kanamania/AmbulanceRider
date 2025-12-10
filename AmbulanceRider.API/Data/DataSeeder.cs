@@ -130,102 +130,102 @@ public static class DataSeeder
                     CompanyId = defaultCompany.Id
                 }, "Admin@123", "Admin"),
                 
-                (new User
-                {
-                    UserName = "sarah.admin@ambulance.com",
-                    FirstName = "Sarah",
-                    LastName = "Johnson",
-                    Email = "sarah.admin@ambulance.com",
-                    PhoneNumber = "+255712345002",
-                    EmailConfirmed = true,
-                    CreatedAt = DateTime.UtcNow,
-                    CompanyId = defaultCompany.Id
-                }, "Admin@123", "Admin"),
-                
-                // Driver users
-                (new User
-                {
-                    UserName = "driver1@ambulance.com",
-                    FirstName = "Michael",
-                    LastName = "Driver",
-                    Email = "driver1@ambulance.com",
-                    PhoneNumber = "+255712345101",
-                    EmailConfirmed = true,
-                    CreatedAt = DateTime.UtcNow,
-                    CompanyId = defaultCompany.Id
-                }, "Driver@123", "Driver"),
-                
-                (new User
-                {
-                    UserName = "driver2@ambulance.com",
-                    FirstName = "James",
-                    LastName = "Wilson",
-                    Email = "driver2@ambulance.com",
-                    PhoneNumber = "+255712345102",
-                    EmailConfirmed = true,
-                    CreatedAt = DateTime.UtcNow,
-                    CompanyId = defaultCompany.Id
-                }, "Driver@123", "Driver"),
-                
-                (new User
-                {
-                    UserName = "driver3@ambulance.com",
-                    FirstName = "David",
-                    LastName = "Brown",
-                    Email = "driver3@ambulance.com",
-                    PhoneNumber = "+255712345103",
-                    EmailConfirmed = true,
-                    CreatedAt = DateTime.UtcNow,
-                    CompanyId = defaultCompany.Id
-                }, "Driver@123", "Driver"),
-                
-                (new User
-                {
-                    UserName = "driver4@ambulance.com",
-                    FirstName = "Robert",
-                    LastName = "Taylor",
-                    Email = "driver4@ambulance.com",
-                    PhoneNumber = "+255712345104",
-                    EmailConfirmed = true,
-                    CreatedAt = DateTime.UtcNow,
-                    CompanyId = defaultCompany.Id
-                }, "Driver@123", "Driver"),
-                
-                // Regular users
-                (new User
-                {
-                    UserName = "user1@ambulance.com",
-                    FirstName = "Emily",
-                    LastName = "User",
-                    Email = "user1@ambulance.com",
-                    PhoneNumber = "+255712345201",
-                    EmailConfirmed = true,
-                    CreatedAt = DateTime.UtcNow,
-                    CompanyId = defaultCompany.Id
-                }, "User@123", "User"),
-                
-                (new User
-                {
-                    UserName = "user2@ambulance.com",
-                    FirstName = "Jessica",
-                    LastName = "Martinez",
-                    Email = "user2@ambulance.com",
-                    PhoneNumber = "+255712345202",
-                    EmailConfirmed = true,
-                    CreatedAt = DateTime.UtcNow
-                }, "User@123", "User"),
-                
-                (new User
-                {
-                    UserName = "user3@ambulance.com",
-                    FirstName = "Daniel",
-                    LastName = "Anderson",
-                    Email = "user3@ambulance.com",
-                    PhoneNumber = "+255712345203",
-                    EmailConfirmed = true,
-                    CreatedAt = DateTime.UtcNow,
-                    CompanyId = defaultCompany.Id
-                }, "User@123", "User")
+                // (new User
+                // {
+                //     UserName = "sarah.admin@ambulance.com",
+                //     FirstName = "Sarah",
+                //     LastName = "Johnson",
+                //     Email = "sarah.admin@ambulance.com",
+                //     PhoneNumber = "+255712345002",
+                //     EmailConfirmed = true,
+                //     CreatedAt = DateTime.UtcNow,
+                //     CompanyId = defaultCompany.Id
+                // }, "Admin@123", "Admin"),
+                //
+                // // Driver users
+                // (new User
+                // {
+                //     UserName = "driver1@ambulance.com",
+                //     FirstName = "Michael",
+                //     LastName = "Driver",
+                //     Email = "driver1@ambulance.com",
+                //     PhoneNumber = "+255712345101",
+                //     EmailConfirmed = true,
+                //     CreatedAt = DateTime.UtcNow,
+                //     CompanyId = defaultCompany.Id
+                // }, "Driver@123", "Driver"),
+                //
+                // (new User
+                // {
+                //     UserName = "driver2@ambulance.com",
+                //     FirstName = "James",
+                //     LastName = "Wilson",
+                //     Email = "driver2@ambulance.com",
+                //     PhoneNumber = "+255712345102",
+                //     EmailConfirmed = true,
+                //     CreatedAt = DateTime.UtcNow,
+                //     CompanyId = defaultCompany.Id
+                // }, "Driver@123", "Driver"),
+                //
+                // (new User
+                // {
+                //     UserName = "driver3@ambulance.com",
+                //     FirstName = "David",
+                //     LastName = "Brown",
+                //     Email = "driver3@ambulance.com",
+                //     PhoneNumber = "+255712345103",
+                //     EmailConfirmed = true,
+                //     CreatedAt = DateTime.UtcNow,
+                //     CompanyId = defaultCompany.Id
+                // }, "Driver@123", "Driver"),
+                //
+                // (new User
+                // {
+                //     UserName = "driver4@ambulance.com",
+                //     FirstName = "Robert",
+                //     LastName = "Taylor",
+                //     Email = "driver4@ambulance.com",
+                //     PhoneNumber = "+255712345104",
+                //     EmailConfirmed = true,
+                //     CreatedAt = DateTime.UtcNow,
+                //     CompanyId = defaultCompany.Id
+                // }, "Driver@123", "Driver"),
+                //
+                // // Regular users
+                // (new User
+                // {
+                //     UserName = "user1@ambulance.com",
+                //     FirstName = "Emily",
+                //     LastName = "User",
+                //     Email = "user1@ambulance.com",
+                //     PhoneNumber = "+255712345201",
+                //     EmailConfirmed = true,
+                //     CreatedAt = DateTime.UtcNow,
+                //     CompanyId = defaultCompany.Id
+                // }, "User@123", "User"),
+                //
+                // (new User
+                // {
+                //     UserName = "user2@ambulance.com",
+                //     FirstName = "Jessica",
+                //     LastName = "Martinez",
+                //     Email = "user2@ambulance.com",
+                //     PhoneNumber = "+255712345202",
+                //     EmailConfirmed = true,
+                //     CreatedAt = DateTime.UtcNow
+                // }, "User@123", "User"),
+                //
+                // (new User
+                // {
+                //     UserName = "user3@ambulance.com",
+                //     FirstName = "Daniel",
+                //     LastName = "Anderson",
+                //     Email = "user3@ambulance.com",
+                //     PhoneNumber = "+255712345203",
+                //     EmailConfirmed = true,
+                //     CreatedAt = DateTime.UtcNow,
+                //     CompanyId = defaultCompany.Id
+                // }, "User@123", "User")
             };
 
             // Create users that don't already exist
@@ -243,15 +243,15 @@ public static class DataSeeder
         var seededUserEmails = new[]
         {
             "demo@gmail.com",
-            "sarah.admin@ambulance.com",
-            "driver1@ambulance.com",
-            "driver2@ambulance.com",
-            "driver3@ambulance.com",
-            "driver4@ambulance.com",
-            "user1@ambulance.com",
-            "user2@ambulance.com",
-            "user3@ambulance.com",
-            "demo@gmail.com"
+            // "sarah.admin@ambulance.com",
+            // "driver1@ambulance.com",
+            // "driver2@ambulance.com",
+            // "driver3@ambulance.com",
+            // "driver4@ambulance.com",
+            // "user1@ambulance.com",
+            // "user2@ambulance.com",
+            // "user3@ambulance.com",
+            // "demo@gmail.com"
         };
 
         var usersNeedingCompany = await userManager.Users
@@ -492,8 +492,7 @@ public static class DataSeeder
             var vehicleTypes = new List<VehicleType>
             {
                 new() { Id = 1, Name = "Ambulance" },
-                new() { Id = 2, Name = "Boda Boda" },
-                new() { Id = 3, Name = "Emergency Van" }
+                new() { Id = 2, Name = "Boda Boda" }
             };
             await context.VehicleTypes.AddRangeAsync(vehicleTypes);
             await context.SaveChangesAsync();
@@ -514,11 +513,6 @@ public static class DataSeeder
                 .Select(vt => vt.Id)
                 .FirstOrDefaultAsync();
             
-            var emergencyVanTypeId = await context.VehicleTypes
-                .Where(vt => vt.Name == "Emergency Van")
-                .Select(vt => vt.Id)
-                .FirstOrDefaultAsync();
-
             // Only proceed if we have the required vehicle types
             if (ambulanceTypeId > 0 && bodaBodaTypeId > 0)
             {
@@ -535,69 +529,56 @@ public static class DataSeeder
                         Image = "/images/ambulance1.jpg",
                         CreatedAt = DateTime.UtcNow
                     },
-                    new()
-                    {
-                        Name = "Ambulance Unit 2",
-                        PlateNumber = "T 456 DEF",
-                        VehicleTypeId = ambulanceTypeId,
-                        Image = "/images/ambulance2.jpg",
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new()
-                    {
-                        Name = "Ambulance Unit 3",
-                        PlateNumber = "T 789 GHI",
-                        VehicleTypeId = ambulanceTypeId,
-                        Image = "/images/ambulance3.jpg",
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new()
-                    {
-                        Name = "Ambulance Unit 4",
-                        PlateNumber = "T 114 ABC",
-                        VehicleTypeId = ambulanceTypeId,
-                        Image = "/images/ambulance4.jpg",
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new()
-                    {
-                        Name = "Boda Boda 1",
-                        PlateNumber = "MC 111 AAA",
-                        VehicleTypeId = bodaBodaTypeId,
-                        Image = "/images/boda1.jpg",
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new()
-                    {
-                        Name = "Boda Boda 2",
-                        PlateNumber = "MC 222 BBB",
-                        VehicleTypeId = bodaBodaTypeId,
-                        Image = "/images/boda2.jpg",
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new()
-                    {
-                        Name = "Boda Boda 3",
-                        PlateNumber = "MC 333 CCC",
-                        VehicleTypeId = bodaBodaTypeId,
-                        Image = "/images/boda3.jpg",
-                        CreatedAt = DateTime.UtcNow
-                    }
+                    // new()
+                    // {
+                    //     Name = "Ambulance Unit 2",
+                    //     PlateNumber = "T 456 DEF",
+                    //     VehicleTypeId = ambulanceTypeId,
+                    //     Image = "/images/ambulance2.jpg",
+                    //     CreatedAt = DateTime.UtcNow
+                    // },
+                    // new()
+                    // {
+                    //     Name = "Ambulance Unit 3",
+                    //     PlateNumber = "T 789 GHI",
+                    //     VehicleTypeId = ambulanceTypeId,
+                    //     Image = "/images/ambulance3.jpg",
+                    //     CreatedAt = DateTime.UtcNow
+                    // },
+                    // new()
+                    // {
+                    //     Name = "Ambulance Unit 4",
+                    //     PlateNumber = "T 114 ABC",
+                    //     VehicleTypeId = ambulanceTypeId,
+                    //     Image = "/images/ambulance4.jpg",
+                    //     CreatedAt = DateTime.UtcNow
+                    // },
+                    // new()
+                    // {
+                    //     Name = "Boda Boda 1",
+                    //     PlateNumber = "MC 111 AAA",
+                    //     VehicleTypeId = bodaBodaTypeId,
+                    //     Image = "/images/boda1.jpg",
+                    //     CreatedAt = DateTime.UtcNow
+                    // },
+                    // new()
+                    // {
+                    //     Name = "Boda Boda 2",
+                    //     PlateNumber = "MC 222 BBB",
+                    //     VehicleTypeId = bodaBodaTypeId,
+                    //     Image = "/images/boda2.jpg",
+                    //     CreatedAt = DateTime.UtcNow
+                    // },
+                    // new()
+                    // {
+                    //     Name = "Boda Boda 3",
+                    //     PlateNumber = "MC 333 CCC",
+                    //     VehicleTypeId = bodaBodaTypeId,
+                    //     Image = "/images/boda3.jpg",
+                    //     CreatedAt = DateTime.UtcNow
+                    // }
                 };
-
-                // Add Emergency Van if the type exists
-                if (emergencyVanTypeId > 0)
-                {
-                    vehicles.Add(new Vehicle
-                    {
-                        Name = "Emergency Van 1",
-                        PlateNumber = "T 321 JKL",
-                        VehicleTypeId = emergencyVanTypeId,
-                        Image = "/images/van1.jpg",
-                        CreatedAt = DateTime.UtcNow
-                    });
-                }
-
+                
                 // Filter out vehicles that already exist
                 var newVehicles = vehicles.Where(v => !existingPlateNumbers.Contains(v.PlateNumber)).ToList();
 
@@ -619,39 +600,39 @@ public static class DataSeeder
                     ("MC 333 CCC", new[] { "driver1@ambulance.com" })
                 };
 
-                var platesToSeed = vehicleDriverSeeds
-                    .Select(vds => vds.PlateNumber)
-                    .Distinct()
-                    .ToList();
+                // var platesToSeed = vehicleDriverSeeds
+                //     .Select(vds => vds.PlateNumber)
+                //     .Distinct()
+                //     .ToList();
+                //
+                // var driverEmailsToSeed = vehicleDriverSeeds
+                //     .SelectMany(vds => vds.DriverEmails)
+                //     .Distinct(StringComparer.OrdinalIgnoreCase)
+                //     .ToList();
 
-                var driverEmailsToSeed = vehicleDriverSeeds
-                    .SelectMany(vds => vds.DriverEmails)
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToList();
+                // var vehiclesByPlate = await context.Vehicles
+                //     .Where(v => platesToSeed.Contains(v.PlateNumber))
+                //     .ToDictionaryAsync(v => v.PlateNumber, v => v);
+                //
+                // var driversByEmail = await userManager.Users
+                //     .Where(u => u.Email != null && driverEmailsToSeed.Contains(u.Email))
+                //     .ToDictionaryAsync(u => u.Email!, u => u, StringComparer.OrdinalIgnoreCase);
+                //
+                // var vehicleIds = vehiclesByPlate.Values.Select(v => v.Id).ToList();
+                // var driverIds = driversByEmail.Values.Select(d => d.Id).ToList();
+                //
+                // var existingAssignments = await context.VehicleDrivers
+                //     .Where(vd => vehicleIds.Contains(vd.VehicleId) && driverIds.Contains(vd.UserId))
+                //     .Select(vd => new { vd.VehicleId, vd.UserId })
+                //     .ToListAsync();
 
-                var vehiclesByPlate = await context.Vehicles
-                    .Where(v => platesToSeed.Contains(v.PlateNumber))
-                    .ToDictionaryAsync(v => v.PlateNumber, v => v);
+                // var existingSet = new HashSet<(int VehicleId, Guid UserId)>(
+                    // existingAssignments.Select(ea => (ea.VehicleId, ea.UserId))
+                // );
 
-                var driversByEmail = await userManager.Users
-                    .Where(u => u.Email != null && driverEmailsToSeed.Contains(u.Email))
-                    .ToDictionaryAsync(u => u.Email!, u => u, StringComparer.OrdinalIgnoreCase);
+                // var assignmentsToAdd = new List<VehicleDriver>();
 
-                var vehicleIds = vehiclesByPlate.Values.Select(v => v.Id).ToList();
-                var driverIds = driversByEmail.Values.Select(d => d.Id).ToList();
-
-                var existingAssignments = await context.VehicleDrivers
-                    .Where(vd => vehicleIds.Contains(vd.VehicleId) && driverIds.Contains(vd.UserId))
-                    .Select(vd => new { vd.VehicleId, vd.UserId })
-                    .ToListAsync();
-
-                var existingSet = new HashSet<(int VehicleId, Guid UserId)>(
-                    existingAssignments.Select(ea => (ea.VehicleId, ea.UserId))
-                );
-
-                var assignmentsToAdd = new List<VehicleDriver>();
-
-                foreach (var seed in vehicleDriverSeeds)
+                /*foreach (var seed in vehicleDriverSeeds)
                 {
                     if (!vehiclesByPlate.TryGetValue(seed.PlateNumber, out var vehicle))
                     {
@@ -680,13 +661,13 @@ public static class DataSeeder
                         });
                         existingSet.Add(key);
                     }
-                }
+                }*/
 
-                if (assignmentsToAdd.Any())
-                {
-                    await context.VehicleDrivers.AddRangeAsync(assignmentsToAdd);
-                    await context.SaveChangesAsync();
-                }
+                // if (assignmentsToAdd.Any())
+                // {
+                    // await context.VehicleDrivers.AddRangeAsync(assignmentsToAdd);
+                    // await context.SaveChangesAsync();
+                // }
             }
         }
 
