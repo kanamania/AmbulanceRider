@@ -10,3 +10,5 @@ riderModule.iml
 
 # SSL Certificates
 certbot/
+
+global.json
