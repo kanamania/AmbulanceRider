@@ -1,7 +1,7 @@
 # End User Documentation
 
-**Last Updated:** 2025-12-10T04:12:00+03:00  
-**Version:** 0.0.24
+**Last Updated:** 2025-12-10T05:49:00+03:00  
+**Version:** 0.0.25
 
 ---
 

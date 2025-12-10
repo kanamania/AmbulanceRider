@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.0.25] - 2025-12-10T05:49:00+03:00
+
+### Changed
+- Upgraded to .NET 10.0 across all projects (API, Blazor WebAssembly)
+- Updated global.json SDK version from 9.0.305 to 10.0.100
+- Updated TargetFramework from net9.0 to net10.0 in all .csproj files
+- Updated all Microsoft and EF Core packages to version 10.0.0
+- Docker images already using .NET 10.0 SDK and runtime (sdk:10.0, aspnet:10.0)
+
+### Packages Updated (API)
+- AspNetCore.HealthChecks.NpgSql: 9.0.0 → 10.0.0
+- Microsoft.AspNetCore.Authentication.JwtBearer: 9.0.0 → 10.0.0
+- Microsoft.AspNetCore.Identity.EntityFrameworkCore: 9.0.0 → 10.0.0
+- Microsoft.AspNetCore.OpenApi: 9.0.9 → 10.0.0
+- Microsoft.EntityFrameworkCore: 9.0.10 → 10.0.0
+- Microsoft.EntityFrameworkCore.Design: 9.0.0 → 10.0.0
+- Microsoft.Extensions.Diagnostics.HealthChecks: 9.0.0 → 10.0.0
+- Npgsql.EntityFrameworkCore.PostgreSQL: 9.0.2 → 10.0.0
+
+### Packages Updated (Blazor Client)
+- Microsoft.AspNetCore.Components.Authorization: 9.0.0 → 10.0.0
+- Microsoft.AspNetCore.Components.WebAssembly: 9.0.0 → 10.0.0
+- Microsoft.AspNetCore.Components.WebAssembly.DevServer: 9.0.0 → 10.0.0
+- Microsoft.AspNetCore.SignalR.Client: 9.0.0 → 10.0.0
+- Microsoft.AspNetCore.WebUtilities: 9.0.10 → 10.0.0
+
 ## [0.0.24] - 2025-12-10T04:12:00+03:00
 
 ### Fixed

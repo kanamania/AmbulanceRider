@@ -1,7 +1,7 @@
 # API Specifications
 
-**Last Updated:** 2025-12-07T13:45:00+03:00  
-**Version:** 0.0.23  
+**Last Updated:** 2025-12-10T05:49:00+03:00  
+**Version:** 0.0.25  
 **Base URL:** `http://localhost:5000/api` (Development)  
 **Production URL:** `https://app.globalexpress.co.tz/api`
 
@@ -9,7 +9,7 @@
 
 ## Overview
 
-The AmbulanceRider API is a RESTful API built with ASP.NET Core 9.0. It provides endpoints for managing emergency medical dispatch operations.
+The AmbulanceRider API is a RESTful API built with ASP.NET Core 10.0. It provides endpoints for managing emergency medical dispatch operations.
 
 ### API Features
 - JWT Bearer token authentication

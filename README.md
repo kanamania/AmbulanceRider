@@ -2,11 +2,12 @@
 
 A full-stack web application for managing emergency medical dispatch operations with comprehensive trip management, status workflow, audit trails, real-time tracking, and advanced telemetry.
 
-**Version:** 0.0.24 | **Last Updated:** 2025-12-10
+**Version:** 0.0.25 | **Last Updated:** 2025-12-10
 
 > **Latest Updates (2025-12-10):** 
-> - Hardened all Docker images to use HTTPS Debian mirrors before apt operations to avoid invalid GPG signature failures ✅
-> - Ensured curl/libpq installation steps clean apt lists for reproducible builds ✅
+> - Upgraded to .NET 10.0 across all projects (API, Blazor WebAssembly) ✅
+> - Updated all Microsoft and EF Core packages to version 10.0.0 ✅
+> - Updated Docker images to use .NET 10.0 SDK and runtime ✅
 > 
 > **Previous (2025-12-07):**
 > - Improved select options UI for TripType attributes ⭐ NEW
@@ -35,7 +36,7 @@ A full-stack web application for managing emergency medical dispatch operations 
 ## 🎯 Features
 
 ### Backend API
-- ✅ **RESTful API** with ASP.NET Core 9.0
+- ✅ **RESTful API** with ASP.NET Core 10.0
 - ✅ **JWT Authentication** with role-based authorization
 - ✅ **PostgreSQL Database** with Entity Framework Core
 - ✅ **Swagger UI** for API documentation and testing
@@ -46,7 +47,7 @@ A full-stack web application for managing emergency medical dispatch operations 
 - ✅ **Telemetry & Analytics** - Device, GPS, and user behavior tracking ⭐ NEW
 
 ### Frontend
-- ✅ **Blazor WebAssembly** (.NET 9.0)
+- ✅ **Blazor WebAssembly** (.NET 10.0)
 - ✅ **Bootstrap 5.3** for responsive UI
 - ✅ **Multi-level Navigation** with dropdown menus
 - ✅ **Complete CRUD Operations** for all modules
@@ -154,7 +155,7 @@ AmbulanceRider/
 ## 🚀 Quick Start
 
 ### Prerequisites
-- .NET 9.0 SDK
+- .NET 10.0 SDK
 - Docker Desktop (for PostgreSQL)
 - PowerShell 7
 
@@ -318,8 +319,8 @@ Response:
 ## 🛠️ Technologies
 
 ### Backend
-- **Framework:** ASP.NET Core 9.0
-- **ORM:** Entity Framework Core 9.0
+- **Framework:** ASP.NET Core 10.0
+- **ORM:** Entity Framework Core 10.0
 - **Database:** PostgreSQL 17.6
 - **Authentication:** JWT Bearer
 - **Password Hashing:** BCrypt.Net
@@ -497,4 +498,4 @@ For issues and questions, please create an issue in the repository.
 
 ---
 
-**Built with ❤️ using .NET 9.0 and Blazor WebAssembly**
+**Built with ❤️ using .NET 10.0 and Blazor WebAssembly**

@@ -1,13 +1,13 @@
 # Planning & Implementation Roadmap
 
-**Last Updated:** 2025-12-10T04:12:00+03:00  
-**Version:** 0.0.24
+**Last Updated:** 2025-12-10T05:49:00+03:00  
+**Version:** 0.0.25
 
 ---
 
 ## Project Overview
 
-AmbulanceRider (rebranded as Global Express) is a full-stack emergency medical dispatch and logistics management system built with ASP.NET Core 9.0 API and Blazor WebAssembly frontend.
+AmbulanceRider (rebranded as Global Express) is a full-stack emergency medical dispatch and logistics management system built with ASP.NET Core 10.0 API and Blazor WebAssembly frontend.
 
 ---
 
