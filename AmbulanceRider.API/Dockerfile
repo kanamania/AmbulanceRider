@@ -37,7 +37,7 @@ ENV PATH="$PATH:/root/.dotnet/tools"
 
 # Health check
 HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=3 \
-    CMD curl -f http://localhost:5000/health || exit 1
+    CMD curl -f http://localhost:8080/health || exit 1
 
 # Start the application
 ENTRYPOINT ["dotnet", "AmbulanceRider.API.dll"]
