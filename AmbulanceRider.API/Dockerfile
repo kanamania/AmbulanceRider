@@ -23,20 +23,16 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 EXPOSE 8080
 
+# This should be your first RUN command after FROM
+RUN apt-get update && apt-get install -y debian-archive-keyring && rm -rf /var/lib/apt/lists/*
+
 # Install curl for health checks (ensure HTTPS sources to avoid signature issues)
 RUN set -eux; \
-    if [ -f /etc/apt/sources.list ]; then \
-        sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list; \
-    fi; \
-    if [ -d /etc/apt/sources.list.d ]; then \
-        for source in /etc/apt/sources.list.d/*; do \
-            if [ -f "$source" ]; then \
-                sed -i 's|http://deb.debian.org|https://deb.debian.org|g' "$source"; \
-            fi; \
-        done; \
-    fi; \
+    # ... sed commands ... \
     apt-get update; \
-    apt-get install -y --no-install-recommends curl; \
+    # Try installing the keyring and curl in one go
+    apt-get install -y --no-install-recommends debian-archive-keyring curl; \
+    # Final cleanup
     rm -rf /var/lib/apt/lists/*
 
 # Copy the published app and dotnet tools
