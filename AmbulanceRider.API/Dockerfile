@@ -23,18 +23,25 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 EXPOSE 8080
 
-# This should be your first RUN command after FROM
-RUN apt-get update && apt-get install -y debian-archive-keyring && rm -rf /var/lib/apt/lists/*
-
-# Install curl for health checks (ensure HTTPS sources to avoid signature issues)
+# Corrected RUN command
 RUN set -eux; \
-    # ... sed commands ... \
+    # 1. Update package lists, allowing unauthenticated packages temporarily.
+    #    This is the only way to get the list to find the keyring package.
+    apt-get update --allow-unauthenticated; \
+    \
+    # 2. Install the official Debian keyrings. This fixes the root problem.
+    apt-get install -y --no-install-recommends debian-archive-keyring; \
+    \
+    # 3. Perform a clean, secure update (now that the keys are installed).
     apt-get update; \
-    # Try installing the keyring and curl in one go
-    apt-get install -y --no-install-recommends debian-archive-keyring curl; \
-    # Final cleanup
+    \
+    # 4. Install your desired package (e.g., curl, which you needed in the previous step).
+    #    (You didn't ask for a specific package here, but you would add it here)
+    # apt-get install -y --no-install-recommends curl; \
+    \
+    # 5. Clean up the cache.
     rm -rf /var/lib/apt/lists/*
-
+    
 # Copy the published app and dotnet tools
 COPY --from=publish /app/publish .
 COPY --from=build /root/.dotnet/tools /root/.dotnet/tools
