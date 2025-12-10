@@ -1,7 +1,7 @@
 # End User Documentation
 
-**Last Updated:** 2025-12-07T13:45:00+03:00  
-**Version:** 0.0.23
+**Last Updated:** 2025-12-10T04:12:00+03:00  
+**Version:** 0.0.24
 
 ---
 
@@ -387,6 +387,10 @@ Pricing is calculated based on package dimensions:
 ## Troubleshooting
 
 ### Common Issues
+
+| Issue | Resolution |
+|-------|------------|
+| Docker build fails with `At least one invalid signature was encountered` | Already addressed in v0.0.24 Dockerfiles. If using older images, switch `/etc/apt/sources.list` entries to `https://deb.debian.org` before `apt-get update`. |
 
 | Issue | Solution |
 |-------|----------|

@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.0.24] - 2025-12-10T04:12:00+03:00
+
+### Fixed
+- Resolved Docker build failures caused by invalid Debian repository signatures by forcing all Docker images (API, Blazor client, root build image) to switch `deb.debian.org` sources to HTTPS when present
+- Added guards so builds gracefully skip sed replacements when `/etc/apt/sources.list` does not exist, avoiding runtime errors on slim images
+- Ensured curl/libpq installs use `--no-install-recommends` and clean apt lists for reproducible image layers
+
+### DevOps
+- Documented the hardened Docker process across README and troubleshooting guides to highlight the new build requirement
+
 ## [0.0.23] - 2025-12-07T13:45:00+03:00
 
 ### Changed

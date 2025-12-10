@@ -2,9 +2,13 @@
 
 A full-stack web application for managing emergency medical dispatch operations with comprehensive trip management, status workflow, audit trails, real-time tracking, and advanced telemetry.
 
-**Version:** 0.0.23 | **Last Updated:** 2025-12-07
+**Version:** 0.0.24 | **Last Updated:** 2025-12-10
 
-> **Latest Updates (2025-12-07):** 
+> **Latest Updates (2025-12-10):** 
+> - Hardened all Docker images to use HTTPS Debian mirrors before apt operations to avoid invalid GPG signature failures ✅
+> - Ensured curl/libpq installation steps clean apt lists for reproducible builds ✅
+> 
+> **Previous (2025-12-07):**
 > - Improved select options UI for TripType attributes ⭐ NEW
 > - Dynamic add/remove/edit for dropdown options ⭐ NEW
 > - Editable TripType attributes (DataType, Options, all fields) ✅

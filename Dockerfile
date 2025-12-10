@@ -2,12 +2,23 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Install Node.js for npm packages
-RUN apt-get update && apt-get install -y \
-    curl \
-    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs \
-    && rm -rf /var/lib/apt/lists/*
+# Install Node.js for npm packages (use HTTPS apt sources to avoid signature issues)
+RUN set -eux; \
+    if [ -f /etc/apt/sources.list ]; then \
+        sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list; \
+    fi; \
+    if [ -d /etc/apt/sources.list.d ]; then \
+        for source in /etc/apt/sources.list.d/*; do \
+            if [ -f "$source" ]; then \
+                sed -i 's|http://deb.debian.org|https://deb.debian.org|g' "$source"; \
+            fi; \
+        done; \
+    fi; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends curl; \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash -; \
+    apt-get install -y --no-install-recommends nodejs; \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy csproj and restore as distinct layers
 COPY ["AmbulanceRider/AmbulanceRider.csproj", "AmbulanceRider/"]

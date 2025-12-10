@@ -1,7 +1,7 @@
 # Planning & Implementation Roadmap
 
-**Last Updated:** 2025-12-07T13:45:00+03:00  
-**Version:** 0.0.23
+**Last Updated:** 2025-12-10T04:12:00+03:00  
+**Version:** 0.0.24
 
 ---
 
@@ -29,6 +29,7 @@ AmbulanceRider (rebranded as Global Express) is a full-stack emergency medical d
 | **Companies** | ✅ Complete | Multi-tenant company management |
 | **Dashboard** | ✅ Complete | Analytics, stats, company-specific views |
 | **Notifications** | ✅ Partial | SignalR hubs configured, basic implementation |
+| **Infrastructure** | ✅ Complete | Dockerfiles enforce HTTPS Debian mirrors before apt usage |
 
 ### Pending Features 🔄
 
