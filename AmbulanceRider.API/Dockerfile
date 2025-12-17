@@ -23,10 +23,10 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 EXPOSE 8080
 
-# Corrected RUN command
+# Install curl for health check
 RUN set -eux; \
     apt-get update -o Acquire::AllowInsecureRepositories=true; \
-    apt-get install -y --no-install-recommends debian-archive-keyring; \
+    apt-get install -y --no-install-recommends debian-archive-keyring curl; \
     apt-get update; \
     rm -rf /var/lib/apt/lists/*
         
