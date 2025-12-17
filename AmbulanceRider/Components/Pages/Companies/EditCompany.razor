@@ -6,100 +6,79 @@
 
 <PageTitle>Edit Company</PageTitle>
 
-<div class="px-6 py-8">
-    <div class="max-w-3xl mx-auto space-y-8">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-semibold text-gray-900 flex items-center gap-2">
-                    <i class="bi bi-building-gear"></i>
-                    Edit Company
-                </h1>
-                <p class="text-sm text-gray-600">Update organization information and contact details.</p>
-            </div>
-            <button class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-gray-500/40" @onclick="NavigateBack">
-                <i class="bi bi-arrow-left"></i>
-                Back to list
-            </button>
-        </div>
-
-        @if (isLoading)
-        {
-            <div class="flex justify-center py-20">
-                <div class="h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
-            </div>
-        }
-        else if (!string.IsNullOrEmpty(errorMessage))
-        {
-            <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700 flex items-start gap-3">
-                <i class="bi bi-exclamation-triangle text-xl"></i>
-                <span>@errorMessage</span>
-            </div>
-        }
-        else if (updateCompanyDto is not null)
-        {
-            <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
-                <div class="border-b border-gray-200 px-6 py-4">
-                    <h2 class="text-lg font-semibold text-gray-900">Company details</h2>
-                    <p class="text-sm text-gray-600">Fields marked with * are required.</p>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="bi bi-pencil me-2"></i>Edit Company</h3>
                 </div>
-                <EditForm Model="updateCompanyDto" OnValidSubmit="HandleSubmit" class="px-6 py-6 space-y-6">
-                    <DataAnnotationsValidator />
-                    <ValidationSummary class="text-sm text-red-600" />
-
-                    <div class="grid grid-cols-1 gap-6">
-                        <div class="space-y-2">
-                            <label class="text-sm font-medium text-gray-700" for="company-name">Company Name *</label>
-                            <InputText id="company-name" class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40" @bind-Value="updateCompanyDto.Name" />
-                            <ValidationMessage For="() => updateCompanyDto.Name" class="text-xs text-red-600" />
+                <div class="card-body">
+                    @if (isLoading)
+                    {
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary"></div>
                         </div>
-
-                        <div class="space-y-2">
-                            <label class="text-sm font-medium text-gray-700" for="company-description">Description</label>
-                            <InputTextArea id="company-description" class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40" @bind-Value="updateCompanyDto.Description" rows="3" placeholder="Short description of the organization" />
-                            <ValidationMessage For="() => updateCompanyDto.Description" class="text-xs text-red-600" />
+                    }
+                    else if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
                         </div>
+                    }
+                    else if (updateCompanyDto is not null)
+                    {
+                        <EditForm Model="updateCompanyDto" OnValidSubmit="HandleSubmit">
+                            <DataAnnotationsValidator />
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-2">
-                                <label class="text-sm font-medium text-gray-700" for="company-email">Contact Email</label>
-                                <InputText id="company-email" type="email" class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40" @bind-Value="updateCompanyDto.ContactEmail" />
-                                <ValidationMessage For="() => updateCompanyDto.ContactEmail" class="text-xs text-red-600" />
+                            <div class="mb-3">
+                                <label class="form-label">Company Name *</label>
+                                <InputText @bind-Value="updateCompanyDto.Name" class="form-control" />
+                                <ValidationMessage For="() => updateCompanyDto.Name" />
                             </div>
-                            <div class="space-y-2">
-                                <label class="text-sm font-medium text-gray-700" for="company-phone">Contact Phone</label>
-                                <InputText id="company-phone" class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40" @bind-Value="updateCompanyDto.ContactPhone" />
-                                <ValidationMessage For="() => updateCompanyDto.ContactPhone" class="text-xs text-red-600" />
+
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <InputTextArea @bind-Value="updateCompanyDto.Description" class="form-control" rows="3" placeholder="Short description of the organization" />
+                                <ValidationMessage For="() => updateCompanyDto.Description" />
                             </div>
-                        </div>
 
-                        <div class="space-y-2">
-                            <label class="text-sm font-medium text-gray-700" for="company-address">Address</label>
-                            <InputText id="company-address" class="block w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40" @bind-Value="updateCompanyDto.Address" />
-                            <ValidationMessage For="() => updateCompanyDto.Address" class="text-xs text-red-600" />
-                        </div>
-                    </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Contact Email</label>
+                                    <InputText @bind-Value="updateCompanyDto.ContactEmail" class="form-control" type="email" />
+                                    <ValidationMessage For="() => updateCompanyDto.ContactEmail" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Contact Phone</label>
+                                    <InputText @bind-Value="updateCompanyDto.ContactPhone" class="form-control" />
+                                    <ValidationMessage For="() => updateCompanyDto.ContactPhone" />
+                                </div>
+                            </div>
 
-                    <div class="flex items-center justify-end gap-3 pt-2">
-                        <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-gray-500/40" @onclick="NavigateBack" disabled="@isSubmitting">
-                            <i class="bi bi-x-circle"></i>
-                            Cancel
-                        </button>
-                        <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus-visible:ring focus-visible:ring-blue-500/70 disabled:opacity-60" disabled="@isSubmitting">
-                            @if (isSubmitting)
-                            {
-                                <span class="h-4 w-4 animate-spin rounded-full border-2 border-blue-200 border-t-white"></span>
-                                <span>Updating...</span>
-                            }
-                            else
-                            {
-                                <i class="bi bi-save"></i>
-                                <span>Save Changes</span>
-                            }
-                        </button>
-                    </div>
-                </EditForm>
+                            <div class="mb-3">
+                                <label class="form-label">Address</label>
+                                <InputText @bind-Value="updateCompanyDto.Address" class="form-control" />
+                                <ValidationMessage For="() => updateCompanyDto.Address" />
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" @onclick="NavigateBack">
+                                    <i class="bi bi-x-circle me-1"></i> Cancel
+                                </button>
+                                <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                                    @if (isSubmitting)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-1"></span>
+                                    }
+                                    <i class="bi bi-check-circle me-1"></i> Update
+                                </button>
+                            </div>
+                        </EditForm>
+                    }
+                </div>
             </div>
-        }
+        </div>
     </div>
 </div>
 
