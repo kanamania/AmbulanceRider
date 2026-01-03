@@ -23,7 +23,35 @@ public class PricingController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var prices = await _pricingRepo.GetAllAsync();
-        return Ok(prices);
+        
+        var dtos = prices.Select(p => new PricingMatrixDto
+        {
+            Id = p.Id,
+            Name = p.Region != null ? $"{p.Name} - {p.Region.Name}" : p.Name,
+            Description = p.Description,
+            MinWeight = p.MinWeight,
+            MaxWeight = p.MaxWeight,
+            MinHeight = p.MinHeight,
+            MaxHeight = p.MaxHeight,
+            MinLength = p.MinLength,
+            MaxLength = p.MaxLength,
+            MinWidth = p.MinWidth,
+            MaxWidth = p.MaxWidth,
+            BasePrice = p.BasePrice,
+            TaxRate = p.TaxRate,
+            TotalPrice = p.TotalPrice,
+            RegionId = p.RegionId,
+            RegionName = p.Region?.Name,
+            IsDefault = p.IsDefault,
+            CompanyId = p.CompanyId,
+            CompanyName = p.Company?.Name,
+            VehicleTypeId = p.VehicleTypeId,
+            VehicleTypeName = p.VehicleType?.Name,
+            TripTypeId = p.TripTypeId,
+            TripTypeName = p.TripType?.Name
+        });
+        
+        return Ok(dtos);
     }
 
     [HttpGet("{id}")]
