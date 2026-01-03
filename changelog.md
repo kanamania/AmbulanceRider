@@ -1,6 +1,12 @@
 # Changelog
 
-## [0.0.25] - 2025-12-10T05:49:00+03:00
+## [0.0.26] - 2026-01-03T12:06:00+03:00
+
+### Fixed
+- Fixed "Invalid status transition" error in trip status update API by correcting the permission validation logic in IsValidStatusTransition method. The original logic incorrectly required both admin and creator permissions instead of allowing either admin OR creator to perform transitions.
+
+### Technical Details
+- Updated TripService.IsValidStatusTransition to use proper OR logic: ((t.Item2 && isAdminOrDispatcher) || (t.Item3 && isCreator)) instead of incorrect AND logic
 
 ### Changed
 - Upgraded to .NET 10.0 across all projects (API, Blazor WebAssembly)

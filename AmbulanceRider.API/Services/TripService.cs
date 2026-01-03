@@ -636,8 +636,7 @@ public class TripService : ITripService
         {
             return allowedTransitions.Any(t => 
                 t.Item1 == newStatus && 
-                (t.Item2 || !isAdminOrDispatcher) &&   // If transition requires admin/dispatcher, check if user is one
-                (t.Item3 || isCreator)                 // If transition requires creator, check if user is the creator
+                ((t.Item2 && isAdminOrDispatcher) || (t.Item3 && isCreator))
             );
         }
 
