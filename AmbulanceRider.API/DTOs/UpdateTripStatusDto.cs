@@ -9,4 +9,6 @@ public class UpdateTripStatusDto
     public string? Notes { get; set; }
     public string? RejectionReason { get; set; }
     public bool ForceComplete { get; set; }
+    public int? VehicleId { get; set; }
+    public Guid? DriverId { get; set; }
 }

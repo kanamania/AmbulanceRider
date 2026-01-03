@@ -312,7 +312,25 @@ public class TripsController : ControllerBase
             }
 
             var isAdminOrDispatcher = User.IsInRole("Admin") || User.IsInRole("Dispatcher");
-            var trip = await _tripService.UpdateTripStatusAsync(id, updateDto, userId, isAdminOrDispatcher);
+
+            TripDto trip;
+            if (updateDto.Status == TripStatus.Approved)
+            {
+                // Use the approve callback for approval
+                var approveDto = new ApproveTripDto
+                {
+                    Approve = true,
+                    VehicleId = updateDto.VehicleId,
+                    DriverId = (Guid)updateDto.DriverId!,
+                    RejectionReason = null
+                };
+                trip = await _tripService.ApproveTripAsync(id, approveDto, userId);
+            }
+            else
+            {
+                trip = await _tripService.UpdateTripStatusAsync(id, updateDto, userId, isAdminOrDispatcher);
+            }
+
             return Ok(trip);
         }
         catch (KeyNotFoundException ex)
