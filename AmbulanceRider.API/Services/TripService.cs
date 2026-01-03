@@ -15,6 +15,8 @@ public class TripService : ITripService
     private readonly IRouteOptimizationService _routeOptimizationService;
     private readonly IPricingMatrixRepository _pricingRepo;
     private readonly IGeocodingService _geocodingService;
+    private readonly ITripTypeRepository _tripTypeRepository;
+    private readonly ITripTypeAttributeRepository _tripTypeAttributeRepository;
 
     public TripService(
         ITripRepository tripRepository,
@@ -25,7 +27,9 @@ public class TripService : ITripService
         INotificationService notificationService,
         IRouteOptimizationService routeOptimizationService,
         IPricingMatrixRepository pricingRepo,
-        IGeocodingService geocodingService)
+        IGeocodingService geocodingService,
+        ITripTypeRepository tripTypeRepository,
+        ITripTypeAttributeRepository tripTypeAttributeRepository)
     {
         _tripRepository = tripRepository;
         _vehicleRepository = vehicleRepository;
@@ -36,6 +40,8 @@ public class TripService : ITripService
         _routeOptimizationService = routeOptimizationService;
         _pricingRepo = pricingRepo;
         _geocodingService = geocodingService;
+        _tripTypeRepository = tripTypeRepository;
+        _tripTypeAttributeRepository = tripTypeAttributeRepository;
     }
 
     public async Task<IEnumerable<TripDto>> GetAllTripsAsync()
@@ -139,31 +145,62 @@ public class TripService : ITripService
             Creator = creator
         };
 
-        PricingMatrix? pricing = null;
-        
-        if (!string.IsNullOrEmpty(fromRegion) && !string.IsNullOrEmpty(toRegion) && 
-            string.Equals(fromRegion, toRegion, StringComparison.OrdinalIgnoreCase))
+        // Handle Parcel Delivery pricing from parcel_size attribute
+        if (createTripDto.TripTypeId.HasValue && createTripDto.AttributeValues != null)
         {
-            pricing = await _pricingRepo.GetByRegionAndDimensionsAsync(
-                fromRegion,
+            var tripType = await _tripTypeRepository.GetByIdAsync(createTripDto.TripTypeId.Value);
+            if (tripType != null && tripType.Name == "Parcel Delivery")
+            {
+                foreach (var attr in createTripDto.AttributeValues)
+                {
+                    var tripTypeAttr = await _tripTypeAttributeRepository.GetByIdAsync(attr.TripTypeAttributeId);
+                    if (tripTypeAttr != null && tripTypeAttr.Name == "parcel_size")
+                    {
+                        if (int.TryParse(attr.Value, out int pricingMatrixId))
+                        {
+                            var pricingMatrix = await _pricingRepo.GetByIdAsync(pricingMatrixId);
+                            if (pricingMatrix != null)
+                            {
+                                trip.PricingMatrixId = pricingMatrixId;
+                                trip.BasePrice = pricingMatrix.BasePrice;
+                                trip.TaxAmount = pricingMatrix.BasePrice * pricingMatrix.TaxRate;
+                                trip.TotalPrice = pricingMatrix.TotalPrice;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!trip.PricingMatrixId.HasValue)
+        {
+            PricingMatrix? pricing = null;
+            
+            if (!string.IsNullOrEmpty(fromRegion) && !string.IsNullOrEmpty(toRegion) && 
+                string.Equals(fromRegion, toRegion, StringComparison.OrdinalIgnoreCase))
+            {
+                pricing = await _pricingRepo.GetByRegionAndDimensionsAsync(
+                    fromRegion,
+                    createTripDto.Weight,
+                    createTripDto.Height,
+                    createTripDto.Length,
+                    createTripDto.Width);
+            }
+            
+            pricing ??= await _pricingRepo.GetDefaultByDimensionsAsync(
                 createTripDto.Weight,
                 createTripDto.Height,
                 createTripDto.Length,
                 createTripDto.Width);
-        }
-        
-        pricing ??= await _pricingRepo.GetDefaultByDimensionsAsync(
-            createTripDto.Weight,
-            createTripDto.Height,
-            createTripDto.Length,
-            createTripDto.Width);
 
-        if (pricing != null)
-        {
-            trip.PricingMatrixId = pricing.Id;
-            trip.BasePrice = pricing.BasePrice;
-            trip.TaxAmount = pricing.BasePrice * pricing.TaxRate;
-            trip.TotalPrice = pricing.TotalPrice;
+            if (pricing != null)
+            {
+                trip.PricingMatrixId = pricing.Id;
+                trip.BasePrice = pricing.BasePrice;
+                trip.TaxAmount = pricing.BasePrice * pricing.TaxRate;
+                trip.TotalPrice = pricing.TotalPrice;
+            }
         }
 
         try

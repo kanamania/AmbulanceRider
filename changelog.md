@@ -1,6 +1,14 @@
 # Changelog
 
-## [0.0.26] - 2026-01-03T12:06:00+03:00
+## [0.0.27] - 2026-01-03T12:28:00+03:00
+
+### Added
+- Parcel Delivery pricing logic: On trip create, if trip type is "Parcel Delivery", the system now sets PricingMatrixId from the dynamic attribute value of "parcel_size" and calculates pricing accordingly, bypassing dimension-based pricing.
+
+### Technical Details
+- Modified TripService.CreateTripAsync to inject ITripTypeRepository and ITripTypeAttributeRepository
+- Added logic to check TripType name and parse parcel_size attribute value as PricingMatrixId
+- Wrapped dimension-based pricing logic in condition to skip if PricingMatrixId is already set
 
 ### Fixed
 - Fixed "Invalid status transition" error in trip status update API by correcting the permission validation logic in IsValidStatusTransition method. The original logic incorrectly required both admin and creator permissions instead of allowing either admin OR creator to perform transitions.
